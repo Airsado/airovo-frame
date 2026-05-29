@@ -1,0 +1,13 @@
+{
+  "extends": "@airovo/typescript-config/base.json",
+  "include": ["."],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "paths": {
+      "@airovo/uikit-vue": ["./src/index.ts"],
+      "@airovo/uikit-vue/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    }
+  }
+}

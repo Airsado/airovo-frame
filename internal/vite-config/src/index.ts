@@ -1,0 +1,1 @@
+export { defineViteConfig, type ViteConfig } from './config.js';

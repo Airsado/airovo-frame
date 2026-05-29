@@ -1,0 +1,17 @@
+{
+    "name": "@airovo/shared",
+    "version": "0.0.0",
+    "exports": {
+        "./utils": "./src/utils/index.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\""
+    },
+    "devDependencies": {
+        "@vue/tsconfig": "^0.9.1",
+        "@airovo/typescript-config": "workspace:*",
+        "@airovo/vite-config": "workspace:*",
+        "typescript": "~6.0.2"
+    }
+}
