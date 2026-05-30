@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "packages/core/*"
   - "packages/ui-kit/*"
   - "internal/*"
   - "app-ui/*"

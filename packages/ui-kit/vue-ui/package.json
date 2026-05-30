@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "exports": {
     ".": "./src/index.ts",
+    "./*": "./src/*",
     "./styles": "./src/styles/globals.css",
     "./style.css": "./src/styles/globals.css"
   },

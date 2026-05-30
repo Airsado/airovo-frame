@@ -1,0 +1,9 @@
+{
+    "name": "@airovo/config",
+    "version": "0.0.0",
+    "exports": {},
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\""
+    }
+}
