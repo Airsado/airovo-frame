@@ -14,20 +14,24 @@
   "devDependencies": {
     "@airovo/typescript-config": "workspace:*",
     "@airovo/vite-config": "workspace:*",
-    "@types/node": "^24.12.3",
-    "@vitejs/plugin-vue": "^6.0.6",
-    "@vue/tsconfig": "^0.9.1",
-    "typescript": "~6.0.2",
-    "vite": "^8.0.12",
-    "vue-tsc": "^3.2.8"
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/tsconfig": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
   },
   "dependencies": {
+    "@airovo/shared": "workspace:*",
     "@lucide/vue": "^1.17.0",
+    "@radix-icons/vue": "^1.0.0",
     "@vueuse/core": "^14.3.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-vue-next": "^1.0.0",
     "radix-ui": "^1.4.3",
     "reka-ui": "^2.9.8",
     "tailwind-merge": "^2.6.0",
-    "vue": "^3.5.34"
+    "vue": "catalog:"
   }
 }
