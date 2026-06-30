@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "vueCompilerOptions": {
+    "strictTemplates": true
+  },
   "compilerOptions": {
     "composite": false,
     "declaration": true,
@@ -16,10 +19,17 @@
     "skipLibCheck": true,
     "strict": true,
     "erasableSyntaxOnly": true,
-    "types": ["node", "vite/client"],
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "paths": {
-      "@/*": ["../../packages/ui-kit/vue-ui/src/*"]
+      "@/*": [
+        "../../packages/ui-kit/vue-ui/src/*"
+      ]
     }
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
