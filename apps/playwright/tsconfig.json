@@ -1,7 +1,4 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  "extends": "@airovo/typescript-config/base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

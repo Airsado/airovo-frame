@@ -1,23 +1,11 @@
 
-import type { Plugin, UserConfig } from 'vite';
-import { resolve } from 'node:path';
+import type { UserConfig } from 'vite';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
-/** 自动在 CSS 入口注入 @import "@airovo/uikit-vue/style.css" */
-function autoTailwindImport(): Plugin {
-    return {
-        name: 'airovo:auto-tailwind-import',
-        enforce: 'pre',
-        transform(code, id) {
-            if (id.endsWith('.css') && !id.includes('node_modules')) {
-                if (!code.includes('@import "@airovo/uikit-vue/style.css"') && !code.includes('@import "@airovo/uikit-vue/style.css"')) {
-                    return { code: `@import "@airovo/uikit-vue/style.css";\n${code}`, map: null };
-                }
-            }
-        },
-    };
-}
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export interface ViteConfig extends UserConfig {
     /**
@@ -58,15 +46,14 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
         resolve: {
             alias: {
                 '#': resolve(process.cwd(), 'src'),
+                '@': resolve(__dirname, '../../../packages/ui-kit/vue-ui/src'),
                 ...(appResolve?.alias as Record<string, string>),
             },
             ...appResolve,
         },
         plugins: [
-            autoTailwindImport(),
             vue(),
             tailwindcss(),
-            // appConfigPlugin({ envPrefixes: ['VITE_'] }),
             ...appPlugins,
         ],
         ...restConfig,

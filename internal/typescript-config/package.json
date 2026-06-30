@@ -7,6 +7,9 @@
     "./base.json": "./base.json",
     "./vite.json": "./vite.json"
   },
+  "dependencies": {
+    "@types/node": "catalog:"
+  },
   "publishConfig": {
     "access": "public"
   }

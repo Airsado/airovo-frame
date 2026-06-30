@@ -9,19 +9,20 @@
         "./config": "./dist/config.js"
     },
     "scripts": {
-        "build": "tsup src/index.ts src/config.ts --format esm --clean"
+        "build": "tsup src/index.ts src/config.ts --format esm --dts --tsconfig tsconfig.build.json --clean"
     },
     "dependencies": {
-        "@tailwindcss/vite": "^4.3.0",
-        "@types/node": "^24.12.3",
-        "@vitejs/plugin-vue": "^6.0.6",
-        "@vue/tsconfig": "^0.9.1",
-        "tailwindcss": "^4.3.0",
-        "vite": "^8.0.12"
+        "@tailwindcss/vite": "catalog:",
+        "@vitejs/plugin-vue": "catalog:",
+        "@vue/tsconfig": "catalog:",
+        "tailwindcss": "catalog:",
+        "vite": "catalog:"
     },
     "devDependencies": {
+        "@airovo/typescript-config": "workspace:^",
+        "@types/node": "catalog:",
         "tsup": "^8.4.0",
-        "typescript": "~6.0.2",
-        "vue-tsc": "^3.2.8"
+        "typescript": "catalog:",
+        "vue-tsc": "catalog:"
     }
 }

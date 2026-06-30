@@ -14,7 +14,12 @@
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "erasableSyntaxOnly": true,
+    "types": ["node", "vite/client"],
+    "paths": {
+      "@/*": ["../../packages/ui-kit/vue-ui/src/*"]
+    }
   },
   "exclude": ["node_modules"]
 }

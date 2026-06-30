@@ -5,3 +5,22 @@ packages:
   - "packages/ui-kit/*"
   - "internal/*"
   - "app-ui/*"
+
+catalog:
+  # Vue 生态
+  vue: ^3.5.34
+  "@vitejs/plugin-vue": ^6.0.6
+  "@vue/tsconfig": ^0.9.1
+  vue-tsc: ^3.2.8
+
+  # Vite 生态
+  vite: ^8.0.12
+  tailwindcss: ^4.3.0
+  "@tailwindcss/vite": ^4.3.0
+
+  # TypeScript
+  typescript: ~6.0.2
+  "@types/node": ^24.12.4
+
+  #图标
+  "@iconify/vue": ^4.1.0

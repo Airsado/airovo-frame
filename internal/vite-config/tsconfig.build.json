@@ -1,0 +1,6 @@
+{
+  "extends": "@airovo/typescript-config/base.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0"
+  }
+}

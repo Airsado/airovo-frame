@@ -9,12 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.34"
+    "vue": "catalog:"
   },
   "devDependencies": {
-    "@airovo/vite-config": "workspace:*",
+    "@airovo/layouts": "workspace:*",
+    "@airovo/typescript-config": "workspace:^",
     "@airovo/uikit-vue": "workspace:*",
-    "vite": "^8.0.12",
-    "vue-tsc": "^3.2.8"
+    "@airovo/vite-config": "workspace:*",
+    "@types/node": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
   }
 }
