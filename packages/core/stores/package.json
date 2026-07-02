@@ -18,6 +18,7 @@
     },
     "dependencies": {
         "@airovo/config": "workspace:*",
+        "@vueuse/core": "catalog:",
         "pinia": "catalog:",
         "pinia-plugin-persistedstate": "catalog:",
         "vue": "catalog:"

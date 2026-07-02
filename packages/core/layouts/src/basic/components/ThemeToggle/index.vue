@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { Button } from '@airovo/uikit-vue'
 import { Icon } from '@airovo/shared/icons'
 import { computed } from 'vue'
@@ -7,7 +7,6 @@ import { useThemeStore } from '@airovo/stores'
 defineOptions({ name: 'ThemeToggle' })
 
 const themeStore = useThemeStore()
-themeStore.init()
 
 const icon = computed(() => {
     if (themeStore.theme === 'system') return 'lucide:monitor'

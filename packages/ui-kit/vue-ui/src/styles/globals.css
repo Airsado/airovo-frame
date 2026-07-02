@@ -51,4 +51,48 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Dark mode overrides — when <html> has the `dark` class
+     (toggled by useColorMode in the theme store), these variables
+     take effect and the Tailwind tools (`bg-card`,
+     `text-muted-foreground`, ...) automatically pick up the
+     darker palette. */
+  .dark {
+    --color-background: hsl(0 0% 7%);
+    --color-foreground: hsl(0 0% 98%);
+
+    --color-card: hsl(0 0% 9%);
+    --color-card-foreground: hsl(0 0% 98%);
+
+    --color-popover: hsl(0 0% 9%);
+    --color-popover-foreground: hsl(0 0% 98%);
+
+    --color-primary: hsl(0 0% 98%);
+    --color-primary-foreground: hsl(0 0% 9%);
+
+    --color-secondary: hsl(0 0% 14.9%);
+    --color-secondary-foreground: hsl(0 0% 98%);
+
+    --color-muted: hsl(0 0% 14.9%);
+    --color-muted-foreground: hsl(0 0% 63.9%);
+
+    --color-accent: hsl(0 0% 14.9%);
+    --color-accent-foreground: hsl(0 0% 98%);
+
+    --color-destructive: hsl(0 62.8% 30.6%);
+    --color-destructive-foreground: hsl(0 0% 98%);
+
+    --color-border: hsl(0 0% 14.9%);
+    --color-input: hsl(0 0% 14.9%);
+    --color-ring: hsl(0 0% 83.1%);
+
+    --color-sidebar: hsl(240 5.9% 10%);
+    --color-sidebar-foreground: hsl(240 4.8% 95.9%);
+    --color-sidebar-primary: hsl(224.3 76.3% 48%);
+    --color-sidebar-primary-foreground: hsl(0 0% 100%);
+    --color-sidebar-accent: hsl(240 3.7% 15.9%);
+    --color-sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+    --color-sidebar-border: hsl(240 3.7% 15.9%);
+    --color-sidebar-ring: hsl(217.2 91.2% 59.8%);
+  }
 }

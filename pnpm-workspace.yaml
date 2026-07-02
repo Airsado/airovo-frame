@@ -31,3 +31,6 @@ catalog:
   # Pinia 生态
   pinia: ^3.0.4
   "pinia-plugin-persistedstate": ^4.1.3
+
+  # 通用工具
+  "@vueuse/core": ^14.3.0
