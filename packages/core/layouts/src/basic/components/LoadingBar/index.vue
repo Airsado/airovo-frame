@@ -1,73 +1,51 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 
 /**
- * Top-of-page progress bar driven by `progress` (0-100).
+ * Top-of-page progress bar.
  *
- * - `progress: 0`   → width: 0%   (invisible, fully transparent)
- * - `progress: 100` → width: 100% (full)
- * - Width animates via CSS transition (200ms ease-out) so progress
- *   bumps (e.g. 0 → 30 → 70 → 100) are visually smooth.
- * - When the bar reaches 100% it briefly holds, then fades out
- *   (opacity 200ms) and resets to 0% in the same transition — the
- *   user sees a clean "filled then dissolved" animation instead of a
- *   sudden disappearance.
+ * - `progress: 0`   → bar is **invisible** (opacity 0). No
+ *   indeterminate pulse, no strip — the bar simply doesn't exist
+ *   on the page when nothing is loading.
+ * - `progress: 1..100` → bar fades in (opacity 250ms), width
+ *   animates from current to `progress`% (200ms). The user sees
+ *   a real, deterministic progress fill.
+ * - `progress: 100` then `0` → bar fills to 100%, holds briefly,
+ *   then fades out (opacity 250ms) and the inline width collapses
+ *   to 0 in the same transition — clean "filled then dissolved"
+ *   feedback instead of a sudden jump.
  *
- * Renders unconditionally — always in the DOM, hidden by 0% width
- * + 0 opacity when idle.
+ * `pointer-events: none` keeps the bar from intercepting clicks.
  */
 const props = defineProps<{
-    /** Current progress, 0-100. */
+    /** Current progress, 0-100. Drives the fill width. */
     progress?: number
 }>()
 
-const width = ref(0)
-const opacity = ref(0)
-
-watch(
-    () => props.progress ?? 0,
-    (v) => {
-        const clamped = Math.min(100, Math.max(0, v))
-        if (clamped === 0) {
-            // Reset: hide the bar
-            opacity.value = 0
-        } else {
-            // Active: show the bar at the requested width
-            opacity.value = 1
-            width.value = clamped
-        }
-    },
-    { immediate: true },
-)
+const progressValue = computed(() => Math.min(100, Math.max(0, props.progress ?? 0)))
+const isActive = computed(() => progressValue.value > 0)
+const fillWidth = computed(() => `${progressValue.value}%`)
 </script>
 
 <template>
     <div
-        class=""
-        style="position: fixed; top: 0px; left: 0px; height: 2px; background: transparent; z-index: 2147483647; width: 100%; pointer-events: none;"
+        v-show="isActive"
+        class="loading-bar-root"
+        style="position: fixed; top: 0px; left: 0; height: 2px; background: transparent; z-index: 2147483647; width: 100%; pointer-events: none;"
     >
         <div
-            class=""
+            class="loading-bar-fill"
             :style="{
+                position: 'absolute',
+                top: 0,
+                left: 0,
                 height: '100%',
                 background: 'var(--muted-foreground, hsl(0 0% 45.1%))',
-                width: width + '%',
-                opacity: opacity,
-                color: 'var(--muted-foreground, hsl(0 0% 45.1%))',
-                transition: 'width 200ms ease-out, opacity 250ms ease-in',
+                width: fillWidth,
+                opacity: 1,
+                // boxShadow: '0 0 10px var(--muted-foreground, hsl(0 0% 45.1%)), 0 0 5px var(--muted-foreground, hsl(0 0% 45.1%))',
+                transition: 'width 200ms ease-out',
             }"
-        >
-            <div
-                :style="{
-                    boxShadow: '0 0 10px var(--muted-foreground, hsl(0 0% 45.1%)), 0 0 10px var(--muted-foreground, hsl(0 0% 45.1%))',
-                    width: '5%',
-                    opacity: 1,
-                    position: 'absolute',
-                    height: '100%',
-                    transform: 'rotate(2deg) translate(0px, -2px)',
-                    left: '-5.5%',
-                }"
-            />
-        </div>
+        />
     </div>
 </template>

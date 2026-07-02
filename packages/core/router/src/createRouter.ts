@@ -80,17 +80,24 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
     })
 
     // Progress bar state — `progress` is 0-100. Renders unconditionally
-    // in `BasicLoadingBar`; the bar is hidden by 0% width when idle.
-    // The framework animates it through three phases on every navigation:
-    //   t=0:   jump to 30  (instantly visible)
-    //   mid:   bump to 70  (engagement)
-    //   done:  jump to 100 (after a min-duration so the bar feels real)
-    //   600ms: reset to 0
+    // in `BasicLoadingBar`; the bar shows an indeterminate sliding
+    // strip when `progress` is 0, and a determinate fill when > 0.
+    //
+    // Animation phases per navigation:
+    //   t=0:    progress = 30  (jump to start filling)
+    //   t=200ms: progress = 70  (bump to simulate progress)
+    //   done:    progress = 100 (afterEach fires)
+    //   t=350ms: progress = 0   (reset back to indeterminate)
+    //
+    // All state mutations are wrapped in try/catch — a thrown error
+    // in the app's beforeEach or in our own animation logic must not
+    // leave the bar stuck mid-fill or block subsequent navigations.
     const progress = ref(0)
     let resetTimer: ReturnType<typeof setTimeout> | null = null
     let midTimer: ReturnType<typeof setTimeout> | null = null
+    let inFlight = false
 
-    function startProgress(): void {
+    function clearTimers(): void {
         if (resetTimer) {
             clearTimeout(resetTimer)
             resetTimer = null
@@ -99,28 +106,49 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
             clearTimeout(midTimer)
             midTimer = null
         }
-        progress.value = 30
-        // Bump to 70 after a short delay to simulate real progress.
-        midTimer = setTimeout(() => {
-            if (progress.value < 90) progress.value = 70
-        }, 200)
+    }
+
+    function startProgress(): void {
+        try {
+            clearTimers()
+            inFlight = true
+            progress.value = 30
+            midTimer = setTimeout(() => {
+                // Only bump if we're still in the same navigation;
+                // a quick nav that already finished will have reset
+                // progress to 0, and the indeterminate strip is back.
+                if (inFlight && progress.value < 90) progress.value = 70
+            }, 200)
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[router] startProgress failed:', err)
+            // Park the bar at 99% on error so the user can see
+            // "something went wrong, the page is stuck" — never reset
+            // to 0 (which would hide the failure) and never complete
+            // to 100% (which would falsely signal success).
+            progress.value = 99
+            inFlight = false
+        }
     }
 
     function finishProgress(): void {
-        if (midTimer) {
-            clearTimeout(midTimer)
-            midTimer = null
-        }
-        // Reach 100% so the bar visibly fills. Hold for ~250ms (the
-        // opacity transition) so the user registers "loaded", then
-        // reset to 0 — the LoadingBar component fades opacity out
-        // during the same transition.
-        progress.value = 100
-        if (resetTimer) clearTimeout(resetTimer)
-        resetTimer = setTimeout(() => {
+        try {
+            clearTimers()
+            inFlight = false
+            // Reach 100% so the bar visibly fills. Hold for ~250ms
+            // so the user registers "loaded", then reset to 0 —
+            // the LoadingBar component's `v-show` removes it from
+            // the layout immediately when progress becomes 0.
+            progress.value = 100
+            resetTimer = setTimeout(() => {
+                progress.value = 0
+                resetTimer = null
+            }, 250)
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[router] finishProgress failed:', err)
             progress.value = 0
-            resetTimer = null
-        }, 350)
+        }
     }
 
     // Framework's beforeEach runs first. Starts the progress animation.
