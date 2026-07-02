@@ -1,0 +1,12 @@
+{
+    "sidebar": {
+        "navigation": "Navigation"
+    },
+    "header": {
+        "home": "Home",
+        "dataCenter": "Data Center"
+    },
+    "common": {
+        "toggle": "Toggle"
+    }
+}

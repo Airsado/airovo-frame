@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { BasicLayout } from '@airovo/layouts'
+import { RouterView } from 'vue-router'
+import { appRouter } from './router'
 </script>
 
 <template>
-  <HelloWorld />
+    <BasicLayout :menus="appRouter.menus.value">
+        <RouterView />
+    </BasicLayout>
 </template>

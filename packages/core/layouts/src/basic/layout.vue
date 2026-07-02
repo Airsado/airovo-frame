@@ -1,88 +1,73 @@
 <script lang="ts" setup>
-import {
-    SidebarInset,
-    SidebarProvider,
-} from '@airovo/uikit-vue';
+import { SidebarInset, SidebarProvider, ScrollArea } from '@airovo/uikit-vue'
+import { BasicHeader, BasicSidebar } from './index'
+import type { SidebarMenuItemType } from './sidebar/types'
 
-import { BasicHeader, BasicSidebar } from './index';
-import { ref } from 'vue';
+defineOptions({ name: 'BasicLayout' })
 
-
-
-defineOptions({ name: 'BasicLayout' });
-
-
-const data = ref({
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
+withDefaults(
+    defineProps<{
+        menus?: SidebarMenuItemType[]
+        siteTitle?: string
+        siteLogo?: string
+        showSearch?: boolean
+        showMessages?: boolean
+        showTheme?: boolean
+        showLanguage?: boolean
+    }>(),
+    {
+        menus: () => [] as SidebarMenuItemType[],
+        siteTitle: 'AirOvO',
+        siteLogo: 'https://www.airsado.cn/usr/uploads/avatar_24.jpg',
+        showSearch: true,
+        showMessages: true,
+        showTheme: true,
+        showLanguage: true,
     },
-    navMain: [
-        {
-            title: "仪表盘",
-            url: "#",
-            icon: "lucide:activity",
-            items: [
-                {
-                    title: "History",
-                    url: "#",
-                    icon: "lucide:clock",
-                },
-                {
-                    title: "Starred",
-                    url: "#",
-                    icon: "lucide:star",
-                },
-                {
-                    title: "Settings",
-                    url: "#",
-                    icon: "lucide:settings",
-                },
-            ],
-        },
-        {
-            title: "模块",
-            url: "#",
-            icon: "lucide:mountain",
-            items: [
-                {
-                    title: "Genesis",
-                    url: "#",
-                    icon: "lucide:box",
-                },
-                {
-                    title: "Explorer",
-                    url: "#",
-                    icon: "lucide:compass",
-                },
-                {
-                    title: "Quantum",
-                    url: "#",
-                    icon: "lucide:cpu",
-                },
-            ],
-        }
-    ]
-})
-
+)
 </script>
 
 <template>
-    <div class="[--header-height:calc(--spacing(14))]">
-        <SidebarProvider class="flex flex-col">
-            <BasicHeader />
-            <div class="flex flex-1 overflow-hidden">
-                <BasicSidebar :menus="data.navMain" collapsible="icon" />
-                <SidebarInset class="rounded-tl-lg bg-background overflow-auto">
-                    <div class="flex flex-1 flex-col gap-4 p-4">
-                        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                            <div class="bg-muted/50 aspect-video rounded-xl" />
-                            <div class="bg-muted/50 aspect-video rounded-xl" />
-                            <div class="bg-muted/50 aspect-video rounded-xl" />
+    <div class="h-svh overflow-hidden [--header-height:calc(--spacing(14))]">
+        <SidebarProvider class="flex h-full flex-col">
+            <BasicHeader
+                :title="siteTitle"
+                :logo="siteLogo"
+                :menus="menus"
+                :show-search="showSearch"
+                :show-messages="showMessages"
+                :show-theme="showTheme"
+                :show-language="showLanguage"
+            />
+            <div class="flex flex-1 min-h-0">
+                <BasicSidebar :menus="menus" collapsible="icon" />
+                <SidebarInset
+                    class="rounded-tl-lg bg-background sm:border-l sm:border-t border-border box-shadow-[inset_0_1px_0_0_var(--border)] sm:ml-1"
+                >
+                    <main class="flex min-h-0 flex-1 flex-col">
+                        <div
+                            class="shrink-0 pt-3 pb-2.5 px-3 sm:pt-5 sm:pb-3"
+                        >
+                            <div
+                                class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4"
+                            >
+                                <div class="min-w-0 flex-1">
+                                    <h2
+                                        class="truncate text-base font-bold tracking-tight sm:text-lg"
+                                    >
+                                        <slot name="pageTitle">概览</slot>
+                                    </h2>
+                                </div>
+                                <slot name="pageActions" />
+                            </div>
                         </div>
-                        <div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-                    </div>
+
+                        <ScrollArea
+                            class="flex-1 min-w-0 min-h-0 overflow-x-hidden sm:px-4 sm:pt-1.5 sm:pb-4"
+                        >
+                            <slot />
+                        </ScrollArea>
+                    </main>
                 </SidebarInset>
             </div>
         </SidebarProvider>

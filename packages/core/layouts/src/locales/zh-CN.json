@@ -1,0 +1,12 @@
+{
+    "sidebar": {
+        "navigation": "导航"
+    },
+    "header": {
+        "home": "首页",
+        "dataCenter": "数据中心"
+    },
+    "common": {
+        "toggle": "切换"
+    }
+}
