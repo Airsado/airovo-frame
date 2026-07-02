@@ -20,6 +20,6 @@ defineProps<{
                 :src="logo || 'https://www.airsado.cn/usr/uploads/avatar_24.jpg'"
             />
         </div>
-        <span class="max-w-[12rem] truncate text-foreground hidden sm:block">{{ title || 'airovo-frame' }}</span>
+        <span class="max-w-[12rem] truncate text-foreground hidden sm:block">{{ title || 'AirOvO' }}</span>
     </a>
 </template>

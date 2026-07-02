@@ -64,6 +64,29 @@ export interface AppRouter {
     router: import('vue-router').Router
     /** Reactive menu list — updates when dynamic menus are refreshed. */
     menus: import('vue').Ref<MenuItem[]>
+    /**
+     * Add a `beforeEach` guard to the underlying router. Runs after the
+     * framework's loading-bar guard, so app guards can call `next(false)`
+     * to cancel and the bar will still reset via `afterEach`.
+     *
+     * Returns a remove function — same API as `router.beforeEach`.
+     */
+    beforeEach: (
+        guard: import('vue-router').NavigationGuardWithThis<undefined>,
+    ) => ReturnType<import('vue-router').Router['beforeEach']>
+    /**
+     * Add an `afterEach` hook. Runs after the framework's loading-bar
+     * reset hook.
+     */
+    afterEach: (
+        hook: import('vue-router').NavigationHookAfter,
+    ) => ReturnType<import('vue-router').Router['afterEach']>
     /** Trigger a re-fetch of dynamic menus and re-merge. */
     refreshMenus: () => Promise<void>
+    /**
+     * Reactive progress (0-100) for the loading bar. Apps bind a
+     * progress bar to it. Always rendered — width: 0% hides the bar
+     * when idle.
+     */
+    progress: import('vue').Ref<number>
 }

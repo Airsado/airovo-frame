@@ -40,7 +40,7 @@ const props = withDefaults(defineProps<SideBarPropsType>(), {
 const { t } = useI18n()
 const route = useRoute() ?? { path: '' }
 const router = useRouter()
-const { state, isMobile } = useSidebar()
+const { state, isMobile, setOpenMobile } = useSidebar()
 
 function isCurrent(url: string): boolean {
     if (!url) return false
@@ -71,9 +71,12 @@ function onParentToggle(item: SidebarMenuItemType, nextOpen: boolean): void {
     if (nextOpen && item.url && !isInScope(item)) router.push(item.url)
 }
 
-// Flyout navigation in collapsed mode: clicking a sub-item navigates.
-function navigateAndClose(item: SidebarMenuItemType, subUrl: string): void {
-    router.push(subUrl)
+// Close the sidebar (and any open flyout) when a sub-item is
+// activated. On mobile this closes the Sheet; on desktop-collapsed
+// it closes the parent's Collapsible flyout. Navigation itself goes
+// through the @click RouterLink binding.
+function closeSidebar(item: SidebarMenuItemType): void {
+    if (isMobile.value) setOpenMobile(false)
     openStates.value[item.title] = false
 }
 
@@ -198,7 +201,7 @@ recomputeOpenStates()
                                             >
                                                 <RouterLink
                                                     :to="subItem.url"
-                                                    @click="navigateAndClose(item, subItem.url)"
+                                                    @click="closeSidebar(item)"
                                                 >
                                                     <Icon
                                                         :icon="subItem.icon"

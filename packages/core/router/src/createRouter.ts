@@ -79,7 +79,65 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
         scrollBehavior: () => ({ top: 0 }),
     })
 
+    // Progress bar state — `progress` is 0-100. Renders unconditionally
+    // in `BasicLoadingBar`; the bar is hidden by 0% width when idle.
+    // The framework animates it through three phases on every navigation:
+    //   t=0:   jump to 30  (instantly visible)
+    //   mid:   bump to 70  (engagement)
+    //   done:  jump to 100 (after a min-duration so the bar feels real)
+    //   600ms: reset to 0
+    const progress = ref(0)
+    let resetTimer: ReturnType<typeof setTimeout> | null = null
+    let midTimer: ReturnType<typeof setTimeout> | null = null
+
+    function startProgress(): void {
+        if (resetTimer) {
+            clearTimeout(resetTimer)
+            resetTimer = null
+        }
+        if (midTimer) {
+            clearTimeout(midTimer)
+            midTimer = null
+        }
+        progress.value = 30
+        // Bump to 70 after a short delay to simulate real progress.
+        midTimer = setTimeout(() => {
+            if (progress.value < 90) progress.value = 70
+        }, 200)
+    }
+
+    function finishProgress(): void {
+        if (midTimer) {
+            clearTimeout(midTimer)
+            midTimer = null
+        }
+        // Reach 100% so the bar visibly fills. Hold for ~250ms (the
+        // opacity transition) so the user registers "loaded", then
+        // reset to 0 — the LoadingBar component fades opacity out
+        // during the same transition.
+        progress.value = 100
+        if (resetTimer) clearTimeout(resetTimer)
+        resetTimer = setTimeout(() => {
+            progress.value = 0
+            resetTimer = null
+        }, 350)
+    }
+
+    // Framework's beforeEach runs first. Starts the progress animation.
+    router.beforeEach(() => {
+        startProgress()
+        return true
+    })
+
+    // The app's beforeEach (if provided) runs after the framework's.
+    // It can call `return false` to cancel; the afterEach still runs
+    // and resets the bar via `finishProgress()`.
     if (beforeEach) router.beforeEach(beforeEach)
+
+    // Reset the bar after the navigation commits.
+    router.afterEach(() => {
+        finishProgress()
+    })
 
     async function refreshMenus(): Promise<void> {
         if (!fetchMenus) {
@@ -97,5 +155,15 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
         }
     }
 
-    return { router, menus, refreshMenus }
+    return {
+        router,
+        menus,
+        refreshMenus,
+        progress,
+        // Re-export vue-router's guard-registration API so apps can add
+        // their own guards without touching the router instance
+        // directly. These run AFTER the framework's progress guards.
+        beforeEach: router.beforeEach.bind(router),
+        afterEach: router.afterEach.bind(router),
+    }
 }
