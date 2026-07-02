@@ -40,7 +40,7 @@ const props = withDefaults(defineProps<SideBarPropsType>(), {
 const { t } = useI18n()
 const route = useRoute() ?? { path: '' }
 const router = useRouter()
-const { state } = useSidebar()
+const { state, isMobile } = useSidebar()
 
 function isCurrent(url: string): boolean {
     if (!url) return false
@@ -124,7 +124,7 @@ recomputeOpenStates()
                         </SidebarMenuItem>
 
                         <Collapsible
-                            v-else-if="state === 'expanded'"
+                            v-else-if="state === 'expanded' || isMobile"
                             as-child
                             :open="openStates[item.title]"
                             class="group/collapsible"

@@ -3,7 +3,7 @@ defineOptions({ name: 'DashboardAnalytics' })
 </script>
 
 <template>
-    <div class="space-y-4 p-4 sm:p-0">
+    <div class="space-y-4 p-4 sm:py-4" v-for="item in 4">
         <div class="rounded-md border bg-card p-6 text-card-foreground">
             <p class="text-sm text-muted-foreground">本周访问趋势</p>
             <div class="mt-4 flex h-32 items-end gap-2">
