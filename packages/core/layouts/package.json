@@ -4,15 +4,22 @@
     "exports": {
         ".": "./src/index.ts",
         "./auth": "./src/authentication/index.ts",
-        "./basic": "./src/basic/layout.vue"
+        "./basic": "./src/basic/layout.vue",
+        "./i18n": "./src/i18n.ts",
+        "./locales/zh-CN": "./src/locales/zh-CN.json",
+        "./locales/en-US": "./src/locales/en-US.json"
     },
     "license": "MIT",
     "scripts": {
         "lint": "eslint \"**/*.ts\""
     },
-     "dependencies": {
-        "@airovo/uikit-vue": "workspace:*",
+    "dependencies": {
+        "@airovo/router": "workspace:*",
         "@airovo/shared": "workspace:*",
-        "vue": "catalog:"
+        "@airovo/stores": "workspace:*",
+        "@airovo/uikit-vue": "workspace:*",
+        "vue": "catalog:",
+        "vue-i18n": "catalog:",
+        "vue-router": "catalog:"
     }
 }

@@ -51,6 +51,20 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
             },
             ...appResolve,
         },
+        // Workspace source packages are consumed directly from `src/`
+        // (no build step) — they don't need dep-pre-bundling. Excluding
+        // them also avoids the Vite/rolldown dep-scan trying to resolve
+        // a tsconfig adjacent to each `src/index.ts`, which would fail
+        // for packages that only have a package-root `tsconfig.json`.
+        optimizeDeps: {
+            exclude: [
+                '@airovo/config',
+                '@airovo/layouts',
+                '@airovo/router',
+                '@airovo/stores',
+                '@airovo/uikit-vue',
+            ],
+        },
         plugins: [
             vue(),
             tailwindcss(),

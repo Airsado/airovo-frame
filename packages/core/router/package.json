@@ -1,0 +1,21 @@
+{
+    "name": "@airovo/router",
+    "version": "0.0.0",
+    "exports": {
+        ".": "./src/index.ts",
+        "./createRouter": "./src/createRouter.ts",
+        "./types": "./src/types.ts",
+        "./modules": "./src/modules/index.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\""
+    },
+    "dependencies": {
+        "vue": "catalog:",
+        "vue-router": "catalog:"
+    },
+    "devDependencies": {
+        "@airovo/typescript-config": "workspace:*"
+    }
+}

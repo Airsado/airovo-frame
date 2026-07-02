@@ -9,10 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "catalog:"
+    "@airovo/config": "workspace:*",
+    "@airovo/layouts": "workspace:*",
+    "@airovo/router": "workspace:*",
+    "@airovo/stores": "workspace:*",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
   },
   "devDependencies": {
-    "@airovo/layouts": "workspace:*",
     "@airovo/typescript-config": "workspace:^",
     "@airovo/uikit-vue": "workspace:*",
     "@airovo/vite-config": "workspace:*",

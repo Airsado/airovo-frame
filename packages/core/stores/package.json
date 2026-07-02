@@ -1,7 +1,14 @@
 {
     "name": "@airovo/stores",
     "version": "0.0.0",
-    "exports": {},
+    "exports": {
+        ".": "./src/index.ts",
+        "./preferences": "./src/preferences/index.ts",
+        "./theme": "./src/theme/index.ts",
+        "./i18n": "./src/i18n/index.ts",
+        "./notification": "./src/notification/index.ts",
+        "./persist": "./src/persist.ts"
+    },
     "license": "MIT",
     "scripts": {
         "lint": "eslint \"**/*.ts\""
@@ -10,6 +17,17 @@
         "typescript": "~6.0.2"
     },
     "dependencies": {
-        "pinia": "^3.0.4"
+        "@airovo/config": "workspace:*",
+        "pinia": "catalog:",
+        "pinia-plugin-persistedstate": "catalog:",
+        "vue": "catalog:"
+    },
+    "peerDependencies": {
+        "vue-i18n": "^9.0.0"
+    },
+    "peerDependenciesMeta": {
+        "vue-i18n": {
+            "optional": true
+        }
     }
 }
