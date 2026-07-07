@@ -1,0 +1,30 @@
+{
+    "name": "@airovo/app",
+    "version": "0.0.0",
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\""
+    },
+    "dependencies": {
+        "@airovo/config": "workspace:*",
+        "@airovo/effects": "workspace:*",
+        "@airovo/layouts": "workspace:*",
+        "@airovo/router": "workspace:*",
+        "@airovo/shared": "workspace:*",
+        "@airovo/stores": "workspace:*",
+        "@airovo/uikit-shadcnui": "workspace:*",
+        "@iconify/vue": "catalog:",
+        "nprogress": "catalog:",
+        "pinia": "catalog:",
+        "vue": "catalog:",
+        "vue-i18n": "catalog:",
+        "vue-router": "catalog:"
+    },
+    "devDependencies": {
+        "@airovo/typescript-config": "workspace:*"
+    }
+}
