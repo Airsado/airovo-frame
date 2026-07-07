@@ -1,0 +1,26 @@
+{
+    "name": "@airovo/forms",
+    "version": "0.0.0",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@airovo/uikit-shadcnui": "workspace:*",
+        "@vee-validate/zod": "^4.15.0",
+        "pinia": "catalog:",
+        "vee-validate": "^4.15.0",
+        "vue": "catalog:",
+        "zod": "^3.24.0"
+    },
+    "devDependencies": {
+        "@vue/test-utils": "^2.4.0",
+        "happy-dom": "^15.0.0",
+        "typescript": "~6.0.2",
+        "vitest": "^2.1.0"
+    }
+}
