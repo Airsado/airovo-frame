@@ -1,0 +1,30 @@
+{
+  "name": "__APP_NAME__",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@airovo/app": "workspace:*",
+    "@airovo/forms": "workspace:*",
+    "@airovo/layouts": "workspace:*",
+    "@airovo/shared": "workspace:*",
+    "@airovo/stores": "workspace:*",
+    "@airovo/uikit-shadcnui": "workspace:*",
+    "@airovo/views": "workspace:*",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "@airovo/typescript-config": "workspace:^",
+    "@airovo/vite-config": "workspace:*",
+    "@types/node": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}
