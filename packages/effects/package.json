@@ -1,12 +1,24 @@
 {
     "name": "@airovo/effects",
     "version": "0.0.0",
-    "exports": {},
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts",
+        "./install": "./src/install.ts",
+        "./element-plus": "./src/adapters/element-plus/index.ts",
+        "./naive-ui": "./src/adapters/naive-ui/index.ts"
+    },
     "license": "MIT",
     "scripts": {
         "lint": "eslint \"**/*.ts\""
     },
+    "dependencies": {
+        "@airovo/stores": "workspace:*",
+        "vue": "catalog:",
+        "vue-i18n": "catalog:"
+    },
     "devDependencies": {
-        "typescript": "~6.0.2"
+        "@airovo/typescript-config": "workspace:*",
+        "typescript": "catalog:"
     }
 }
