@@ -7,14 +7,19 @@
         "./theme": "./src/theme/index.ts",
         "./i18n": "./src/i18n/index.ts",
         "./notification": "./src/notification/index.ts",
-        "./persist": "./src/persist.ts"
+        "./persist": "./src/persist.ts",
+        "./auth": "./src/auth/index.ts"
     },
     "license": "MIT",
     "scripts": {
-        "lint": "eslint \"**/*.ts\""
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run"
     },
     "devDependencies": {
-        "typescript": "~6.0.2"
+        "@vue/test-utils": "^2.4.0",
+        "happy-dom": "^15.0.0",
+        "typescript": "~6.0.2",
+        "vitest": "^2.1.0"
     },
     "dependencies": {
         "@airovo/config": "workspace:*",
