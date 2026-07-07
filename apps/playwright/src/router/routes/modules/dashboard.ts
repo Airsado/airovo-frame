@@ -1,18 +1,6 @@
-import type { AgnosticRouteRecord } from '@airovo/router'
+import type { RouteRecordRaw } from 'vue-router'
 
-const Overview = () => import('../../../views/Overview.vue')
-const Analytics = () => import('../../../views/Analytics.vue')
-
-/**
- * Framework-agnostic route record. The vue-router adapter converts this
- * to `RouteRecordRaw` at registration time. The same structure could
- * feed a React Router adapter in the future without changes here.
- *
- * The parent has no `component` — it's purely structural (groups the
- * children for the sidebar). Visiting `/dashboard` redirects to the
- * default child.
- */
-const dashboard: AgnosticRouteRecord = {
+const dashboard: RouteRecordRaw = {
     path: '/dashboard',
     name: 'Dashboard',
     redirect: '/dashboard/overview',
@@ -24,7 +12,7 @@ const dashboard: AgnosticRouteRecord = {
         {
             path: 'overview',
             name: 'DashboardOverview',
-            component: Overview,
+            component: () => import('../../../views/Overview.vue'),
             meta: {
                 title: '概览',
                 icon: 'lucide:layout-dashboard',
@@ -33,10 +21,28 @@ const dashboard: AgnosticRouteRecord = {
         {
             path: 'analytics',
             name: 'DashboardAnalytics',
-            component: Analytics,
+            component: () => import('../../../views/Analytics.vue'),
             meta: {
                 title: '分析',
                 icon: 'lucide:chart-bar',
+            },
+        },
+        {
+            path: 'components',
+            name: 'DashboardComponents',
+            component: () => import('../../../views/ComponentsDemo.vue'),
+            meta: {
+                title: 'app-ui 组件',
+                icon: 'lucide:layout-grid',
+            },
+        },
+        {
+            path: 'aform',
+            name: 'DashboardAForm',
+            component: () => import('../../../views/AFormDemo.vue'),
+            meta: {
+                title: '表单系统',
+                icon: 'lucide:list-checks',
             },
         },
     ],

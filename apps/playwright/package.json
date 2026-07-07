@@ -9,17 +9,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@airovo/config": "workspace:*",
+    "@airovo/app": "workspace:*",
+    "@airovo/app-ui": "workspace:*",
+    "@airovo/forms": "workspace:*",
     "@airovo/layouts": "workspace:*",
-    "@airovo/router": "workspace:*",
+    "@airovo/shared": "workspace:*",
     "@airovo/stores": "workspace:*",
+    "@airovo/views": "workspace:*",
+    "@airovo/router": "workspace:*",
     "pinia": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
   },
   "devDependencies": {
     "@airovo/typescript-config": "workspace:^",
-    "@airovo/uikit-vue": "workspace:*",
+    "@airovo/uikit-shadcnui": "workspace:*",
     "@airovo/vite-config": "workspace:*",
     "@types/node": "catalog:",
     "vite": "catalog:",
