@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button } from '@airovo/uikit-vue'
+import { Button } from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
 import { computed } from 'vue'
 import { useThemeStore } from '@airovo/stores'

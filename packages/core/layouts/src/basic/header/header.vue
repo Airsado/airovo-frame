@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import {
     Separator,
     useSidebar,
@@ -9,7 +11,7 @@ import {
     BreadcrumbList,
     BreadcrumbPage,
     BreadcrumbSeparator,
-} from '@airovo/uikit-vue'
+} from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -24,8 +26,21 @@ import CommandSearch from '../components/CommandSearch/index.vue'
 
 const { isMobile } = useSidebar()
 const { t } = useI18n()
+const route = useRoute()
 
 defineOptions({ name: 'BasicHeader' })
+
+// 动态面包屑
+const breadcrumbs = computed(() => {
+    const matched = route.matched.filter(
+        (item) => item.meta?.title && !item.meta?.hideInMenu,
+    )
+    return matched.map((item, index) => ({
+        title: item.meta.title,
+        path: item.path,
+        isLast: index === matched.length - 1,
+    }))
+})
 
 withDefaults(
     defineProps<{
@@ -71,12 +86,15 @@ withDefaults(
                                     <RouterLink to="/">{{ t('header.home') }}</RouterLink>
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>
-                                    {{ t('header.dataCenter') }}
-                                </BreadcrumbPage>
-                            </BreadcrumbItem>
+                            <template v-for="(crumb, index) in breadcrumbs" :key="crumb.path">
+                                <BreadcrumbSeparator />
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink v-if="!crumb.isLast" as-child>
+                                        <RouterLink :to="crumb.path">{{ crumb.title }}</RouterLink>
+                                    </BreadcrumbLink>
+                                    <BreadcrumbPage v-else>{{ crumb.title }}</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </template>
                         </BreadcrumbList>
                     </Breadcrumb>
                 </span>

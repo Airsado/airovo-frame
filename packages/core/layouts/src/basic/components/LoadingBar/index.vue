@@ -1,51 +1,52 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { watch } from 'vue'
+import NProgress from 'nprogress'
 
 /**
- * Top-of-page progress bar.
+ * NProgress Loading Bar
  *
- * - `progress: 0`   → bar is **invisible** (opacity 0). No
- *   indeterminate pulse, no strip — the bar simply doesn't exist
- *   on the page when nothing is loading.
- * - `progress: 1..100` → bar fades in (opacity 250ms), width
- *   animates from current to `progress`% (200ms). The user sees
- *   a real, deterministic progress fill.
- * - `progress: 100` then `0` → bar fills to 100%, holds briefly,
- *   then fades out (opacity 250ms) and the inline width collapses
- *   to 0 in the same transition — clean "filled then dissolved"
- *   feedback instead of a sudden jump.
- *
- * `pointer-events: none` keeps the bar from intercepting clicks.
+ * 基于 nprogress 实现的页面加载进度条
  */
-const props = defineProps<{
-    /** Current progress, 0-100. Drives the fill width. */
-    progress?: number
-}>()
+defineOptions({ name: 'BasicLoadingBar' })
 
-const progressValue = computed(() => Math.min(100, Math.max(0, props.progress ?? 0)))
-const isActive = computed(() => progressValue.value > 0)
-const fillWidth = computed(() => `${progressValue.value}%`)
+const props = withDefaults(
+    defineProps<{
+        /** 进度值 0-100 */
+        progress?: number
+    }>(),
+    {
+        progress: 0,
+    },
+)
+
+// nprogress 默认配置
+NProgress.configure({ showSpinner: false })
+
+// 监听进度变化
+watch(
+    () => props.progress,
+    (value) => {
+        if (value <= 0) {
+            NProgress.done(true)
+        } else if (value >= 100) {
+            NProgress.done()
+        } else {
+            NProgress.set(value / 100)
+        }
+    },
+    { immediate: true },
+)
+
+// 暴露 nprogress 配置方法
+defineExpose({
+    configure: NProgress.configure,
+    start: NProgress.start,
+    done: NProgress.done,
+    remove: NProgress.remove,
+    set: (n: number) => NProgress.set(n),
+})
 </script>
 
 <template>
-    <div
-        v-show="isActive"
-        class="loading-bar-root"
-        style="position: fixed; top: 0px; left: 0; height: 2px; background: transparent; z-index: 2147483647; width: 100%; pointer-events: none;"
-    >
-        <div
-            class="loading-bar-fill"
-            :style="{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                height: '100%',
-                background: 'var(--muted-foreground, hsl(0 0% 45.1%))',
-                width: fillWidth,
-                opacity: 1,
-                // boxShadow: '0 0 10px var(--muted-foreground, hsl(0 0% 45.1%)), 0 0 5px var(--muted-foreground, hsl(0 0% 45.1%))',
-                transition: 'width 200ms ease-out',
-            }"
-        />
-    </div>
+    <div class="nprogress-container" />
 </template>

@@ -8,7 +8,7 @@ import {
     DropdownMenuSeparator,
     Button,
     Badge,
-} from '@airovo/uikit-vue'
+} from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
 import { useNotificationStore } from '@airovo/stores'
 

@@ -3,7 +3,6 @@
     "version": "0.0.0",
     "exports": {
         ".": "./src/index.ts",
-        "./auth": "./src/authentication/index.ts",
         "./basic": "./src/basic/layout.vue",
         "./i18n": "./src/i18n.ts",
         "./locales/zh-CN": "./src/locales/zh-CN.json",
@@ -14,10 +13,10 @@
         "lint": "eslint \"**/*.ts\""
     },
     "dependencies": {
-        "@airovo/router": "workspace:*",
         "@airovo/shared": "workspace:*",
         "@airovo/stores": "workspace:*",
-        "@airovo/uikit-vue": "workspace:*",
+        "@airovo/uikit-shadcnui": "workspace:*",
+        "nprogress": "catalog:",
         "vue": "catalog:",
         "vue-i18n": "catalog:",
         "vue-router": "catalog:"

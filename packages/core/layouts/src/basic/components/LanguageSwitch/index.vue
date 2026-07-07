@@ -5,7 +5,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     Button,
-} from '@airovo/uikit-vue'
+} from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
 import { useI18nStore, SUPPORTED_LOCALES, type Locale } from '@airovo/stores'
 

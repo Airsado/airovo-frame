@@ -19,7 +19,7 @@ import {
     HoverCardContent,
     HoverCardTrigger,
     useSidebar,
-} from '@airovo/uikit-vue'
+} from '@airovo/uikit-shadcnui'
 
 import { Icon } from '@airovo/shared/icons'
 import { ref, watch } from 'vue'

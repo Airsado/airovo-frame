@@ -9,7 +9,7 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
-} from '@airovo/uikit-vue'
+} from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'

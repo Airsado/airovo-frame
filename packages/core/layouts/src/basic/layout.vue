@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { SidebarInset, SidebarProvider, ScrollArea } from '@airovo/uikit-vue'
+import { SidebarInset, SidebarProvider, ScrollArea } from '@airovo/uikit-shadcnui'
 import { BasicHeader, BasicSidebar } from './index'
 import type { SidebarMenuItemType } from './sidebar/types'
 
