@@ -46,7 +46,7 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
         resolve: {
             alias: {
                 '#': resolve(process.cwd(), 'src'),
-                '@': resolve(__dirname, '../../../packages/ui-kit/vue-ui/src'),
+                '@': resolve(__dirname, '../../../packages/ui-kit/shadcn-vue/src'),
                 ...(appResolve?.alias as Record<string, string>),
             },
             ...appResolve,
@@ -62,7 +62,7 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
                 '@airovo/layouts',
                 '@airovo/router',
                 '@airovo/stores',
-                '@airovo/uikit-vue',
+                '@airovo/uikit-shadcnui',
             ],
         },
         plugins: [
