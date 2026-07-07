@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`airovo-frame` — a personal learning monorepo for building a zero-config Vue 3 framework (pnpm workspaces + Turborepo). Goal: apps only need `@import "@airovo/uikit-vue/style.css"`, extend the base tsconfig, and call `defineViteConfig()` — all path aliases, Tailwind scanning, and tooling live in the framework layer.
+`airovo-frame` — a personal learning monorepo for building a zero-config Vue 3 framework (pnpm workspaces + Turborepo). Goal: apps only need `@import "@airovo/uikit-shadcnui/style.css"`, extend the base tsconfig, and call `defineViteConfig()` — all path aliases, Tailwind scanning, and tooling live in the framework layer.
 
 **Stack:** Vue 3 + Vite 8 + Tailwind 4 + shadcn-vue (reka-ui based). Iconography standardized on `@iconify/vue` via `@airovo/shared/icons`.
 
@@ -24,7 +24,7 @@ Per-package scripts follow the same naming: `dev: vite`, `build: vue-tsc --noEmi
 Single app/package:
 - `pnpm --filter playwright dev` — dev server for the demo app
 - `pnpm --filter @airovo/vite-config build` — rebuild the shared Vite config (see gotcha below)
-- `pnpm --filter @airovo/uikit-vue exec shadcn-vue@latest add <component>` — add a shadcn-vue component
+- `pnpm --filter @airovo/uikit-shadcnui exec shadcn-vue@latest add <component>` — add a shadcn-vue component
 
 **Requires pnpm 9.15.4** (catalog protocol). Older pnpm will fail on `catalog:` specifiers.
 
@@ -56,7 +56,7 @@ internal/*              ← shared build tooling
 
 **Tailwind scanning** (`packages/ui-kit/vue-ui/src/styles/globals.css`)
 - `@import "tailwindcss"` then `@source` directives tell Tailwind 4 to scan the workspace. Path depth matters: `../../../../core` reaches `packages/core` (4 levels up from `vue-ui/src/styles/`).
-- Apps only need `@import "@airovo/uikit-vue/style.css";` once.
+- Apps only need `@import "@airovo/uikit-shadcnui/style.css";` once.
 
 **pnpm catalog**
 - `pnpm-workspace.yaml` catalogs shared versions (Vue, Vite, Tailwind, TypeScript, `@iconify/vue`, etc.). Package manifests should reference these as `"<dep>": "catalog:"` rather than pinning versions.

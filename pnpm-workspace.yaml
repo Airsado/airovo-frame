@@ -4,7 +4,7 @@ packages:
   - "packages/core/*"
   - "packages/ui-kit/*"
   - "internal/*"
-  - "app-ui/*"
+  - "app-ui"
 
 catalog:
   # Vue 生态
@@ -34,3 +34,11 @@ catalog:
 
   # 通用工具
   "@vueuse/core": ^14.3.0
+
+  # 表单验证
+  vee-validate: ^4.15.0
+  "@vee-validate/zod": ^4.15.0
+  zod: ^3.24.0
+
+  # 加载条
+  nprogress: ^0.2.0

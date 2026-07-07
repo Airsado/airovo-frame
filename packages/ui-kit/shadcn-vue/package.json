@@ -1,5 +1,5 @@
 {
-  "name": "@airovo/uikit-vue",
+  "name": "@airovo/uikit-shadcnui",
   "version": "0.0.0",
   "exports": {
     ".": "./src/index.ts",
@@ -33,6 +33,8 @@
     "reka-ui": "^2.9.8",
     "tailwind-merge": "^2.6.0",
     "tw-animate-css": "catalog:",
-    "vue": "catalog:"
+    "vue": "catalog:",
+    "vue-input-otp": "^0.3.2",
+    "vue-sonner": "^2.0.9"
   }
 }
