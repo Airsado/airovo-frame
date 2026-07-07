@@ -1,97 +1,108 @@
-import { createRouter as createVueRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
-import { computed, ref } from 'vue'
-import { toVueRoutes } from './adapter'
-import { deriveMenus } from './derive'
-import { mergeMenus } from './merge'
-import { coreRoutes } from './modules'
-import type {
-    AgnosticRouteRecord,
-    AppRouter,
-    MenuItem,
-    RouterOptions,
-} from './types'
+import {
+    createRouter as createVueRouter,
+    createWebHistory,
+    type Router,
+    type RouteRecordRaw,
+} from 'vue-router'
+import { computed, ref, type ComputedRef, type Ref } from 'vue'
+import type { MenuItem, MenusMod } from './routeTypes'
 
 /**
- * Build the app router. Wires together the framework's core routes,
- * the app's static modules, and the dynamic menu fetch described in
- * `RouterOptions`.
- *
- * Apps pass `AgnosticRouteRecord` records via `modules`. The router
- * converts them to vue-router `RouteRecordRaw`, derives sidebar menus
- * (via `deriveMenus`), and exposes a reactive `menus` ref.
- *
- * @example
- * ```ts
- * // apps/playwright/src/router/index.ts
- * import { createAppRouter, loadAllModules, type AgnosticRouteRecord } from '@airovo/router'
- *
- * const globs = import.meta.glob<{ default: AgnosticRouteRecord }>(
- *     './routes/modules/*.ts', { eager: false },
- * )
- * const modules = await loadAllModules(Object.keys(globs), globs)
- *
- * export const appRouter = createAppRouter({ modules })
- * app.use(appRouter.router)
- * // appRouter.menus → pass to <BasicLayout :menus="appRouter.menus" />
- * ```
+ * Plain vue-router config — apps pass `routes: RouteRecordRaw[]`.
+ * The framework augments this with:
+ *   - meta.ignoreLayout: when true, the route renders outside BasicLayout
+ *   - meta.public:       when true, the auth guard allows it through
+ *   - menus:             reactive sidebar items derived from routes
+ *   - progress:          navigation progress (0-100) for the loading bar
  */
-export function createAppRouter(options: RouterOptions = {}): AppRouter {
-    const {
-        modules: moduleSources = [],
-        menusMod: menusModOption,
-        fetchMenus,
-        homePath: homePathOption,
-        preferences,
-        beforeEach,
-    } = options
+export interface AirovoRouterOptions {
+    /** Application routes. Must include a root path (`/`) and any other routes. */
+    routes: RouteRecordRaw[]
+    /** When `frontend` (default), menus come from route meta. `backend` reserves a slot. */
+    menusMod?: MenusMod
+    /** Optional dynamic menu loader (used when menusMod !== 'frontend'). */
+    fetchMenus?: () => Promise<MenuItem[]>
+    /**
+     * Navigation start guard. Built-in `LoadingBar` watches `progress` (0-100).
+     */
+    beforeEach?: (to: unknown, from: unknown) => boolean | unknown | Promise<unknown>
+    /**
+     * After-navigation hook (analytics, cleanup, etc).
+     */
+    afterEach?: (to: unknown, from: unknown) => void | Promise<void>
+}
 
-    // Resolution priority for menusMod / homePath:
-    //   1. explicit option
-    //   2. preferences bridge
-    //   3. built-in default
-    const menusMod = menusModOption ?? preferences?.app?.menusMod ?? 'frontend'
-    const homePath = homePathOption ?? preferences?.app?.homePath ?? '/dashboard'
+export interface AirovoRouter {
+    /** The underlying vue-router instance — register via `app.use(router)`. */
+    router: Router
+    /** Reactive sidebar menu items derived from the route tree. */
+    menus: ComputedRef<MenuItem[]>
+    /** Navigation progress 0-100. Frameworks's LoadingBar uses this. */
+    progress: Ref<number>
+    /** Re-fetch backend-driven menus (only relevant when menusMod !== 'frontend'). */
+    refreshMenus: () => Promise<void>
+}
 
-    const staticRoutes: AgnosticRouteRecord[] = moduleSources
+/**
+ * Walk the route tree and produce MenuItem[] for the sidebar.
+ * Skips routes with `meta.hideInMenu` and follows the first redirect child.
+ */
+function deriveMenusFromRoutes(routes: RouteRecordRaw[]): MenuItem[] {
+    const out: MenuItem[] = []
+    for (const r of routes) {
+        if (r.meta?.hideInMenu) continue
+        // Resolve the effective path (skip redirect chains)
+        let path: string | undefined
+        let target = r
+        while (target?.redirect) {
+            // Find the redirect target within siblings
+            path = target.redirect as string
+            const next = routes.find((x) => x.path === path) ?? target.children?.find((x) => x.path === path)
+            if (!next || next === target) break
+            target = next
+        }
+        if (!path) {
+            path = r.path
+        }
+        if (!path || path === '') continue
 
-    // Derive sidebar menus from the route tree.
-    const localMenus: MenuItem[] = deriveMenus(staticRoutes)
+        const item: MenuItem = {
+            title: r.meta?.title ?? '',
+            url: path,
+            icon: r.meta?.icon,
+            isActive: r.meta?.active === true,
+        }
+        if (r.children?.length) {
+            item.children = deriveMenusFromRoutes(r.children)
+        }
+        if (item.title) out.push(item)
+    }
+    return out
+}
 
-    // Reactive dynamic menu state — `ref` so Vue tracks mutations and
-    // the `computed` menus re-evaluates when `refreshMenus()` updates it.
+/**
+ * Create a framework-augmented vue-router.
+ *
+ * Thin wrapper around `vue-router` that adds:
+ *   - menu derivation
+ *   - progress tracking (used by the framework's LoadingBar)
+ *   - optional backend menu fetching
+ *
+ * Apps use the returned `router` directly with `app.use()`.
+ */
+export function createAppRouter(options: AirovoRouterOptions): AirovoRouter {
+    const { routes, fetchMenus, menusMod: _menusMod = 'frontend' } = options
+
+    // Backend menu state (used when menusMod !== 'frontend')
     const dynamicMenus = ref<MenuItem[]>([])
-
-    const menus = computed<MenuItem[]>(() =>
-        mergeMenus(localMenus, dynamicMenus.value, menusMod),
-    )
-
-    // Register: core routes (framework-internal) + app routes + root redirect.
-    const vueRoutes: RouteRecordRaw[] = [
-        ...toVueRoutes(coreRoutes),
-        ...toVueRoutes(staticRoutes),
-        { path: '/', redirect: homePath },
-    ]
 
     const router = createVueRouter({
         history: createWebHistory(),
-        routes: vueRoutes,
+        routes,
         scrollBehavior: () => ({ top: 0 }),
     })
 
-    // Progress bar state — `progress` is 0-100. Renders unconditionally
-    // in `BasicLoadingBar`; the bar shows an indeterminate sliding
-    // strip when `progress` is 0, and a determinate fill when > 0.
-    //
-    // Animation phases per navigation:
-    //   t=0:    progress = 30  (jump to start filling)
-    //   t=200ms: progress = 70  (bump to simulate progress)
-    //   done:    progress = 100 (afterEach fires)
-    //   t=350ms: progress = 0   (reset back to indeterminate)
-    //
-    // All state mutations are wrapped in try/catch — a thrown error
-    // in the app's beforeEach or in our own animation logic must not
-    // leave the bar stuck mid-fill or block subsequent navigations.
+    // ---- Progress bar state (0-100) ----
     const progress = ref(0)
     let resetTimer: ReturnType<typeof setTimeout> | null = null
     let midTimer: ReturnType<typeof setTimeout> | null = null
@@ -109,62 +120,47 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
     }
 
     function startProgress(): void {
-        try {
-            clearTimers()
-            inFlight = true
-            progress.value = 30
-            midTimer = setTimeout(() => {
-                // Only bump if we're still in the same navigation;
-                // a quick nav that already finished will have reset
-                // progress to 0, and the indeterminate strip is back.
-                if (inFlight && progress.value < 90) progress.value = 70
-            }, 200)
-        } catch (err) {
-            // eslint-disable-next-line no-console
-            console.error('[router] startProgress failed:', err)
-            // Park the bar at 99% on error so the user can see
-            // "something went wrong, the page is stuck" — never reset
-            // to 0 (which would hide the failure) and never complete
-            // to 100% (which would falsely signal success).
-            progress.value = 99
-            inFlight = false
-        }
+        clearTimers()
+        inFlight = true
+        progress.value = 30
+        midTimer = setTimeout(() => {
+            if (inFlight && progress.value < 90) progress.value = 70
+        }, 200)
     }
 
     function finishProgress(): void {
-        try {
-            clearTimers()
-            inFlight = false
-            // Reach 100% so the bar visibly fills. Hold for ~250ms
-            // so the user registers "loaded", then reset to 0 —
-            // the LoadingBar component's `v-show` removes it from
-            // the layout immediately when progress becomes 0.
-            progress.value = 100
-            resetTimer = setTimeout(() => {
-                progress.value = 0
-                resetTimer = null
-            }, 250)
-        } catch (err) {
-            // eslint-disable-next-line no-console
-            console.error('[router] finishProgress failed:', err)
+        clearTimers()
+        inFlight = false
+        progress.value = 100
+        resetTimer = setTimeout(() => {
             progress.value = 0
-        }
+            resetTimer = null
+        }, 250)
     }
 
-    // Framework's beforeEach runs first. Starts the progress animation.
+    // Custom beforeEach runs first
     router.beforeEach(() => {
         startProgress()
         return true
     })
-
-    // The app's beforeEach (if provided) runs after the framework's.
-    // It can call `return false` to cancel; the afterEach still runs
-    // and resets the bar via `finishProgress()`.
-    if (beforeEach) router.beforeEach(beforeEach)
-
-    // Reset the bar after the navigation commits.
+    if (options.beforeEach) {
+        router.beforeEach(options.beforeEach as Parameters<typeof router.beforeEach>[0])
+    }
     router.afterEach(() => {
         finishProgress()
+        if (options.afterEach) {
+            void options.afterEach(undefined, undefined)
+        }
+    })
+
+    // ---- Menus ----
+    const menus = computed<MenuItem[]>(() => {
+        if (_menusMod === 'frontend') {
+            return deriveMenusFromRoutes(routes)
+        }
+        // For 'backend' / 'mixed', start with route-derived menu, overlay dynamic ones.
+        const local = deriveMenusFromRoutes(routes)
+        return mergeMenus(local, dynamicMenus.value, _menusMod)
     })
 
     async function refreshMenus(): Promise<void> {
@@ -175,8 +171,6 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
         try {
             dynamicMenus.value = await fetchMenus()
         } catch (err) {
-            // Don't blow up the app on a transient menu fetch failure;
-            // log and fall back to the local menu set.
             // eslint-disable-next-line no-console
             console.error('[router] fetchMenus failed:', err)
             dynamicMenus.value = []
@@ -186,12 +180,24 @@ export function createAppRouter(options: RouterOptions = {}): AppRouter {
     return {
         router,
         menus,
-        refreshMenus,
         progress,
-        // Re-export vue-router's guard-registration API so apps can add
-        // their own guards without touching the router instance
-        // directly. These run AFTER the framework's progress guards.
-        beforeEach: router.beforeEach.bind(router),
-        afterEach: router.afterEach.bind(router),
+        refreshMenus,
     }
+}
+
+/**
+ * Combine two menu trees for the `mixed` mode.
+ * - `backend`: replace local entirely with dynamic
+ * - `mixed`: dynamic overrides local by `url`
+ * - `frontend`: dynamic ignored
+ */
+function mergeMenus(local: MenuItem[], dynamic: MenuItem[], mod: MenusMod): MenuItem[] {
+    if (mod === 'backend') return dynamic
+    if (mod === 'frontend') return local
+    // mixed: dynamic wins per-url
+    const dynByUrl = new Map(dynamic.map((m) => [m.url, m]))
+    return local.map((l) => {
+        const override = dynByUrl.get(l.url)
+        return override ? { ...l, ...override } : l
+    })
 }

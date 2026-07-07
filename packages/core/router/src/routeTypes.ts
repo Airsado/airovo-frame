@@ -1,6 +1,7 @@
+import 'vue-router'
+
 /**
- * Route metadata recognised by the framework. Routes without a title
- * are not surfaced as menu items.
+ * Route metadata recognised by the framework.
  */
 export interface RouteMeta {
     /** Menu label. Routes without a title are not surfaced as menu items. */
@@ -9,29 +10,23 @@ export interface RouteMeta {
     icon?: string
     /** When true, the route is registered but never appears in the sidebar. */
     hideInMenu?: boolean
-    /** Marks the route as a top-level active entry (sidebar highlights it). */
+    /** Marks the route as a top-level active entry. */
     active?: boolean
     /** When true, the route is accessible without authentication. */
     public?: boolean
+    /** When true, the route renders without the main layout (e.g. login). */
+    ignoreLayout?: boolean
 }
 
-/**
- * Framework route record (vue-router targeted). Business modules export
- * these as default exports; the framework converts them to vue-router
- * `RouteRecordRaw` at registration time.
- *
- * The `component` field is a lazy loader returning `Promise<unknown>`.
- * The router casts the resolved module to vue-router's component type.
- */
-export interface AgnosticRouteRecord {
-    path: string
-    name?: string
-    /** Redirect target. When set, `component` is ignored. */
-    redirect?: string
-    /** Lazy component loader. */
-    component?: () => Promise<unknown>
-    meta?: RouteMeta
-    children?: AgnosticRouteRecord[]
+declare module 'vue-router' {
+    interface RouteMeta {
+        title?: string
+        icon?: string
+        hideInMenu?: boolean
+        active?: boolean
+        public?: boolean
+        ignoreLayout?: boolean
+    }
 }
 
 /** Sidebar menu item — derived from a route tree or fetched from backend. */
