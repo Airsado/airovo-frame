@@ -1,188 +1,177 @@
+# airovo-frame
 
+pnpm + Turborepo monorepo，提供**零配置**的 Vue 3 框架。业务应用只需
+`@import "@airovo/uikit-shadcnui/style.css"`、继承基础 tsconfig 并调用
+`defineViteConfig()` —— 路径别名、Tailwind 扫描及工具链全部由框架层托管。
 
-## 框架介绍
+技术栈：**Vue 3 + Vite 8 + Tailwind 4 + shadcn-vue（基于 reka-ui）**，
+图标统一通过 `@airovo/shared/icons`（基于 `@iconify/vue`）。
 
-框架定位是为了方便自己快捷开发而诞生的。同时也是为了让自己熟悉pnpm、turboRepo等，主要是为了学习吧。
+---
 
-框架内置的状态管理是使用的的pinia（限于Vue），对于非使用pinia的、需迁入本框架的Vue项目，需要自行去修改代码迁入。
+## 特性
 
-框架的下层组件基本都是基于使用shadcn/ui的，若后续需要改为react去开发，是允许在`package/ui-kit/react-ui`创建的（只要你配置好了tsconfig.json、vite.config.ts、components.json）。注意要使用shadcn库，而不是shadcn-vue了。
+- **零配置接入** — `defineViteConfig()` + 一行样式导入 + 继承 tsconfig。
+- **完整工程栈** — Pinia（持久化）+ vue-router + vue-i18n + vee-validate/zod
+  表单 + 主题偏好。
+- **统一设计系统** — shadcn-vue 组件**源码直接消费**（无构建步骤），类型严格性贯穿。
+- **可组合的包** — `core / ui-kit / effects / design` 按需采纳。
+- **第三方 UI 适配** — Element Plus / Naive UI 作为可选 peer 依赖接入。
+- **CLI 脚手架** — `pnpm create airovo-app` 一键生成业务应用。
 
-因为react、vue之间的生态是不一致的，所以后续应该会优化`internal/vite-config`提供的`defineViteConfig`方法，让其自动检测`apps`中的框架，然后使用对应的生态，但这是后话了。肯定还是需要使用`package.json`管理好依赖的
+---
 
+## 环境要求
 
-`package/effects`是专门负责第三方组件库的接入适配的，后续会提供一个适配器，让框架去接管第三方组件的configProvider的配置，统一第三方组件库的圆角、按钮大小等。
+- **Node.js ≥ 18**
+- **pnpm 9.15.4**（catalog protocol）。更早版本会在 `catalog:` 声明符上失败。
 
-除了可以使用`package/effects`接入的第三方组件库外，框架内部`package/ui-kit`是基于`shadcn/ui`的自行实现的组件
+---
 
-
-### 技术栈
-
-如果你使用的是Vue3，那么：
-
-- pinia
-- vue-router
-- typescript
-- turboRepo
-- pnpm
-- vite
-- tailwindcss v4
-- vue
-
-
-## 目录结构
-```sh
-后续补充
-```
-
-如果你是为了实现业务去开发，只需要关注apps，在apps中编写代码就可以，你可以使用vite去创建基础骨架去开发，然后按照迁入指南接入到本框架中。当然你copy演示应用也可以。
-
-
-## 框架目录介绍
-
-```mermaid
-flowchart TD
-    A[apps 中的应用] --> B{是否使用通用 UI？}
-    B -->|是| C[app-ui<br>（业务层 + 通用 UI 组装）]
-    B -->|否| D[apps 中单独实现<br>不统一的 UI]
-
-    C --> E{app-ui 依赖}
-    E --> F[package/ui-kit<br>（框架自行实现的组件）]
-    E --> G[package/effects<br>（如 Element 等基础组件）]
-
-    F --> H[最终渲染]
-    G --> H
-    D --> H
-
-    H --> I[apps]
-```
-
-
-
-### package目录
-
-其目录大致分布如下图。
-
-```mermaid
-mindmap
-  root((package))
-    effects
-      element
-      naiveui
-      .......
-    ui-kit
-      button
-      tooltip
-      sidebar
-      ......
-    shared
-      styles
-      utils
-      composable
-      components
-    core
-      config
-      layouts
-      stores
-      ......
-```
-
-### internal目录
-
-这个目录主要是为了统一一些配置，如typescript、vite、eslint等可以统一的配置。
-
-目前有：`eslint-config`、`typescript-config`、`vite-config`
-
-## 引入shadcn-vue
+## 快速开始
 
 ```bash
-cd airovo-frame
-pnpm dlx shadcn-vue@latest add [COMPONENT] -c packages/ui-kit/vue-ui
+pnpm install
+pnpm dev          # turbo run dev —— 并行启动所有 apps
+pnpm build        # turbo run build —— 按依赖顺序构建
+pnpm lint         # turbo run lint —— 每个包执行 ESLint
+pnpm format       # prettier --write "**/*.{ts,tsx,md}"
+```
+
+创建新业务应用：
+
+```bash
+pnpm create airovo-app my-app
 ```
 
 ---
 
-## 路由系统
-
-业务模块声明路由结构（路径、标题、图标、组件懒加载），`@airovo/router` 负责转换成 vue-router 格式并派生侧边栏菜单。
-
-### 文件结构
+## 目录结构
 
 ```
-packages/core/router/src/
-  types.ts        # AppRouter, RouterOptions, PreferencesBridge（vue-router 特有）
-  routeTypes.ts   # AgnosticRouteRecord, MenuItem, MenusMod, RouteMeta（纯 TS）
-  derive.ts       # deriveMenus(routes) — 路由树 → 菜单树
-  merge.ts        # mergeMenus(local, dynamic, mod) — 合并菜单
-  load.ts         # loadAllModules(patterns, globs) — glob 加载器
-  adapter.ts      # toVueRoutes(records) — AgnosticRouteRecord → RouteRecordRaw
-  createRouter.ts # createAppRouter(options) — 工厂函数
-  modules/        # 框架内置路由（login、redirect、404）
-  views/          # 框架内置视图（.vue）
+apps/
+  playwright/                 ← 演示应用（demo）
+packages/
+  core/
+    app/                      ← createApp() 工厂 —— 业务应用唯一入口
+    router/                   ← 薄 vue-router 封装（菜单 + 进度条）
+    layouts/                  ← BasicLayout / BasicHeader / BasicSidebar
+    views/                    ← 默认 Login / Register / Profile / NotFound / Redirect
+    stores/                   ← auth / theme / i18n / preferences（Pinia + persist）
+    forms/                    ← useAForm + <AForm>（vee-validate + zod）
+    config/                   ← Preferences 类型定义
+  ui-kit/shadcn-vue/          ← shadcn-vue 组件，源码直接消费（无构建步骤）
+  shared/                     ← icons（@iconify/vue 再导出）+ utils
+  effects/                    ← 第三方 UI 适配（element-plus / naive-ui）
+  design/                     ← 设计令牌 + Demo 展示
+internal/
+  vite-config/                ← defineViteConfig 工厂（tsup → dist 消费）
+  typescript-config/          ← base.json + vite.json（JSON 配置，无构建）
+  eslint-config/              ← 旧式 .eslintrc 配置（ESLint 8）
+  create-airovo-app/          ← CLI 脚手架（pnpm create airovo-app）
 ```
 
-### 包导出
+### 依赖方向（无循环）
 
-`@airovo/router` 是唯一的路由入口：
+```
+app          → effects, layouts, router, stores, config, views, forms
+layouts      → stores, shared, uikit-shadcnui
+views        → uikit-shadcnui          （不依赖 stores —— 认证通过路由 props 注入）
+forms        → uikit-shadcnui, vee-validate, zod
+effects      → stores                  （仅类型）
+design       → uikit-shadcnui
+router       → vue + vue-router        （leaf）
+shared       → @iconify/vue
+config       → （无依赖）
+```
 
-| 导出 | 职责 |
-|---|---|
-| `createAppRouter(options)` | 工厂函数：转换并注册 vue-router 路由 |
-| `toVueRoutes(records)` | `AgnosticRouteRecord[]` → `RouteRecordRaw[]` 转换器 |
-| `coreRoutes` | 框架内置路由（login / redirect / 404） |
-| `deriveMenus(routes)` | 从路由树派生 `MenuItem[]` |
-| `mergeMenus(local, dynamic, mod)` | 按菜单模式合并本地/动态菜单 |
-| `loadAllModules(patterns, globs)` | 通用的 glob 模块加载器 |
-| `RouterOptions` / `AppRouter` | 适配器选项 + 返回值类型 |
-| `AgnosticRouteRecord` / `MenuItem` / `MenusMod` / `RouteMeta` | 路由 + 菜单的类型 |
+---
 
-### 业务模块
+## 核心概念
 
-业务层只接触 `@airovo/router` 的类型，不直接导入 `vue-router`：
+### `createApp()` 工厂（`packages/core/app`）
+
+业务应用通过一行代码接入框架：
 
 ```ts
-import type { AgnosticRouteRecord } from '@airovo/router'
+import { createApp } from '@airovo/app'
 
-const Overview = () => import('../../../views/Overview.vue')
-
-const dashboard: AgnosticRouteRecord = {
-    path: '/dashboard',
-    redirect: '/dashboard/overview',
-    meta: { title: '仪表盘', icon: 'lucide:home' },
-    children: [
-        { path: 'overview', name: 'DashboardOverview', component: Overview,
-          meta: { title: '概览', icon: 'lucide:layout-dashboard' } },
-    ],
-}
-
-export default dashboard
+await createApp({
+    name: 'playwright',
+    routeModules: import.meta.glob('./router/routes/modules/*.ts', { eager: true }),
+    auth: { useStore: () => useAuthStore() },
+    root: App,
+    effects: { adapters: ['element-plus'] },
+})
 ```
 
-### 包依赖关系
+工厂负责装配 Pinia、i18n、Router、Preferences、路由守卫，以及可选的 effects
+适配器。
 
+- `routeModules` 接受 glob map（业务应用在**模块顶层**调用 `import.meta.glob`
+  —— Vite 要求静态字面量）。
+- `auth.useStore: () => useAuthStore()` 启用内置路由守卫（检查
+  `meta.public`，未登录跳转到 `/login?redirect=...`）。
+- `effects.adapters` 选择性接入第三方 UI 库。
+- `root` 为应用的 `App.vue` 组件。
+
+### `defineViteConfig` 工厂（`internal/vite-config`）
+
+```ts
+import { defineViteConfig } from '@airovo/vite-config'
+export default defineViteConfig()
 ```
-@airovo/router        ← vue + vue-router（leaf）
-    ↑
-@airovo/config        ← 依赖 @airovo/router（MenusMod 类型）
-@airovo/layouts       ← 依赖 @airovo/router（MenuItem 类型）
-@airovo/stores        ← 依赖 @airovo/config
+
+工厂注入 Vue + Tailwind + 路径别名：
+
+- `#` → `apps/<name>/src`
+- `@` → `packages/ui-kit/shadcn-vue/src`（供 shadcn-vue 内部 `@/lib/utils` 使用）
+
+> ⚠️ 通过 tsup 构建 —— 修改 `src/config.ts` 后**必须**运行
+> `pnpm --filter @airovo/vite-config build`，否则改动不会生效。
+
+### 源码直连的 ui-kit
+
+`packages/ui-kit/shadcn-vue/package.json` 的 `exports["."]` 直接指向
+`./src/index.ts`，**无构建步骤**；Vite 在应用中直接打包源码。应用的 tsconfig
+严格性会反向作用于 shadcn-vue 源码（模板类型错误会在应用的 `vue-tsc` 中暴露）。
+
+### Tailwind 扫描（`packages/ui-kit/shadcn-vue/src/styles/globals.css`）
+
+```css
+@import "tailwindcss";
+@source "../../../../core";   /* 覆盖 packages/core */
 ```
 
-无循环依赖。`@airovo/router` 是路由栈的根节点。
+业务应用只需 `@import "@airovo/uikit-shadcnui/style.css";` 一次。
 
-### 菜单访问模式（menusMod）
+### pnpm catalog
 
-| 模式 | 行为 | 适用场景 |
-|---|---|---|
-| `frontend`（默认） | 侧边栏仅用本地模块声明的菜单 | SPA，菜单完全由前端控制 |
-| `backend` | 侧边栏仅用后端 API 返回的菜单 | 权限驱动，菜单按用户角色下发 |
-| `mixed` | 本地 + 后端混合，按 `url` 去重，本地优先 | 固定导航 + 按用户动态菜单 |
+`pnpm-workspace.yaml` 中的 catalog 统一共享版本号。包清单中引用为
+`"<dep>": "catalog:"`。
 
-`menusMod` 解析优先级：`RouterOptions.menusMod` > `preferences.app.menusMod` > `'frontend'`。
+### Effects 适配器（`packages/effects/src/adapters/`）
 
-`@airovo/layouts` 的 `BasicSidebar` 组件通过 `useRoute()` 判断当前路由，自动展开匹配的父级菜单组（`isInScope`），并用精确匹配（`path === url`）高亮当前选中项 — 不会出现父子同时高亮。
+Element Plus 和 Naive UI 是**可选 peer dependencies** —— 业务应用自行安装。
+适配器使用 `new Function('m', 'return import(m)')(mod)` 动态加载，避开 Vite
+的静态导入分析（若包未安装会报错）。
 
-### 偏好配置系统（preferences）
+### 视图与 stores 解耦
+
+`@airovo/views`（Login / Register / Profile）**不导入** `@airovo/stores`。
+认证函数通过路由 `props` 注入 —— 业务应用在路由配置中传入 `useAuthStore()`
+方法。这打破了原本会形成的循环依赖（views → stores → config → router →
+views）。
+
+### 表单系统（`packages/core/forms/`）
+
+`useAForm(schema)` 封装 vee-validate + zod。`schema.fields` 描述字段布局，
+`schema.validation` 是 Zod schema。
+
+预设工厂：`createLoginSchema()` / `createRegisterSchema()` /
+`createChangePasswordSchema()`。
+
+### 偏好系统（`@airovo/config`）
 
 框架默认配置在 `@airovo/config`，应用通过 `apps/*/src/preferences.ts` 覆盖：
 
@@ -196,9 +185,105 @@ export const appOverrides = defineOverridesPreferences({
 })
 ```
 
-`usePreferencesStore().applyOverrides(appOverrides)` 在 `main.ts` 中调用，合并框架默认值与应用覆盖，持久化到 `localStorage`。
+`usePreferencesStore().applyOverrides(appOverrides)` 在 `main.ts` 中调用，合并
+框架默认值与应用覆盖，持久化到 `localStorage`。
 
-### 已知限制 / 后续计划
+### 菜单访问模式（menusMod）
 
-- **后端动态路由注册**：`backend` 模式目前只下发菜单项（`MenuItem[]`），对应路由的 `router.addRoute()` 注册尚未实现。
-- **导航守卫**：目前仅支持单个 `beforeEach`。复杂的权限逻辑需要应用层在 `appRouter.router` 上自行扩展。
+`@airovo/router` 支持三种模式：
+
+| 模式 | 行为 | 适用场景 |
+|---|---|---|
+| `frontend`（默认） | 仅本地模块声明的菜单 | SPA，菜单完全由前端控制 |
+| `backend` | 仅后端 API 返回的菜单 | 权限驱动，按用户角色下发 |
+| `mixed` | 本地 + 后端混合，按 `url` 去重，本地优先 | 固定导航 + 动态菜单 |
+
+解析优先级：`RouterOptions.menusMod` > `preferences.app.menusMod` > `'frontend'`。
+
+`@airovo/layouts` 的 `BasicSidebar` 通过 `useRoute()` 自动展开匹配的父级菜单
+组（`isInScope`），并用精确匹配（`path === url`）高亮当前项 —— 不会出现父子
+同时高亮。
+
+---
+
+## 业务应用结构（最小）
+
+```
+apps/my-app/src/
+  main.ts          ← createApp({ routeModules, auth, root }) + mount('#app')
+  App.vue          ← BasicLayout + RouterView（依 meta.ignoreLayout 条件渲染）
+  router/
+    routes.ts      ← import.meta.glob('./routes/modules/*.ts')
+    routes/modules/
+      auth.ts      ← login / register / profile 路由
+      dashboard.ts ← 业务路由
+  views/
+    Login.vue      ← 自定义或从 @airovo/views 导入
+    ...
+```
+
+---
+
+## 布局 / 滚动模式（关键）
+
+`BasicLayout` 使用垂直 `SidebarProvider`，sticky header + 内容区。**高度链必
+须在顶部锁定**，使 `ScrollArea` 成为唯一的滚动容器：
+
+```vue
+<div class="h-svh overflow-hidden [--header-height:calc(--spacing(14))]">
+  <SidebarProvider class="flex h-full flex-col">
+    <BasicHeader />
+    <div class="flex flex-1 min-h-0">
+      <BasicSidebar />
+      <SidebarInset>
+        <main class="flex min-h-0 flex-1 flex-col">
+          <ScrollArea class="flex-1 min-w-0 min-h-0 overflow-x-hidden">
+```
+
+规则：
+
+- 滚动元素需要**有固定高度**的祖先（`h-svh`，**不要** `min-h-svh`）；
+- 每个 `flex-1` 子项需要 `min-h-0` / `min-w-0`；
+- 在 `ScrollArea` 上加 `overflow-x-hidden` 抑制横向滚动。
+
+---
+
+## 常用命令
+
+| 命令 | 说明 |
+|---|---|
+| `pnpm dev` | `turbo run dev` —— 启动所有应用 |
+| `pnpm build` | `turbo run build` —— 按依赖顺序构建 |
+| `pnpm --filter playwright dev` | 启动演示应用 |
+| `pnpm --filter @airovo/vite-config build` | **修改 `src/config.ts` 后必须重建** |
+| `pnpm --filter @airovo/stores test` | 单包 vitest |
+| `pnpm --filter @airovo/forms test` | 表单包 vitest |
+| `pnpm --filter @airovo/uikit-shadcnui exec shadcn-vue@latest add <component>` | 添加 shadcn-vue 组件 |
+
+---
+
+## 添加 shadcn-vue 组件
+
+```bash
+pnpm --filter @airovo/uikit-shadcnui exec shadcn-vue@latest add <component>
+```
+
+组件源码直接写入 `packages/ui-kit/shadcn-vue/src/components/ui/`，无需构建
+步骤。
+
+---
+
+## 已知问题 / Gotchas
+
+- **`@` 别名冲突** —— 工厂将 `@` → `shadcn-vue/src`（供其内部 `@/lib/utils`
+  使用）。业务应用**不应**在 `vite.config.ts` 中覆盖 `@`；请使用 `#`（已提供）。
+  演示应用的 `vite.config.ts` 当前未覆盖 `@`（正确）。
+- **`vite-config` 需重建** —— `internal/vite-config` 通过 tsup 构建。修改
+  `src/config.ts` 后必须 `pnpm --filter @airovo/vite-config build`，否则改动
+  不生效。
+- **`shadcn-vue/package.json`** 仍列出三个遗留图标库（`@lucide/vue`、
+  `lucide-vue-next`、`@radix-icons/vue`）与标准化的 `@iconify/vue` 并存 ——
+  待清理。
+- **`optimizeDeps.exclude`** 在 `vite-config` 中列出 5 个包，但缺少较新的包
+  （`@airovo/app`、`@airovo/forms`、`@airovo/views`、`@airovo/design`）。可能
+  对没有相邻 `tsconfig.json` 的包产生 Vite 依赖扫描警告。
