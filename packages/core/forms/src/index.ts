@@ -1,69 +1,50 @@
-import { computed, type Ref } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import type { AFormField, AFormSchema as BaseFormSchema } from './AForm.types'
+import type { FormFieldSchema, FormProps } from './types'
+import { FormApi } from './form-api'
 
-export type { AFormField, AFormFieldComponent } from './AForm.types'
+// ── Re-exports ──
 
-/**
- * Form-level configuration with Zod validation.
- */
-export interface AFormSchema extends BaseFormSchema {
-    /** Zod schema used both for validation and type inference */
-    validation: z.ZodType<unknown>
-}
+export { FormApi } from './form-api'
+export { default as AForm } from './AForm.vue'
+export { z }
+export type {
+    FormFieldSchema,
+    FormProps,
+    FormComponentMap,
+    FormFieldDependencies,
+    FormLayout,
+    FormWrapperClass,
+    FormApiLike,
+    BuiltInFormComponent,
+} from './types'
 
-/**
- * Bound handlers returned by `useAForm`.
- */
-export interface AFormBindings<T extends Record<string, unknown>> {
-    values: Ref<T>
-    errors: Readonly<Ref<Record<string, string | undefined>>>
-    fieldList: Readonly<Ref<AFormField[]>>
-    isSubmitting: Readonly<Ref<boolean>>
-    isValid: Ref<boolean>
-    meta: unknown
-    handleSubmit: ReturnType<typeof useForm<T>>['handleSubmit']
-    setField: (name: string, value: unknown) => void
-    setValues: (values: Partial<T>) => void
-    reset: (newValues?: Partial<T>) => void
-    validate: () => Promise<void>
-}
+// ── useAForm ──
 
 /**
- * useAForm - JSON-Schema-driven form composable.
- *
- * Combines `vee-validate` + `zod` into a single API. Returns reactive
- * `values` / `errors` that bind directly to `<AForm>` via v-model.
+ * Create a form instance backed by vee-validate + zod.
  *
  * @example
- * ```ts
- * import { z } from 'zod'
- * import { useAForm, AForm } from '@airovo/forms'
- *
- * const schema = {
- *   fields: [
- *     { fieldName: 'username', label: '用户名', componentProps: { placeholder: '请输入' } },
- *     { fieldName: 'password', label: '密码', component: 'Password' },
- *   ],
- *   validation: z.object({
- *     username: z.string().min(1, '请输入用户名'),
- *     password: z.string().min(1, '请输入密码'),
- *   }),
- *   initialValues: { username: '', password: '' },
- * }
- *
- * const { handleSubmit, values, errors } = useAForm(schema)
- *
- * const onSubmit = handleSubmit(async (data) => {
- *   console.log(data) // fully typed!
+ * const { api, values, errors, handleSubmit } = useAForm({
+ *   schema: [{ fieldName: 'username', label: '用户名', component: 'Input' }],
+ *   validation: z.object({ username: z.string().min(1) }),
  * })
- * ```
+ *
+ * // In template:
+ * // <AForm :api="api" />
  */
-export function useAForm<T extends Record<string, unknown>>(
-    schema: AFormSchema,
-): AFormBindings<T> {
+export function useAForm(options: FormProps) {
+    const api = new FormApi(options)
+
+    const initialValues: Record<string, any> = {}
+    for (const field of options.schema) {
+        if (field.defaultValue !== undefined) {
+            initialValues[field.fieldName] = field.defaultValue
+        }
+    }
+
     const {
         handleSubmit,
         values,
@@ -75,50 +56,46 @@ export function useAForm<T extends Record<string, unknown>>(
         isSubmitting,
         isValid,
         meta,
-    } = useForm<T>({
-        validationSchema: toTypedSchema(schema.validation as z.ZodType<T>),
-        initialValues: schema.initialValues as T,
+    } = useForm({
+        validationSchema: options.validation ? toTypedSchema(options.validation) : undefined,
+        initialValues,
     })
 
-    const fieldList = computed(() => schema.fields.filter((f) => !f.hidden))
+    // Bridge vee-validate context into FormApi
+    onMounted(() => {
+        api.mount({
+            handleSubmit,
+            values,
+            errors,
+            setFieldValue,
+            setValues,
+            resetForm,
+            validate,
+            isSubmitting,
+            isValid,
+            meta,
+        } as any)
+    })
 
-    function setField(name: string, value: unknown) {
-        setFieldValue(name, value)
-    }
-
-    function reset(newValues?: Partial<T>) {
-        if (newValues) {
-            resetForm({ values: { ...(values as T), ...newValues } })
-        } else {
-            resetForm()
-        }
-    }
+    onUnmounted(() => {
+        api.unmount()
+    })
 
     return {
+        api,
         values,
-        errors: errors as Readonly<Ref<Record<string, string | undefined>>>,
-        fieldList: fieldList as Readonly<Ref<AFormField[]>>,
+        errors,
+        handleSubmit,
         isSubmitting,
         isValid,
-        meta,
-        handleSubmit,
-        setField,
-        setValues: (next: Partial<T>) => setValues(next as T),
-        reset,
-        validate: async () => {
-            await validate()
-        },
     }
 }
 
-// Preset factories ----------------------------------------------------
+// ── Preset factories ──
 
-/**
- * Login form schema (zod-validated, ready-to-use).
- */
-export function createLoginSchema(): AFormSchema {
+export function createLoginSchema(): FormProps {
     return {
-        fields: [
+        schema: [
             {
                 fieldName: 'username',
                 label: '用户名',
@@ -129,26 +106,19 @@ export function createLoginSchema(): AFormSchema {
                 fieldName: 'password',
                 label: '密码',
                 component: 'Password',
-                componentProps: {
-                    placeholder: '请输入密码',
-                    autocomplete: 'current-password',
-                },
+                componentProps: { placeholder: '请输入密码', autocomplete: 'current-password' },
             },
         ],
         validation: z.object({
             username: z.string().min(1, '请输入用户名'),
             password: z.string().min(1, '请输入密码'),
         }),
-        initialValues: { username: '', password: '' },
     }
 }
 
-/**
- * Register form schema (with cross-field validation).
- */
-export function createRegisterSchema(): AFormSchema {
+export function createRegisterSchema(): FormProps {
     return {
-        fields: [
+        schema: [
             {
                 fieldName: 'username',
                 label: '用户名',
@@ -164,20 +134,14 @@ export function createRegisterSchema(): AFormSchema {
                 fieldName: 'password',
                 label: '密码',
                 component: 'Password',
-                componentProps: {
-                    placeholder: '请输入密码（至少 6 位）',
-                    autocomplete: 'new-password',
-                },
+                componentProps: { placeholder: '请输入密码（至少 6 位）', autocomplete: 'new-password' },
                 description: '密码至少需要 6 位字符',
             },
             {
                 fieldName: 'confirmPassword',
                 label: '确认密码',
                 component: 'Password',
-                componentProps: {
-                    placeholder: '请再次输入密码',
-                    autocomplete: 'new-password',
-                },
+                componentProps: { placeholder: '请再次输入密码', autocomplete: 'new-password' },
                 description: '两次密码必须一致',
             },
         ],
@@ -188,20 +152,16 @@ export function createRegisterSchema(): AFormSchema {
                 password: z.string().min(6, '密码至少 6 位'),
                 confirmPassword: z.string().min(1, '请再次输入密码'),
             })
-            .refine((data) => data.password === data.confirmPassword, {
+            .refine((d) => d.password === d.confirmPassword, {
                 message: '两次密码输入不一致',
                 path: ['confirmPassword'],
             }),
-        initialValues: { username: '', email: '', password: '', confirmPassword: '' },
     }
 }
 
-/**
- * Change-password form schema.
- */
-export function createChangePasswordSchema(): AFormSchema {
+export function createChangePasswordSchema(): FormProps {
     return {
-        fields: [
+        schema: [
             {
                 fieldName: 'currentPassword',
                 label: '当前密码',
@@ -212,19 +172,13 @@ export function createChangePasswordSchema(): AFormSchema {
                 fieldName: 'newPassword',
                 label: '新密码',
                 component: 'Password',
-                componentProps: {
-                    placeholder: '请输入新密码（至少 6 位）',
-                    autocomplete: 'new-password',
-                },
+                componentProps: { placeholder: '请输入新密码（至少 6 位）', autocomplete: 'new-password' },
             },
             {
                 fieldName: 'confirmPassword',
                 label: '确认新密码',
                 component: 'Password',
-                componentProps: {
-                    placeholder: '请再次输入新密码',
-                    autocomplete: 'new-password',
-                },
+                componentProps: { placeholder: '请再次输入新密码', autocomplete: 'new-password' },
             },
         ],
         validation: z
@@ -233,20 +187,9 @@ export function createChangePasswordSchema(): AFormSchema {
                 newPassword: z.string().min(6, '新密码至少 6 位'),
                 confirmPassword: z.string().min(1, '请再次输入新密码'),
             })
-            .refine((data) => data.newPassword === data.confirmPassword, {
+            .refine((d) => d.newPassword === d.confirmPassword, {
                 message: '两次新密码输入不一致',
                 path: ['confirmPassword'],
             }),
-        initialValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
     }
 }
-
-// AForm component (auto-renders fields from JSON schema)
-export {
-    default as AForm,
-    type AFormField,
-    type AFormSchema,
-    type AFormFieldComponent,
-} from './AForm.vue'
-
-export { z }
