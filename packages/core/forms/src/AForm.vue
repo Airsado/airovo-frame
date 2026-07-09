@@ -6,10 +6,9 @@ import {
     FieldError,
     FieldDescription,
     Input,
+    Textarea,
 } from '@airovo/uikit-shadcnui'
 import type { AFormSchema, AFormField } from './AForm.types'
-
-type InputKind = 'text' | 'password' | 'number' | 'email' | 'textarea'
 
 const props = defineProps<{
     schema: AFormSchema
@@ -36,17 +35,14 @@ function updateFieldValue(fieldName: string, value: unknown) {
     emit('update:values', { ...props.values, [fieldName]: value })
 }
 
-function handleInput(fieldName: string, event: Event) {
-    const target = event.target as HTMLInputElement | HTMLTextAreaElement
-    updateFieldValue(fieldName, target.value)
+const inputTypeMap: Record<string, string> = {
+    Password: 'password',
+    Number: 'number',
+    Email: 'email',
 }
 
-function inputType(kind: string | undefined): InputKind {
-    if (kind === 'Password') return 'password'
-    if (kind === 'Number') return 'number'
-    if (kind === 'Email') return 'email'
-    if (kind === 'Textarea') return 'text'
-    return 'text'
+function inputType(component: string | undefined): string {
+    return inputTypeMap[component ?? ''] ?? 'text'
 }
 
 function onSubmit(e: Event) {
@@ -62,7 +58,7 @@ function onSubmit(e: Event) {
             :key="field.fieldName"
             class="space-y-2"
         >
-            <Field>
+            <Field :name="field.fieldName">
                 <FieldLabel
                     v-if="field.label"
                     :for="field.fieldName"
@@ -77,26 +73,27 @@ function onSubmit(e: Event) {
                     :error="getFieldError(field.fieldName)"
                     :update="(val: unknown) => updateFieldValue(field.fieldName, val)"
                 >
-                    <textarea
+                    <!-- Textarea -->
+                    <Textarea
                         v-if="field.component === 'Textarea'"
                         :id="field.fieldName"
-                        :value="getFieldValue(field.fieldName) ?? ''"
+                        :model-value="getFieldValue(field.fieldName) ?? ''"
                         :placeholder="(field.componentProps?.placeholder as string) ?? '请输入'"
                         :disabled="field.disabled"
-                        class="flex min-h-[80px] w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         v-bind="field.componentProps"
-                        @input="handleInput(field.fieldName, $event)"
+                        @update:model-value="(v) => updateFieldValue(field.fieldName, v)"
                     />
+
+                    <!-- All other input types -->
                     <Input
                         v-else
                         :id="field.fieldName"
                         :type="inputType(field.component)"
-                        :value="getFieldValue(field.fieldName)"
+                        :model-value="String(getFieldValue(field.fieldName) ?? '')"
                         :placeholder="(field.componentProps?.placeholder as string) ?? '请输入'"
                         :disabled="field.disabled"
                         v-bind="field.componentProps"
-                        @update:model-value="(v: unknown) => updateFieldValue(field.fieldName, v)"
-                        @input="handleInput(field.fieldName, $event)"
+                        @update:model-value="(v) => updateFieldValue(field.fieldName, v)"
                     />
                 </slot>
 
@@ -105,7 +102,7 @@ function onSubmit(e: Event) {
                 </FieldDescription>
                 <FieldError
                     v-if="getFieldError(field.fieldName)"
-                    :errors="[getFieldError(field.fieldName) as string]"
+                    :errors="[getFieldError(field.fieldName)!]"
                 />
             </Field>
         </div>

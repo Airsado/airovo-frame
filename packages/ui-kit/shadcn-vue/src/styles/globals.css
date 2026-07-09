@@ -30,10 +30,10 @@
   --color-chart-3: hsl(197 37% 24%);
   --color-chart-4: hsl(43 74% 66%);
   --color-chart-5: hsl(27 87% 67%);
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.2rem;
+  --radius-lg: 0.3rem;
+  --radius-xl: 0.4rem;
   --color-sidebar: hsl(0 0% 98%);
   --color-sidebar-foreground: hsl(240 5.3% 26.1%);
   --color-sidebar-primary: hsl(240 5.9% 10%);
