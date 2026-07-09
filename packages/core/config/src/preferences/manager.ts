@@ -5,7 +5,6 @@ import { reactive, readonly, watch } from 'vue'
 
 import { deepMerge } from './merge'
 import { frameworkDefaultPreferences } from './defaults'
-import { injectTokens } from '@airovo/design'
 
 const STORAGE_PREFIX = 'airovo-preferences'
 
@@ -116,12 +115,12 @@ class PreferenceManager {
         }
     }
 
-    /** Resolve actual theme mode and inject design tokens. */
+    /** Resolve actual theme mode and toggle dark class. */
     private applyTheme(): void {
         const mode = this.resolveTheme()
         const isDark = mode === 'dark'
         document.documentElement.classList.toggle('dark', isDark)
-        injectTokens(mode)
+        // CSS variables are managed by the design package (Tailwind dark: variants)
     }
 
     private resolveTheme(): 'light' | 'dark' {
