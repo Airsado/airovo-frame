@@ -114,4 +114,82 @@ export const tokens = {
         modal:    1300,
         toast:    1400,
     },
-    /** ───── Dark-mode overrides ───── */\n    dark: {\n        surface: {\n            0:    '#0a0a0a',\n            50:   '#111111',\n            100:  '#1a1a1a',\n            200:  '#27272a',\n            300:  '#3f3f46',\n            400:  '#52525b',\n            500:  '#71717a',\n            600:  '#a1a1aa',\n            700:  '#d4d4d8',\n            800:  '#e4e4e7',\n            900:  '#fafafa',\n        },\n        shadow: {\n            xs: '0 1px 2px 0 rgba(0,0,0,0.20)',\n            sm: '0 1px 3px 0 rgba(0,0,0,0.30), 0 1px 2px -1px rgba(0,0,0,0.20)',\n            md: '0 4px 6px -1px rgba(0,0,0,0.40), 0 2px 4px -2px rgba(0,0,0,0.20)',\n            lg: '0 10px 15px -3px rgba(0,0,0,0.50), 0 4px 6px -4px rgba(0,0,0,0.20)',\n            xl: '0 20px 25px -5px rgba(0,0,0,0.50), 0 8px 10px -6px rgba(0,0,0,0.20)',\n        },\n    },\n} as const\n\nexport type Tokens = typeof tokens\n\n/**\n * Generate CSS custom properties from the current tokens for use in\n * Tailwind or plain CSS. Call `injectTokens()` to apply them to\n * `document.documentElement.style`.\n */\nexport function tokensToCSSVars(mode: 'light' | 'dark' = 'light'): Record<string, string> {\n    const vars: Record<string, string> = {}\n    const surface = mode === 'dark' ? tokens.dark.surface : tokens.surface\n    const shadow = mode === 'dark' ? tokens.dark.shadow : tokens.shadow\n\n    // Brand\n    for (const [stop, value] of Object.entries(tokens.brand)) {\n        vars[`--brand-${stop}`] = value\n    }\n    // Accent\n    for (const [stop, value] of Object.entries(tokens.accent)) {\n        vars[`--accent-${stop}`] = value\n    }\n    // Surface (mode-aware)\n    for (const [stop, value] of Object.entries(surface)) {\n        vars[`--surface-${stop}`] = value\n    }\n    // Semantic\n    for (const [name, value] of Object.entries(tokens.semantic)) {\n        vars[`--semantic-${name}`] = value\n    }\n    // Radius\n    for (const [name, value] of Object.entries(tokens.radius)) {\n        vars[`--radius-${name}`] = String(value)\n    }\n    // Shadows (mode-aware)\n    for (const [name, value] of Object.entries(shadow)) {\n        vars[`--shadow-${name}`] = String(value)\n    }\n    // Font\n    vars['--font-sans'] = tokens.font.sans\n    vars['--font-mono'] = tokens.font.mono\n    // Z-index\n    for (const [name, value] of Object.entries(tokens.z)) {\n        vars[`--z-${name}`] = String(value)\n    }\n    return vars\n}\n\n/** Inject CSS custom properties into `documentElement`. */\nexport function injectTokens(mode: 'light' | 'dark' = 'light'): void {\n    const vars = tokensToCSSVars(mode)\n    for (const [key, value] of Object.entries(vars)) {\n        document.documentElement.style.setProperty(key, value)\n    }\n}
+
+    /** ───── Dark-mode overrides ───── */
+    dark: {
+        surface: {
+            0:    '#0a0a0a',
+            50:   '#111111',
+            100:  '#1a1a1a',
+            200:  '#27272a',
+            300:  '#3f3f46',
+            400:  '#52525b',
+            500:  '#71717a',
+            600:  '#a1a1aa',
+            700:  '#d4d4d8',
+            800:  '#e4e4e7',
+            900:  '#fafafa',
+        },
+        shadow: {
+            xs: '0 1px 2px 0 rgba(0,0,0,0.20)',
+            sm: '0 1px 3px 0 rgba(0,0,0,0.30), 0 1px 2px -1px rgba(0,0,0,0.20)',
+            md: '0 4px 6px -1px rgba(0,0,0,0.40), 0 2px 4px -2px rgba(0,0,0,0.20)',
+            lg: '0 10px 15px -3px rgba(0,0,0,0.50), 0 4px 6px -4px rgba(0,0,0,0.20)',
+            xl: '0 20px 25px -5px rgba(0,0,0,0.50), 0 8px 10px -6px rgba(0,0,0,0.20)',
+        },
+    },
+} as const
+
+export type Tokens = typeof tokens
+
+/**
+ * Generate CSS custom properties from the current tokens for use in
+ * Tailwind or plain CSS. Call `injectTokens()` to apply them to
+ * `document.documentElement.style`.
+ */
+export function tokensToCSSVars(mode: 'light' | 'dark' = 'light'): Record<string, string> {
+    const vars: Record<string, string> = {}
+    const surface = mode === 'dark' ? tokens.dark.surface : tokens.surface
+    const shadow = mode === 'dark' ? tokens.dark.shadow : tokens.shadow
+
+    // Brand
+    for (const [stop, value] of Object.entries(tokens.brand)) {
+        vars[`--brand-${stop}`] = value
+    }
+    // Accent
+    for (const [stop, value] of Object.entries(tokens.accent)) {
+        vars[`--accent-${stop}`] = value
+    }
+    // Surface (mode-aware)
+    for (const [stop, value] of Object.entries(surface)) {
+        vars[`--surface-${stop}`] = value
+    }
+    // Semantic
+    for (const [name, value] of Object.entries(tokens.semantic)) {
+        vars[`--semantic-${name}`] = value
+    }
+    // Radius
+    for (const [name, value] of Object.entries(tokens.radius)) {
+        vars[`--radius-${name}`] = String(value)
+    }
+    // Shadows (mode-aware)
+    for (const [name, value] of Object.entries(shadow)) {
+        vars[`--shadow-${name}`] = String(value)
+    }
+    // Font
+    vars['--font-sans'] = tokens.font.sans
+    vars['--font-mono'] = tokens.font.mono
+    // Z-index
+    for (const [name, value] of Object.entries(tokens.z)) {
+        vars[`--z-${name}`] = String(value)
+    }
+    return vars
+}
+
+/** Inject CSS custom properties into `documentElement`. */
+export function injectTokens(mode: 'light' | 'dark' = 'light'): void {
+    const vars = tokensToCSSVars(mode)
+    for (const [key, value] of Object.entries(vars)) {
+        document.documentElement.style.setProperty(key, value)
+    }
+}
