@@ -23,7 +23,7 @@ import {
 
 import { Icon } from '@airovo/shared/icons'
 import { ref, watch } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { SidebarMenuItemType } from './types'
 
@@ -38,69 +38,60 @@ const props = withDefaults(defineProps<SideBarPropsType>(), {
 })
 
 const { t } = useI18n()
-const route = useRoute() ?? { path: '' }
-const router = useRouter()
+const route = useRoute()
 const { state, isMobile, setOpenMobile } = useSidebar()
 
-function isCurrent(url: string): boolean {
-    if (!url) return false
-    const path = route?.path ?? ''
-    if (url === '/') return path === '/'
-    return path === url || path.startsWith(url + '/')
-}
-
-function isInScope(item: SidebarMenuItemType): boolean {
-    return isCurrent(item.url) || !!item.children?.some((c) => isCurrent(c.url))
-}
-
-// True when this item itself is the current page — uses EXACT match
-// (not `isCurrent`'s `startsWith`) so that `/dashboard` doesn't also
-// highlight when the user is on `/dashboard/overview`.
-function isActivePage(item: SidebarMenuItemType): boolean {
-    const path = route?.path ?? ''
-    return path === item.url
-}
+// ─── helpers ───
 
 function hasChildren(item: SidebarMenuItemType): boolean {
     return !!item.children?.length
 }
 
-// Fired when the user toggles a parent open via its inline trigger.
-function onParentToggle(item: SidebarMenuItemType, nextOpen: boolean): void {
-    openStates.value[item.title] = nextOpen
-    if (nextOpen && item.url && !isInScope(item)) router.push(item.url)
+/** True when the current route path exactly matches the item URL. */
+function isExactMatch(item: SidebarMenuItemType): boolean {
+    return route.path === item.url
 }
 
-// Close the sidebar (and any open flyout) when a sub-item is
-// activated. On mobile this closes the Sheet; on desktop-collapsed
-// it closes the parent's Collapsible flyout. Navigation itself goes
-// through the @click RouterLink binding.
-function closeSidebar(item: SidebarMenuItemType): void {
-    if (isMobile.value) setOpenMobile(false)
-    openStates.value[item.title] = false
+/** True when the item (or any of its children) is the current page. */
+function isActiveScope(item: SidebarMenuItemType): boolean {
+    if (isExactMatch(item)) return true
+    if (!item.children) return false
+    return item.children.some((c) => route.path === c.url)
 }
 
-const openStates = ref<Record<string, boolean>>({})
+// ─── open state (accordion — single open) ───
 
-function recomputeOpenStates(): void {
-    const next: Record<string, boolean> = {}
+const openKey = ref<string | null>(null)
+
+/** Find which top-level menu group (if any) contains the current route. */
+function findActiveGroupKey(): string | null {
     for (const item of props.menus) {
-        const previous = openStates.value[item.title]
-        next[item.title] = !!item.isActive || (previous ?? isInScope(item))
+        if (isActiveScope(item)) return item.url
     }
-    openStates.value = next
+    return null
 }
 
+// On mount: open the group that contains the current route
+openKey.value = findActiveGroupKey()
+
+// On route change: switch open group to the new active group
 watch(
     () => route.path,
     () => {
-        for (const item of props.menus) {
-            if (isInScope(item)) openStates.value[item.title] = true
-        }
+        openKey.value = findActiveGroupKey()
     },
 )
 
-recomputeOpenStates()
+function onParentToggle(item: SidebarMenuItemType, nextOpen: boolean): void {
+    // Pure UI toggle — no navigation
+    openKey.value = nextOpen ? item.url : null
+}
+
+// ─── close sidebar sheet (mobile) ───
+
+function closeSidebarOnNavigate(): void {
+    if (isMobile.value) setOpenMobile(false)
+}
 </script>
 
 <template>
@@ -112,31 +103,34 @@ recomputeOpenStates()
             <SidebarGroup>
                 <SidebarGroupLabel>{{ t('sidebar.navigation') }}</SidebarGroupLabel>
                 <SidebarMenu>
-                    <template v-for="item in menus" :key="item.title">
+                    <template v-for="item in menus" :key="item.url">
+                        <!-- ── Leaf item (no children) ── -->
                         <SidebarMenuItem v-if="!hasChildren(item)">
                             <SidebarMenuButton
                                 as-child
                                 :tooltip="item.title"
-                                :is-active="isActivePage(item)"
+                                :is-active="isExactMatch(item)"
                             >
-                                <RouterLink :to="item.url">
+                                <RouterLink :to="item.url" @click="closeSidebarOnNavigate">
                                     <Icon :icon="item.icon" v-if="item.icon" />
                                     <span>{{ item.title }}</span>
                                 </RouterLink>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
 
+                        <!-- ── Parent with children (expanded or mobile) ── -->
                         <Collapsible
                             v-else-if="state === 'expanded' || isMobile"
                             as-child
-                            :open="openStates[item.title]"
+                            :open="openKey === item.url"
                             class="group/collapsible"
                             @update:open="(v) => onParentToggle(item, v)"
                         >
                             <SidebarMenuItem>
                                 <CollapsibleTrigger as-child>
                                     <SidebarMenuButton
-                                        :is-active="isActivePage(item)"
+                                        :tooltip="item.title"
+                                        :is-active="isActiveScope(item)"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
                                         <span>{{ item.title }}</span>
@@ -150,13 +144,16 @@ recomputeOpenStates()
                                     <SidebarMenuSub>
                                         <SidebarMenuSubItem
                                             v-for="subItem in item.children"
-                                            :key="subItem.title"
+                                            :key="subItem.url"
                                         >
                                             <SidebarMenuSubButton
                                                 as-child
-                                                :is-active="isActivePage(subItem)"
+                                                :is-active="isExactMatch(subItem)"
                                             >
-                                                <RouterLink :to="subItem.url">
+                                                <RouterLink
+                                                    :to="subItem.url"
+                                                    @click="closeSidebarOnNavigate"
+                                                >
                                                     <Icon
                                                         :icon="subItem.icon"
                                                         v-if="subItem.icon"
@@ -170,14 +167,15 @@ recomputeOpenStates()
                             </SidebarMenuItem>
                         </Collapsible>
 
+                        <!-- ── Parent with children (collapsed desktop) ── -->
                         <SidebarMenuItem v-else>
-                            <HoverCard :open-delay="100">
+                            <HoverCard :open-delay="100" :close-delay="80">
                                 <HoverCardTrigger as-child>
                                     <SidebarMenuButton
-                                        :is-active="isActivePage(item)"
+                                        :tooltip="item.title"
+                                        :is-active="isActiveScope(item)"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
-                                        <span class="sr-only">{{ item.title }}</span>
                                     </SidebarMenuButton>
                                 </HoverCardTrigger>
                                 <HoverCardContent
@@ -185,23 +183,21 @@ recomputeOpenStates()
                                     :side-offset="8"
                                     class="min-w-48 p-2"
                                 >
-                                    <div
-                                        class="text-foreground mb-1 px-2 text-xs font-medium"
-                                    >
+                                    <div class="text-foreground mb-1 px-2 text-xs font-medium">
                                         {{ item.title }}
                                     </div>
                                     <SidebarMenuSub>
                                         <SidebarMenuSubItem
                                             v-for="subItem in item.children"
-                                            :key="subItem.title"
+                                            :key="subItem.url"
                                         >
                                             <SidebarMenuSubButton
                                                 as-child
-                                                :is-active="isActivePage(subItem)"
+                                                :is-active="isExactMatch(subItem)"
                                             >
                                                 <RouterLink
                                                     :to="subItem.url"
-                                                    @click="closeSidebar(item)"
+                                                    @click="closeSidebarOnNavigate"
                                                 >
                                                     <Icon
                                                         :icon="subItem.icon"
