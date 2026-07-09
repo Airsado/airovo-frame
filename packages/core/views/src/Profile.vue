@@ -107,7 +107,7 @@ function handleLogout() {
 <template>
     <div class="mx-auto w-full max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8">
         <!-- 用户信息卡片 -->
-        <div class="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+        <div class="rounded-lg border bg-card p-6 text-card-foreground">
             <div class="mb-4">
                 <h2 class="text-lg font-semibold">个人资料</h2>
                 <p class="text-sm text-muted-foreground">查看和更新您的账户信息</p>
@@ -145,7 +145,7 @@ function handleLogout() {
         </div>
 
         <!-- 修改密码卡片 -->
-        <div class="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+        <div class="rounded-lg border bg-card p-6 text-card-foreground">
             <div class="mb-4">
                 <h2 class="text-lg font-semibold">修改密码</h2>
                 <p class="text-sm text-muted-foreground">更新您的账户密码</p>
@@ -202,7 +202,7 @@ function handleLogout() {
         </div>
 
         <!-- 账号操作 -->
-        <div class="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+        <div class="rounded-lg border bg-card p-6 text-card-foreground">
             <div class="mb-4">
                 <h2 class="text-lg font-semibold">账号操作</h2>
             </div>

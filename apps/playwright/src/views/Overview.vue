@@ -35,7 +35,7 @@ const activities = [
             <div
                 v-for="stat in stats"
                 :key="stat.label"
-                class="group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                class="group relative overflow-hidden rounded-xl border bg-card p-5 transition-all"
             >
                 <div class="flex items-start justify-between">
                     <div>
@@ -58,7 +58,7 @@ const activities = [
         </div>
 
         <!-- Activity feed -->
-        <div class="rounded-xl border bg-card shadow-sm">
+        <div class="rounded-xl border bg-card">
             <div class="border-b px-5 py-4">
                 <h3 class="text-base font-semibold">最近动态</h3>
             </div>

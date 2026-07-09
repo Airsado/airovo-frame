@@ -20,7 +20,7 @@ function handleSubmit(_event: Event) {
 
 <template>
     <div class="min-h-screen flex items-center justify-center bg-background p-4">
-        <div class="w-full max-w-md space-y-6 rounded-lg border bg-card p-8 text-card-foreground shadow-sm">
+        <div class="w-full max-w-md space-y-6 rounded-lg border bg-card p-8 text-card-foreground">
             <div class="space-y-2 text-center">
                 <h1 class="text-2xl font-bold tracking-tight">登录</h1>
                 <p class="text-sm text-muted-foreground">框架默认登录页 - 业务应用可自定义</p>

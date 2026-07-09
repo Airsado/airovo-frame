@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
     Button,
+    Input,
     Field,
     FieldLabel,
     FieldDescription,
@@ -125,50 +126,46 @@ async function handleSubmit() {
                 <div class="space-y-4">
                     <Field>
                         <FieldLabel for="username">用户名</FieldLabel>
-                        <input
+                        <Input
                             id="username"
                             v-model="form.username"
                             type="text"
                             placeholder="请输入用户名"
                             autocomplete="username"
-                            class="flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                     </Field>
 
                     <Field>
                         <FieldLabel for="email">邮箱</FieldLabel>
-                        <input
+                        <Input
                             id="email"
                             v-model="form.email"
                             type="email"
                             placeholder="请输入邮箱"
                             autocomplete="email"
-                            class="flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                     </Field>
 
                     <Field>
                         <FieldLabel for="password">密码</FieldLabel>
-                        <input
+                        <Input
                             id="password"
                             v-model="form.password"
                             type="password"
                             placeholder="请输入密码（至少 6 位）"
                             autocomplete="new-password"
-                            class="flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                         <FieldDescription>密码至少需要 6 位字符</FieldDescription>
                     </Field>
 
                     <Field>
                         <FieldLabel for="confirmPassword">确认密码</FieldLabel>
-                        <input
+                        <Input
                             id="confirmPassword"
                             v-model="form.confirmPassword"
                             type="password"
                             placeholder="请再次输入密码"
                             autocomplete="new-password"
-                            class="flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                         <FieldDescription>两次密码必须一致</FieldDescription>
                     </Field>

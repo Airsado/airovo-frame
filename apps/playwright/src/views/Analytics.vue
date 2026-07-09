@@ -32,7 +32,7 @@ const sources = [
 <template>
     <div class="space-y-6 p-4 sm:p-6">
         <!-- Chart card -->
-        <div class="rounded-xl border bg-card p-6 shadow-sm">
+        <div class="rounded-xl border bg-card p-6">
             <div class="mb-6 flex items-center justify-between">
                 <div>
                     <h3 class="text-base font-semibold">本周访问趋势</h3>
@@ -64,7 +64,7 @@ const sources = [
         <!-- Two columns -->
         <div class="grid gap-4 lg:grid-cols-2">
             <!-- Top pages -->
-            <div class="rounded-xl border bg-card p-6 shadow-sm">
+            <div class="rounded-xl border bg-card p-6">
                 <h3 class="mb-4 text-base font-semibold">热门页面</h3>
                 <div class="space-y-3">
                     <div
@@ -83,7 +83,7 @@ const sources = [
             </div>
 
             <!-- Traffic sources -->
-            <div class="rounded-xl border bg-card p-6 shadow-sm">
+            <div class="rounded-xl border bg-card p-6">
                 <h3 class="mb-4 text-base font-semibold">流量来源</h3>
                 <div class="space-y-4">
                     <div v-for="src in sources" :key="src.name">
