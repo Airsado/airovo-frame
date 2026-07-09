@@ -34,9 +34,9 @@ withDefaults(
                 :show-messages="showMessages" :show-theme="showTheme" :show-language="showLanguage" />
             <div class="flex flex-1 min-h-0 bg-sidebar">
                 <BasicSidebar :menus="menus" collapsible="icon" />
-                <SidebarInset class="rounded-tl-lg bg-background sm:border-l sm:border-t border-border">
+                <SidebarInset class="bg-background">
                     <main class="flex min-h-0 flex-1 flex-col">
-                        <div class="shrink-0 pt-3 pb-2.5 px-3 sm:pt-5 sm:pb-3 border-border sm:border-b">
+                        <!-- <div class="shrink-0 pt-3 pb-2.5 px-3 sm:pt-5 sm:pb-3 border-border sm:border-b">
                             <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4">
                                 <div class="min-w-0 flex-1">
                                     <h2 class="truncate text-base font-bold tracking-tight sm:text-lg">
@@ -45,7 +45,7 @@ withDefaults(
                                 </div>
                                 <slot name="pageActions" />
                             </div>
-                        </div>
+                        </div> -->
 
                         <ScrollArea class="flex-1 min-w-0 min-h-0 overflow-x-hidden sm:p-5 p-0">
                             <slot />
