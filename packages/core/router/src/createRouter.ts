@@ -47,33 +47,30 @@ export interface AirovoRouter {
  * Walk the route tree and produce MenuItem[] for the sidebar.
  * Skips routes with `meta.hideInMenu` and follows the first redirect child.
  */
-function deriveMenusFromRoutes(routes: RouteRecordRaw[]): MenuItem[] {
+function deriveMenusFromRoutes(routes: RouteRecordRaw[], parentPath: string = ''): MenuItem[] {
     const out: MenuItem[] = []
     for (const r of routes) {
         if (r.meta?.hideInMenu) continue
-        // Resolve the effective path (skip redirect chains)
-        let path: string | undefined
-        let target = r
-        while (target?.redirect) {
-            // Find the redirect target within siblings
-            path = target.redirect as string
-            const next = routes.find((x) => x.path === path) ?? target.children?.find((x) => x.path === path)
-            if (!next || next === target) break
-            target = next
-        }
-        if (!path) {
-            path = r.path
+
+        let path = r.path
+
+        // Resolve absolute path for children
+        const absolutePath = path.startsWith('/') ? path : `${parentPath}/${path}`
+
+        // Resolve redirect chains
+        if (r.redirect) {
+            path = r.redirect as string
         }
         if (!path || path === '') continue
 
         const item: MenuItem = {
             title: r.meta?.title ?? '',
-            url: path,
+            url: absolutePath,
             icon: r.meta?.icon,
             isActive: r.meta?.active === true,
         }
         if (r.children?.length) {
-            item.children = deriveMenusFromRoutes(r.children)
+            item.children = deriveMenusFromRoutes(r.children, absolutePath)
         }
         if (item.title) out.push(item)
     }
