@@ -28,46 +28,27 @@ withDefaults(
 </script>
 
 <template>
-    <!-- Root: lock height to screen -->
     <div class="h-svh overflow-hidden [--header-height:calc(--spacing(14))]">
-        <SidebarProvider class="flex h-full flex-col" :style="{ '--sidebar-width': '16rem', '--sidebar-width-icon': '3.5rem' }">
-            <!-- Header bar -->
-            <BasicHeader
-                :title="siteTitle"
-                :logo="siteLogo"
-                :menus="menus"
-                :show-search="showSearch"
-                :show-messages="showMessages"
-                :show-theme="showTheme"
-                :show-language="showLanguage"
-            />
-
-            <!-- Body: sidebar + content -->
-            <div class="flex flex-1 min-h-0">
+        <SidebarProvider class="flex h-full flex-col">
+            <BasicHeader :title="siteTitle" :logo="siteLogo" :menus="menus" :show-search="showSearch"
+                :show-messages="showMessages" :show-theme="showTheme" :show-language="showLanguage" />
+            <div class="flex flex-1 min-h-0 bg-sidebar">
                 <BasicSidebar :menus="menus" collapsible="icon" />
-
-                <!-- Content area -->
-                <SidebarInset class="flex-1">
+                <SidebarInset class="rounded-tl-lg bg-background sm:border-l sm:border-t border-border">
                     <main class="flex min-h-0 flex-1 flex-col">
-                        <!-- Page title bar -->
-                        <div class="shrink-0 border-b border-border/50 px-4 py-3 sm:px-6 sm:py-4">
-                            <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                        <div class="shrink-0 pt-3 pb-2.5 px-3 sm:pt-5 sm:pb-3 border-border sm:border-b">
+                            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4">
                                 <div class="min-w-0 flex-1">
-                                    <h2 class="truncate text-lg font-bold tracking-tight text-foreground sm:text-xl">
+                                    <h2 class="truncate text-base font-bold tracking-tight sm:text-lg">
                                         <slot name="pageTitle">概览</slot>
                                     </h2>
                                 </div>
-                                <div class="flex shrink-0 items-center gap-2">
-                                    <slot name="pageActions" />
-                                </div>
+                                <slot name="pageActions" />
                             </div>
                         </div>
 
-                        <!-- Scrollable content -->
-                        <ScrollArea class="flex-1 min-w-0 min-h-0 overflow-x-hidden">
-                            <div class="p-4 sm:p-6">
-                                <slot />
-                            </div>
+                        <ScrollArea class="flex-1 min-w-0 min-h-0 overflow-x-hidden sm:p-5 p-0">
+                            <slot />
                         </ScrollArea>
                     </main>
                 </SidebarInset>

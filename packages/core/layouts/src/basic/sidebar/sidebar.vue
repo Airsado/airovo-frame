@@ -99,11 +99,9 @@ function closeSidebarOnNavigate(): void {
         class="text-sidebar-foreground top-[var(--header-height)] h-[calc(100svh-var(--header-height))]!"
         v-bind="props"
     >
-        <SidebarContent class="px-2 py-3">
+        <SidebarContent>
             <SidebarGroup>
-                <SidebarGroupLabel class="px-3 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {{ t('sidebar.navigation') }}
-                </SidebarGroupLabel>
+                <SidebarGroupLabel>{{ t('sidebar.navigation') }}</SidebarGroupLabel>
                 <SidebarMenu>
                     <template v-for="item in menus" :key="item.url">
                         <!-- ── Leaf item (no children) ── -->

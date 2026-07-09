@@ -65,17 +65,17 @@ withDefaults(
 </script>
 
 <template>
-    <header class="h-[--header-height] w-full sticky top-0 z-50 bg-sidebar">
-        <div class="flex items-center justify-between px-0 sm:px-3">
+    <header class="h-[--header-height] w-full bg-sidebar sticky top-0 z-50">
+        <div class="flex items-center justify-between px-0 sm:px-2.5">
             <div class="flex w-full h-(--header-height) items-center gap-2">
                 <SidebarTrigger class="cursor-pointer pl-2.5 sm:pl-0 w-(--sidebar-width)">
-                    <Icon icon="lucide:sidebar" class="text-muted-foreground hover:text-foreground transition-colors" />
+                    <Icon icon="lucide:sidebar" />
                 </SidebarTrigger>
-                <Separator orientation="vertical" class="data-[orientation=vertical]:h-5 bg-sidebar-border" />
+                <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
                 <BasicSiteTitle :title="title" :logo="logo" />
                 <Separator
                     orientation="vertical"
-                    class="mr-2 data-[orientation=vertical]:h-5 bg-sidebar-border"
+                    class="mr-2 data-[orientation=vertical]:h-4"
                     v-if="!isMobile"
                 />
                 <span class="hidden sm:inline-flex" v-if="!isMobile">
