@@ -100,9 +100,6 @@ function closeSidebarOnNavigate(): void {
         v-bind="props"
     >
         <SidebarContent class="px-2 py-3">
-            <!-- Brand accent bar at top -->
-            <div class="mx-3 mb-4 h-1 w-12 rounded-full bg-gradient-to-r from-primary to-primary/40" />
-
             <SidebarGroup>
                 <SidebarGroupLabel class="px-3 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
                     {{ t('sidebar.navigation') }}
@@ -177,7 +174,6 @@ function closeSidebarOnNavigate(): void {
                             <HoverCard :open-delay="100" :close-delay="80">
                                 <HoverCardTrigger as-child>
                                     <SidebarMenuButton
-                                        :tooltip="item.title"
                                         :is-active="isActiveScope(item)"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
