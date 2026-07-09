@@ -45,6 +45,15 @@ const dashboard: RouteRecordRaw = {
                 icon: 'lucide:list-checks',
             },
         },
+        {
+            path: 'design',
+            name: 'DashboardDesign',
+            component: () => import('@airovo/design/demo'),
+            meta: {
+                title: '设计系统',
+                icon: 'lucide:palette',
+            },
+        },
     ],
 }
 

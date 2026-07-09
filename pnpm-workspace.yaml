@@ -5,6 +5,7 @@ packages:
   - "packages/ui-kit/*"
   - "internal/*"
   - "app-ui"
+  - "packages/design"
 
 catalog:
   # Vue 生态
