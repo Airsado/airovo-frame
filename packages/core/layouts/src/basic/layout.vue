@@ -47,10 +47,8 @@ withDefaults(
                 <BasicSidebar :menus="menus" collapsible="icon" />
 
                 <!-- Content area -->
-                <SidebarInset
-                    class="relative flex-1 rounded-tl-xl bg-gradient-to-br from-background via-background to-primary/3 sm:border-l sm:border-t border-border shadow-inner-sm"
-                >
-                    <main class="relative flex min-h-0 flex-1 flex-col">
+                <SidebarInset class="flex-1">
+                    <main class="flex min-h-0 flex-1 flex-col">
                         <!-- Page title bar -->
                         <div class="shrink-0 border-b border-border/50 px-4 py-3 sm:px-6 sm:py-4">
                             <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">

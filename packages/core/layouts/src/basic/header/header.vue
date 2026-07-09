@@ -65,7 +65,7 @@ withDefaults(
 </script>
 
 <template>
-    <header class="h-[--header-height] w-full sticky top-0 z-50 border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
+    <header class="h-[--header-height] w-full sticky top-0 z-50 bg-sidebar">
         <div class="flex items-center justify-between px-0 sm:px-3">
             <div class="flex w-full h-(--header-height) items-center gap-2">
                 <SidebarTrigger class="cursor-pointer pl-2.5 sm:pl-0 w-(--sidebar-width)">

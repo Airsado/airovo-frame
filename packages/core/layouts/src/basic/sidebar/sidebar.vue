@@ -96,7 +96,7 @@ function closeSidebarOnNavigate(): void {
 
 <template>
     <Sidebar
-        class="text-sidebar-foreground top-[var(--header-height)] h-[calc(100svh-var(--header-height))]! border-r border-sidebar-border bg-sidebar"
+        class="text-sidebar-foreground top-[var(--header-height)] h-[calc(100svh-var(--header-height))]!"
         v-bind="props"
     >
         <SidebarContent class="px-2 py-3">
