@@ -96,12 +96,17 @@ function closeSidebarOnNavigate(): void {
 
 <template>
     <Sidebar
-        class="text-sidebar-foreground top-[var(--header-height)] h-[calc(100svh-var(--header-height))]! bg-transparent border-none!"
+        class="text-sidebar-foreground top-[var(--header-height)] h-[calc(100svh-var(--header-height))]! border-r border-sidebar-border bg-sidebar"
         v-bind="props"
     >
-        <SidebarContent>
+        <SidebarContent class="px-2 py-3">
+            <!-- Brand accent bar at top -->
+            <div class="mx-3 mb-4 h-1 w-12 rounded-full bg-gradient-to-r from-primary to-primary/40" />
+
             <SidebarGroup>
-                <SidebarGroupLabel>{{ t('sidebar.navigation') }}</SidebarGroupLabel>
+                <SidebarGroupLabel class="px-3 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {{ t('sidebar.navigation') }}
+                </SidebarGroupLabel>
                 <SidebarMenu>
                     <template v-for="item in menus" :key="item.url">
                         <!-- ── Leaf item (no children) ── -->
