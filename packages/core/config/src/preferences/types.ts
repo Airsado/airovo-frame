@@ -4,6 +4,11 @@ export type { MenusMod }
 export type ThemeMode = 'light' | 'dark' | 'system'
 export type LocaleCode = 'zh-CN' | 'en-US'
 
+/** Recursive partial — makes every property optional at every depth. */
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
+}
+
 export interface AppPreferences {
     /** App identifier — used in `<title>` and brand text. */
     name: string

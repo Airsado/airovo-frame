@@ -8,8 +8,8 @@ import {
 import { createLayoutsI18n } from '@airovo/layouts'
 import { createPinia, useI18nStore, piniaPersist } from '@airovo/stores'
 import type { Locale } from '@airovo/stores/i18n'
-import { usePreferencesStore } from '@airovo/stores/preferences'
 import { resolvePreferences, type Preferences } from '@airovo/config/preferences'
+import { usePreferencesStore } from '@airovo/stores/preferences'
 import { APP_CONTEXT_KEY, type AppContext } from './context'
 
 /**
@@ -221,8 +221,11 @@ export async function createApp(options: AirovoAppOptions = {}): Promise<AirovoA
     app.use(i18n)
     app.use(router.router)
 
-    // 10. Apply preferences
-    usePreferencesStore().applyOverrides(appOverrides)
+    // 10. Apply preferences (init manager + persist)
+    await usePreferencesStore().init({
+        namespace: options.name ?? 'airovo',
+        overrides: appOverrides,
+    })
 
     // 11. Bind i18n locale
     useI18nStore().bindExternal(

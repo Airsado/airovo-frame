@@ -1,35 +1,51 @@
 import {
     frameworkDefaultPreferences,
+    preferenceManager,
     resolvePreferences,
+    type DeepPartial,
     type Preferences,
 } from '@airovo/config/preferences'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 /**
- * Preferences store — single Pinia store owning the merged
- * `frameworkDefaultPreferences` + app overrides object. Persisted to
- * `localStorage` under `airovo-preferences`.
+ * Preferences store — Pinia wrapper around {@link preferenceManager}.
  *
  * Wire-up:
  *   pinia.use(piniaPersist)
- *   const prefs = usePreferencesStore()
- *   prefs.applyOverrides(appOverrides)
+ *   await usePreferencesStore().init({ namespace: 'my-app', overrides })
  */
 export const usePreferencesStore = defineStore(
     'preferences',
     () => {
-        const preferences = ref<Preferences>(frameworkDefaultPreferences)
+        const ready = ref(false)
 
-        function applyOverrides(overrides: Partial<Preferences>): void {
-            preferences.value = resolvePreferences(overrides)
+        /** One-time init. Calls `preferenceManager.initPreferences()`. */
+        async function init(opts: {
+            namespace: string
+            overrides?: Partial<Preferences>
+        }): Promise<void> {
+            await preferenceManager.initPreferences(opts)
+            ready.value = true
         }
 
+        /** Readonly snapshot of current preferences. */
+        const preferences = computed<Readonly<Preferences>>(() => {
+            if (!ready.value) return frameworkDefaultPreferences
+            return preferenceManager.getPreferences()
+        })
+
+        /** Partially update preferences. */
+        function updatePreferences(updates: DeepPartial<Preferences>): void {
+            preferenceManager.updatePreferences(updates)
+        }
+
+        /** Reset to initial defaults. */
         function reset(): void {
-            preferences.value = frameworkDefaultPreferences
+            preferenceManager.resetPreferences()
         }
 
-        return { preferences, applyOverrides, reset }
+        return { ready, preferences, init, updatePreferences, reset }
     },
     {
         persist: {
