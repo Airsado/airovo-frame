@@ -179,6 +179,7 @@ function closeSidebarOnNavigate(): void {
                                 </HoverCardTrigger>
                                 <HoverCardContent
                                     side="right"
+                                    align="start"
                                     :side-offset="8"
                                     class="min-w-48 p-2"
                                 >
