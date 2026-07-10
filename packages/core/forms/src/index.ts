@@ -49,8 +49,6 @@ export function useAForm(options: FormProps) {
     const formCtx = useForm({
         validationSchema: options.validation ? toTypedSchema(options.validation) : undefined,
         initialValues,
-        validateOnBlur: true,
-        validateOnChange: false,
     })
 
     onMounted(() => {
