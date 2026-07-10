@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { computed, ref, watch, defineComponent, h, type Component } from 'vue'
 import {
     Button,
-    Field,
-    FieldLabel,
-    FieldError,
-    FieldDescription,
     Input,
     Textarea,
 } from '@airovo/uikit-shadcnui'
+import { useField } from 'vee-validate'
 import type { FormComponentMap, FormFieldSchema, FormFieldDependencies } from './types'
 import { FormApi } from './form-api'
 
@@ -18,7 +15,6 @@ const props = withDefaults(
     defineProps<{
         api: FormApi
         componentMap?: FormComponentMap
-        /** Tailwind grid class. Default: 'grid-cols-1'. */
         wrapperClass?: string
         collapsible?: boolean
         collapsedRows?: number
@@ -36,11 +32,9 @@ const props = withDefaults(
     },
 )
 
-const emit = defineEmits<{
-    'update:collapsed': [value: boolean]
-}>()
+const emit = defineEmits<{ 'update:collapsed': [value: boolean] }>()
 
-// ── Default component map ──
+// ── Component map ──
 
 const DEFAULT_MAP: FormComponentMap = {
     Input,
@@ -48,180 +42,162 @@ const DEFAULT_MAP: FormComponentMap = {
     Number: Input,
     Email: Input,
     Textarea,
-    Select: Input,     // placeholder — swap in real Select later
-    Switch: Input,     // placeholder
-    DatePicker: Input, // placeholder
 }
-
 const mergedMap = computed(() => ({ ...DEFAULT_MAP, ...props.componentMap }))
 
-// ── Collapsible state ──
+// ── Collapsible ──
 
 const isCollapsed = ref(props.collapsed ?? true)
-
 const visibleSchema = computed(() => {
     if (!props.collapsible) return props.api.schema
     const rows = props.collapsedRows ?? 1
     const shouldCollapse = isCollapsed.value && props.api.schema.length > rows
     return shouldCollapse ? props.api.schema.slice(0, rows) : props.api.schema
 })
+const canToggle = computed(() => props.collapsible && props.api.schema.length > (props.collapsedRows ?? 1))
+function toggleCollapse() { isCollapsed.value = !isCollapsed.value; emit('update:collapsed', isCollapsed.value) }
 
-const canToggle = computed(
-    () => props.collapsible && props.api.schema.length > (props.collapsedRows ?? 1),
-)
-
-function toggleCollapse(): void {
-    isCollapsed.value = !isCollapsed.value
-    emit('update:collapsed', isCollapsed.value)
-}
-
-// ── Dependencies tracking ──
+// ── Dependencies ──
 
 const depValues = ref<Record<string, any>>({})
 
-/** Evaluate dependencies for a field, returns overrides. */
-function evalDeps(deps: FormFieldDependencies | undefined): {
-    hidden?: boolean
-    disabled?: boolean
-    required?: boolean
-    componentProps?: Record<string, any>
-} {
+function evalDeps(deps: FormFieldDependencies | undefined): Record<string, any> {
     if (!deps) return {}
-    const vals = depValues.value
+    const v = depValues.value
     return {
-        hidden: deps.hidden?.(vals, props.api),
-        disabled: deps.disabled?.(vals, props.api),
-        required: deps.required?.(vals, props.api),
-        componentProps: deps.componentProps?.(vals, props.api),
+        hidden: deps.hidden?.(v, props.api),
+        disabled: deps.disabled?.(v, props.api),
+        required: deps.required?.(v, props.api),
+        componentProps: deps.componentProps?.(v, props.api),
     }
 }
 
-// Watch all triggerFields and update the depValues snapshot
-const allTriggerFields = computed(() => {
-    const names = new Set<string>()
-    for (const f of props.api.schema) {
-        for (const t of f.dependencies?.triggerFields ?? []) {
-            names.add(t)
-        }
-    }
-    return [...names]
-})
-
-watch(
-    allTriggerFields,
-    () => {
-        if (!props.api.form) return
-        const vals: Record<string, any> = {}
-        for (const name of allTriggerFields.value) {
-            vals[name] = props.api.form.values[name]
-        }
-        depValues.value = vals
-    },
-    { immediate: true, deep: false },
-)
-
-// Re-evaluate when any trigger field value changes
-watch(
-    () => {
-        if (!props.api.form) return {}
-        const vals: Record<string, any> = {}
-        for (const name of allTriggerFields.value) {
-            vals[name] = props.api.form.values[name]
-        }
-        return vals
-    },
-    (vals) => {
-        depValues.value = vals ?? {}
-    },
-    { deep: true },
-)
-
-// ── Resolve component for a field ──
-
-function resolveComponent(field: FormFieldSchema) {
-    if (!field.component) return mergedMap.value.Input
-    if (typeof field.component === 'string') {
-        return mergedMap.value[field.component] ?? mergedMap.value.Input
-    }
-    return field.component
-}
+watch(() => {
+    if (!props.api.form) return {}
+    const vals: Record<string, any> = {}
+    for (const f of props.api.schema)
+        for (const t of f.dependencies?.triggerFields ?? [])
+            vals[t] = props.api.form.values?.[t]
+    return vals
+}, v => { depValues.value = v ?? {} }, { immediate: true, deep: true })
 
 // ── Handlers ──
 
-function getValue(fieldName: string): any {
-    return props.api.form?.values?.[fieldName]
-}
-
-function getError(fieldName: string): string | undefined {
-    return props.api.form?.errors?.[fieldName] as string | undefined
-}
-
-async function handleSubmit(e: Event): Promise<void> {
-    await props.api.submitForm(e)
-}
-
-async function handleReset(): Promise<void> {
-    await props.api.resetForm()
-}
-
-// ── Mount / Unmount ──
-
-provide('formApi', props.api)
+async function handleSubmit(e: Event) { await props.api.submitForm(e) }
+async function handleReset() { await props.api.resetForm() }
 </script>
 
 <template>
     <form class="space-y-4" @submit="handleSubmit">
         <div :class="['grid gap-4', wrapperClass]">
             <template v-for="field in visibleSchema" :key="field.fieldName">
-                <!-- Hidden fields skip rendering entirely -->
-                <template v-if="!evalDeps(field.dependencies).hidden && !field.hidden">
-                    <Field :name="field.fieldName">
-                        <FieldLabel v-if="field.label" :for="field.fieldName">
-                            {{ field.label }}
-                            <span
-                                v-if="field.required || evalDeps(field.dependencies).required"
-                                class="ml-0.5 text-destructive"
-                            >*</span>
-                        </FieldLabel>
-
-                        <component
-                            :is="resolveComponent(field)"
-                            :id="field.fieldName"
-                            :model-value="getValue(field.fieldName) ?? field.defaultValue ?? ''"
-                            :placeholder="(field.componentProps?.placeholder as string) ?? '请输入'"
-                            :disabled="field.disabled || evalDeps(field.dependencies).disabled"
-                            v-bind="{ ...field.componentProps, ...evalDeps(field.dependencies).componentProps }"
-                            @update:model-value="(v: any) => props.api.setFieldValue(field.fieldName, v)"
-                            @blur="() => props.api.validateField(field.fieldName)"
-                        />
-
-                        <FieldDescription v-if="field.description">
-                            {{ field.description }}
-                        </FieldDescription>
-                        <FieldError v-if="getError(field.fieldName)" :errors="[getError(field.fieldName)!]" class="mt-1.5" />
-                    </Field>
-                </template>
+                <FormField
+                    v-if="!evalDeps(field.dependencies).hidden && !field.hidden"
+                    :field="field"
+                    :api="api"
+                    :component-map="mergedMap"
+                    :deps="evalDeps(field.dependencies)"
+                />
             </template>
         </div>
 
-        <!-- Collapse toggle -->
         <div v-if="canToggle" class="flex justify-center">
             <Button variant="ghost" size="sm" type="button" @click="toggleCollapse">
                 {{ isCollapsed ? '展开更多' : '收起' }}
             </Button>
         </div>
 
-        <!-- Built-in actions -->
         <div v-if="showDefaultActions" class="flex items-center justify-end gap-2 pt-2">
-            <Button variant="outline" type="button" @click="handleReset">
-                {{ resetButtonText }}
-            </Button>
-            <Button type="submit">
-                {{ submitButtonText }}
-            </Button>
+            <Button variant="outline" type="button" @click="handleReset">{{ resetButtonText }}</Button>
+            <Button type="submit">{{ submitButtonText }}</Button>
         </div>
-
-        <!-- Custom actions slot -->
         <slot name="actions" />
     </form>
 </template>
+
+<!-- ═══════════ FormField (inline component with useField) ═══════════ -->
+<script lang="ts">
+import { defineComponent, h, computed, type PropType } from 'vue'
+
+export const FormField = defineComponent({
+    name: 'FormField',
+    props: {
+        field: { type: Object as PropType<FormFieldSchema>, required: true },
+        api: { type: Object as PropType<FormApi>, required: true },
+        componentMap: { type: Object as PropType<FormComponentMap>, required: true },
+        deps: { type: Object as PropType<Record<string, any>>, default: () => ({}) },
+    },
+    setup(props) {
+        const field = props.field
+
+        // Zod → vee-validate rule
+        const rule = field.rules
+            ? (val: any) => {
+                const r = field.rules!.safeParse(val === '' ? undefined : val)
+                return r.success ? true : r.error.issues[0]?.message ?? '格式不正确'
+            }
+            : undefined
+
+        const { value, errorMessage, handleChange, handleBlur } = useField(
+            () => field.fieldName,
+            rule,
+            { validateOnBlur: true, validateOnChange: false },
+        )
+
+        function onUpdate(v: any) {
+            handleChange(v)
+            props.api.setFieldValue(field.fieldName, v)
+        }
+
+        const resolved = computed(() => {
+            const name = typeof field.component === 'string' ? field.component : ''
+            return props.componentMap[name] ?? props.componentMap.Input ?? Input
+        })
+
+        const hasError = computed(() => !!errorMessage.value)
+
+        return () => {
+            const Comp = resolved.value
+            const deps = props.deps as Record<string, any>
+            const children: any[] = []
+
+            // Label
+            if (field.label) {
+                children.push(h('label', {
+                    for: field.fieldName,
+                    class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+                }, [field.label, (field.required || deps.required) ? h('span', { class: 'ml-0.5 text-destructive' }, '*') : null]))
+            }
+
+            // Input component
+            children.push(h(Comp, {
+                id: field.fieldName,
+                modelValue: value.value ?? field.defaultValue ?? '',
+                placeholder: (field.componentProps as any)?.placeholder ?? '请输入',
+                disabled: field.disabled || deps.disabled,
+                ...field.componentProps,
+                ...deps.componentProps,
+                'onUpdate:modelValue': onUpdate,
+                onBlur: handleBlur,
+            }))
+
+            // Description
+            if (field.description) {
+                children.push(h('p', {
+                    class: 'text-muted-foreground text-xs mt-1',
+                }, field.description))
+            }
+
+            // Error message
+            if (hasError.value) {
+                children.push(h('p', {
+                    class: 'text-destructive text-sm font-normal mt-1.5',
+                }, errorMessage.value))
+            }
+
+            return h('div', { class: 'space-y-2' }, children)
+        }
+        }
+    },
+})
+</script>
