@@ -45,36 +45,14 @@ export function useAForm(options: FormProps) {
         }
     }
 
-    const {
-        handleSubmit,
-        values,
-        errors,
-        setFieldValue,
-        setValues,
-        resetForm,
-        validate,
-        isSubmitting,
-        isValid,
-        meta,
-    } = useForm({
+    // Bridge vee-validate context into FormApi
+    const formCtx = useForm({
         validationSchema: options.validation ? toTypedSchema(options.validation) : undefined,
         initialValues,
     })
 
-    // Bridge vee-validate context into FormApi
     onMounted(() => {
-        api.mount({
-            handleSubmit,
-            values,
-            errors,
-            setFieldValue,
-            setValues,
-            resetForm,
-            validate,
-            isSubmitting,
-            isValid,
-            meta,
-        } as any)
+        api.mount(formCtx as any)
     })
 
     onUnmounted(() => {
@@ -83,11 +61,11 @@ export function useAForm(options: FormProps) {
 
     return {
         api,
-        values,
-        errors,
-        handleSubmit,
-        isSubmitting,
-        isValid,
+        values: formCtx.values,
+        errors: formCtx.errors,
+        handleSubmit: formCtx.handleSubmit,
+        isSubmitting: formCtx.isSubmitting,
+        isValid: formCtx.isValid,
     }
 }
 

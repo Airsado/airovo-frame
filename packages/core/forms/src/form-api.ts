@@ -1,4 +1,3 @@
-import type { FormContext, GenericObject } from 'vee-validate'
 import type { FormFieldSchema, FormProps } from './types'
 
 /**
@@ -8,8 +7,8 @@ import type { FormFieldSchema, FormProps } from './types'
  * The component calls `mount(form, schema)` in `onMounted`.
  */
 export class FormApi {
-    /** vee-validate form context — available after mount(). */
-    form: FormContext<GenericObject> | null = null
+    /** vee-validate form context — available after mount(). Stores raw vee-validate return. */
+    form: Record<string, any> | null = null
 
     /** Current field definitions. */
     schema: FormFieldSchema[] = []
@@ -32,7 +31,7 @@ export class FormApi {
     // ── Lifecycle ──
 
     /** Called by AForm onMounted. */
-    mount(form: FormContext<GenericObject>): void {
+    mount(form: Record<string, any>): void {
         this.form = form
     }
 

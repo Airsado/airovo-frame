@@ -149,11 +149,20 @@ function resolveComponent(field: FormFieldSchema) {
 // ── Handlers ──
 
 function getValue(fieldName: string): any {
-    return props.api.form?.values[fieldName]
+    const vals = props.api.form?.values
+    // vee-validate values may be Ref or plain object
+    if (vals && typeof vals === 'object' && 'value' in vals) {
+        return (vals as any).value[fieldName]
+    }
+    return (vals as any)?.[fieldName]
 }
 
 function getError(fieldName: string): string | undefined {
-    return props.api.form?.errors.value[fieldName] as string | undefined
+    const errs = props.api.form?.errors
+    if (!errs) return undefined
+    // vee-validate errors is a ComputedRef — unwrap if needed
+    const raw = typeof errs === 'object' && 'value' in errs ? (errs as any).value : errs
+    return raw?.[fieldName] as string | undefined
 }
 
 async function handleSubmit(e: Event): Promise<void> {
