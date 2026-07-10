@@ -74,7 +74,7 @@ export class FormApi {
         return await this.form.validate()
     }
 
-    /** Validate a single field. */
+    /** Validate a single field. Triggers vee-validate to populate errors. */
     async validateField(name: string): Promise<{ valid: boolean }> {
         if (!this.form) return { valid: true }
         const result = await this.form.validateField(name)

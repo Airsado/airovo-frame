@@ -201,12 +201,13 @@ provide('formApi', props.api)
                             :disabled="field.disabled || evalDeps(field.dependencies).disabled"
                             v-bind="{ ...field.componentProps, ...evalDeps(field.dependencies).componentProps }"
                             @update:model-value="(v: any) => props.api.setFieldValue(field.fieldName, v)"
+                            @blur="() => props.api.validateField(field.fieldName)"
                         />
 
                         <FieldDescription v-if="field.description">
                             {{ field.description }}
                         </FieldDescription>
-                        <FieldError v-if="getError(field.fieldName)" :errors="[getError(field.fieldName)!]" />
+                        <FieldError v-if="getError(field.fieldName)" :errors="[getError(field.fieldName)!]" class="mt-1.5" />
                     </Field>
                 </template>
             </template>
