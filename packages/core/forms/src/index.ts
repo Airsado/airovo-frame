@@ -14,35 +14,54 @@ export type {
     FormFieldSchema,
     FormProps,
     FormComponentMap,
-    FormFieldDependencies,
     FormLayout,
     FormWrapperClass,
     FormApiLike,
     BuiltInFormComponent,
+    FieldContext,
 } from './types'
 
 // ── useAForm ──
 
 /**
- * Create a form instance backed by vee-validate + zod.
+ * Create a form instance backed by vee-validate + zod (v5-aligned).
+ *
+ * The returned `api` is the FormApi — the v5-style FormActionType
+ * with the full method surface: validate / clearValid / setProps /
+ * scrollToField / updateSchema / appendSchemaByField / etc.
  *
  * @example
- * const { api, values, errors, handleSubmit } = useAForm({
- *   schema: [{ fieldName: 'username', label: '用户名', component: 'Input' }],
- *   validation: z.object({ username: z.string().min(1) }),
+ * ```ts
+ * const { api, values, errors, handleSubmit, isValid } = useAForm({
+ *   schema: [
+ *     { fieldName: 'username', label: '用户名', component: 'Input',
+ *       componentProps: { placeholder: '请输入用户名' } },
+ *     { fieldName: 'email', label: '邮箱', component: 'Email',
+ *       show: (ctx) => ctx.values.username === 'admin' },
+ *   ],
+ *   validation: z.object({
+ *     username: z.string().min(1, '必填'),
+ *     email: z.string().email('格式错误'),
+ *   }),
+ *   handleSubmit: async (v) => console.log(v),
  * })
  *
  * // In template:
  * // <AForm :api="api" />
+ * ```
  */
 export function useAForm(options: FormProps) {
     const api = new FormApi(options)
 
+    // Build the initial values map. `defaultValue` may be a static
+    // value or a function (v5 dynamic-defaultValue pattern). We
+    // evaluate the function form against an empty values object so
+    // cross-field defaults still work.
     const initialValues: Record<string, any> = {}
     for (const field of options.schema) {
-        if (field.defaultValue !== undefined) {
-            initialValues[field.fieldName] = field.defaultValue
-        }
+        const dv = field.defaultValue
+        if (dv === undefined) continue
+        initialValues[field.fieldName] = typeof dv === 'function' ? dv({ values: {}, api }) : dv
     }
 
     // Bridge vee-validate context into FormApi
@@ -62,12 +81,12 @@ export function useAForm(options: FormProps) {
     return {
         api,
         values: formCtx.values,
-        errors: formCtx.errors,
+        errors: api.errors,
         handleSubmit: formCtx.handleSubmit,
         isSubmitting: formCtx.isSubmitting,
         // vee-validate v4 FormContext no longer exposes `isValid` directly;
         // derive it from the current `errors` map.
-        isValid: computed(() => Object.keys(formCtx.errors.value ?? {}).length === 0),
+        isValid: computed(() => Object.keys(api.errors.value ?? {}).length === 0),
     }
 }
 

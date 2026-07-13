@@ -1,13 +1,14 @@
 <script setup lang="ts">
 /**
- * AForm — auto-renders a form from a JSON-style schema, backed by
- * vee-validate + zod. The heavy lifting of one-field rendering lives
- * in `FormFieldRender.vue` (extracted to avoid a second <script> block
- * that was breaking vue-tsc).
+ * AForm — v5-aligned schema-driven form.
+ *
+ * Reads a `FormApi` instance created by `useAForm()` and renders the
+ * schema field-by-field. Uses the v5 inline show/disabled/defaultValue
+ * functions (no separate `dependencies` array). Per-field error
+ * rendering lives in `FormFieldRender.vue`.
  */
-import { computed, ref, watch } from 'vue'
-import { Icon } from '@iconify/vue'
-import type { FormComponentMap, FormFieldDependencies, FormFieldSchema } from './types'
+import { computed, ref } from 'vue'
+import type { FormComponentMap, FormFieldSchema } from './types'
 import { FormApi } from './form-api'
 import FormFieldRender from './FormFieldRender.vue'
 
@@ -18,6 +19,8 @@ const props = withDefaults(
         api: FormApi
         componentMap?: FormComponentMap
         wrapperClass?: string
+        /** Default column props for all fields (per-field `colProps` overrides). */
+        baseColProps?: { span?: number }
         collapsible?: boolean
         collapsedRows?: number
         collapsed?: boolean
@@ -27,6 +30,7 @@ const props = withDefaults(
     }>(),
     {
         wrapperClass: 'grid-cols-1',
+        baseColProps: () => ({ span: 24 }),
         collapsedRows: 1,
         showDefaultActions: true,
         submitButtonText: '提交',
@@ -50,75 +54,78 @@ const canToggle = computed(
     () => props.collapsible && props.api.schema.length > (props.collapsedRows ?? 1),
 )
 
-// ── Dependencies ──
+// ── Per-field show / disabled evaluation (v5 inline functions) ──
+//
+// Each field may declare `show` / `disabled` as either a static
+// boolean or a function receiving the current form context. We
+// evaluate them against the form's current values + api.
 
-const depValues = ref<Record<string, any>>({})
-function evalDeps(deps: FormFieldDependencies | undefined): Record<string, any> {
-    if (!deps) return {}
-    const v = depValues.value
-    return {
-        hidden: deps.hidden?.(v, props.api),
-        disabled: deps.disabled?.(v, props.api),
-        required: deps.required?.(v, props.api),
-        componentProps: deps.componentProps?.(v, props.api),
+const currentValues = computed(() => {
+    // `form.values` is the vee-validate values ref. When undefined
+    // (before mount), fall back to {}.
+    return (props.api.form?.values?.value ?? props.api.form?.values) ?? {}
+})
+
+function isFieldVisible(field: FormFieldSchema): boolean {
+    if (typeof field.show === 'function') {
+        return !!field.show({ values: currentValues.value, api: props.api })
     }
+    if (typeof field.show === 'boolean') return field.show
+    return true
 }
-watch(
-    () => {
-        if (!props.api.form) return {}
-        const vals: Record<string, any> = {}
-        for (const f of props.api.schema) {
-            for (const t of f.dependencies?.triggerFields ?? []) {
-                vals[t] = props.api.form.values?.[t]
-            }
-        }
-        return vals
-    },
-    (v) => { depValues.value = v ?? {} },
-    { immediate: true, deep: true },
+
+function isFieldDisabled(field: FormFieldSchema): boolean {
+    if (typeof field.disabled === 'function') {
+        return !!field.disabled({ values: currentValues.value, api: props.api })
+    }
+    if (typeof field.disabled === 'boolean') return field.disabled
+    return false
+}
+
+function resolveComponentProps(field: FormFieldSchema): Record<string, any> {
+    if (typeof field.componentProps === 'function') {
+        return field.componentProps({ values: currentValues.value, api: props.api }) ?? {}
+    }
+    return field.componentProps ?? {}
+}
+
+const visibleFields = computed(() =>
+    props.api.schema.filter((f) => isFieldVisible(f)),
 )
 
-// ── Form-level errors ──
+// ── Per-field grid column class (v5 colProps) ──
 
-// `api.errors` is a proper Vue Ref<Record<string, string>> exposed by
-// the FormApi. It mirrors the raw vee-validate form.errors inside
-// the api's mount() so we get reactive updates for free.
-const formErrors = props.api.errors
-const hasFormErrors = computed(() => Object.keys(formErrors.value).length > 0)
+function colClassFor(field: FormFieldSchema): string {
+    const span = field.colProps?.span ?? props.baseColProps.span ?? 24
+    return `col-span-12 md:col-span-${span}`
+}
 
 // ── Handlers ──
 
-async function handleSubmit(e: Event) { await props.api.submitForm(e) }
+async function handleSubmit(e: Event) {
+    // submitForm scrolls to the first errored field on failure.
+    await props.api.submitForm(e)
+}
 async function handleReset() { await props.api.resetForm() }
 </script>
 
 <template>
     <form class="space-y-4" @submit="handleSubmit">
-        <div
-            v-if="hasFormErrors"
-            role="alert"
-            class="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-            <div class="mb-1.5 flex items-center gap-2 font-medium">
-                <Icon icon="lucide:circle-alert" class="size-4 shrink-0" />
-                <span>表单校验未通过</span>
-            </div>
-            <ul class="list-disc space-y-0.5 pl-6">
-                <li v-for="(message, field) in formErrors" :key="field">
-                    {{ field }}: {{ message }}
-                </li>
-            </ul>
-        </div>
-
         <div :class="['grid gap-4', wrapperClass]">
             <template v-for="field in visibleSchema" :key="field.fieldName">
-                <FormFieldRender
-                    v-if="!evalDeps(field.dependencies).hidden && !field.hidden"
-                    :field="field"
-                    :api="api"
-                    :component-map="componentMap ?? {}"
-                    :deps="evalDeps(field.dependencies)"
-                />
+                <div
+                    v-if="isFieldVisible(field)"
+                    :class="colClassFor(field)"
+                >
+                    <FormFieldRender
+                        :field="field"
+                        :api="api"
+                        :component-map="componentMap ?? {}"
+                        :current-values="currentValues"
+                        :disabled="isFieldDisabled(field)"
+                        :resolved-component-props="resolveComponentProps(field)"
+                    />
+                </div>
             </template>
         </div>
 

@@ -1,33 +1,37 @@
 <script setup lang="ts">
 /**
- * FormFieldRender — renders a single field row (label + input + error).
+ * FormFieldRender — single-field row (label + input + error).
  *
- * Extracted from AForm.vue so the parent template stays clean and so we
- * sidestep the "two <script> blocks" issue that broke vue-tsc.
- *
- * Renders the component resolved from `componentMap` (defaults to
- * shadcn-vue Input). The resolved component is typed as `any` so that
- * HTML attributes (`id`, `onBlur`) and the `onUpdate:modelValue` event
- * — which the shadcn-vue Input/Textarea do not declare in their
- * TypeScript interfaces — can be forwarded via attribute fallthrough.
+ * Driven by the parent `<AForm>`. Receives the resolved props
+ * (already evaluated by AForm's `show` / `disabled` / function
+ * `componentProps`) plus the live form values + the FormApi for
+ * the `useField()` bridge.
  */
 import { computed } from 'vue'
 import { Input } from '@airovo/uikit-shadcnui'
 import { useField } from 'vee-validate'
 import type { FormComponentMap, FormFieldSchema } from './types'
+import type { FormApi } from './form-api'
 
 defineOptions({ name: 'FormFieldRender' })
 
 const props = defineProps<{
     field: FormFieldSchema
-    api: any
+    api: FormApi
     componentMap: FormComponentMap
-    deps?: Record<string, any>
+    /** Current form values (passed from AForm; reactive). */
+    currentValues: Record<string, any>
+    /** Disabled state, already evaluated by AForm. */
+    disabled: boolean
+    /** Resolved component props (may include dynamic show/disabled outputs). */
+    resolvedComponentProps: Record<string, any>
 }>()
 
 const field = props.field as any
 
-// Per-field zod rule (overrides the schema-level validation for this field).
+// Field-level zod rule (optional). When omitted, useField does no
+// per-field validation — the form-level zod schema (mounted on the
+// FormApi) is the source of truth.
 const rule = field.rules
     ? (val: any) => {
           const r = field.rules.safeParse(val === '' ? undefined : val)
@@ -35,40 +39,41 @@ const rule = field.rules
       }
     : undefined
 
-// vee-validate v4 removed `validateOnBlur` from FieldOptions. We disable
-// input-driven validation and rely on the explicit `handleBlur` returned
-// by useField, attached to the rendered element via @blur in the template.
+// vee-validate v4 removed `validateOnBlur` from FieldOptions. We
+// disable input-driven validation and rely on the explicit
+// `handleBlur` returned by useField, attached to the rendered
+// element via @blur in the template.
 const { value, errorMessage, handleChange, handleBlur } = useField(
     () => field.fieldName,
     rule,
 )
 
-// Form-level zod errors live on `props.api.form.errors`. In vee-validate
-// v4 this is exposed as a reactive Ref, but we accept either form so the
-// template binding works regardless of the wrapper type returned by
-// `useForm()`.
+// Form-level zod errors live on `props.api.errors`. v4 exposes
+// `errors` as a reactive Ref (we wrap a fresh Ref inside the
+// FormApi's mount()).
 const formError = computed(() => {
-    const errors = (props.api.form as any)?.errors?.value ?? (props.api.form as any)?.errors
-    return errors?.[field.fieldName] ?? ''
+    const errs = props.api.errors?.value ?? props.api.errors
+    return errs?.[field.fieldName] ?? ''
 })
 
-// Combined display: form-level zod errors win (they fire on submit and
-// apply to the whole schema); per-field `field.rules` still surface early
-// while the user is typing.
+// Combined display: form-level zod errors win (they fire on submit
+// and apply to the whole schema); per-field `field.rules` still
+// surface early while the user is typing.
 const displayError = computed(() => formError.value || errorMessage.value)
 const hasError = computed(() => Boolean(displayError.value))
 const describedById = computed(() => (hasError.value ? `${field.fieldName}-error` : undefined))
 
-function onUpdate(v: any) {
-    handleChange(v)
-    props.api.setFieldValue(field.fieldName, v)
-}
-
-// Cast to any so the template can bind HTML attributes (id, onBlur) and
-// the update:modelValue event that shadcn-vue's Input does not declare.
+// The component to render. Falls back to Input. Component props are
+// merged: static field.componentProps ⊕ the resolved (dynamic) props
+// from AForm (which may include a show/disabled override of props).
 const ResolvedComp = computed<any>(
     () => props.componentMap[field.component] ?? props.componentMap.Input ?? Input,
 )
+
+const mergedProps = computed(() => ({
+    ...(field.componentProps || {}),
+    ...(props.resolvedComponentProps || {}),
+}))
 
 const inputType = computed(() => {
     switch (field.component) {
@@ -78,6 +83,11 @@ const inputType = computed(() => {
         default: return 'text'
     }
 })
+
+function onUpdate(v: any) {
+    handleChange(v)
+    props.api.setFieldValue(field.fieldName, v)
+}
 </script>
 
 <template>
@@ -89,7 +99,7 @@ const inputType = computed(() => {
         >
             {{ field.label }}
             <span
-                v-if="field.required || (deps && deps.required)"
+                v-if="field.required"
                 class="ml-0.5 text-destructive"
             >*</span>
         </label>
@@ -100,11 +110,11 @@ const inputType = computed(() => {
             :name="field.fieldName"
             :type="inputType"
             :modelValue="value ?? field.defaultValue ?? ''"
-            :placeholder="field.componentProps?.placeholder ?? '请输入'"
-            :disabled="field.disabled || (deps && deps.disabled)"
+            :placeholder="mergedProps.placeholder ?? '请输入'"
+            :disabled="disabled"
             :aria-invalid="hasError || undefined"
             :aria-describedby="describedById"
-            v-bind="{ ...(field.componentProps || {}), ...((deps && deps.componentProps) || {}) }"
+            v-bind="mergedProps"
             @update:modelValue="onUpdate"
             @blur="handleBlur"
         />
@@ -118,6 +128,6 @@ const inputType = computed(() => {
             v-if="hasError"
             :id="`${field.fieldName}-error`"
             class="text-destructive text-sm mt-1.5"
-        >{{ formError || errorMessage }}</p>
+        >{{ displayError }}</p>
     </div>
 </template>
