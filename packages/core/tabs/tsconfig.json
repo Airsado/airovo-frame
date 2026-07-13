@@ -1,0 +1,7 @@
+{
+  "extends": "../../../internal/typescript-config/base.json",
+  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "compilerOptions": {
+    "outDir": "dist"
+  }
+}

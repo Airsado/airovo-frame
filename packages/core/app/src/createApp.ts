@@ -12,6 +12,8 @@ import { resolvePreferences, type Preferences } from '@airovo/config/preferences
 import { usePreferencesStore } from '@airovo/stores/preferences'
 import { useAuthStore } from '@airovo/stores/auth'
 import { installRequest } from '@airovo/request'
+import { installPermission } from '@airovo/permission'
+import { installTabs } from '@airovo/tabs'
 import { APP_CONTEXT_KEY, type AppContext } from './context'
 
 /**
@@ -274,7 +276,24 @@ export async function createApp(options: AirovoAppOptions = {}): Promise<AirovoA
         }),
     })
 
-    // 14. App context
+    // 14. Permission layer (RBAC): directive + route guard + menu filter
+    installPermission(app, {
+        getAuth: () => ({
+            userRoles: useAuthStore().userRoles,
+            userPermissions: useAuthStore().userPermissions,
+            isLoggedIn: useAuthStore().isLoggedIn,
+        }),
+        router: router.router,
+    })
+
+    // 15. Multi-tab system: auto-tracks navigation, exposes BasicTabBar
+    //     as a global component. Apps mount it inside their layout.
+    installTabs(app, {
+        router: router.router,
+        defaultTabPath: options.homePath ?? '/dashboard',
+    })
+
+    // 16. App context
     const ctx: AppContext = {
         app,
         router: router.router,

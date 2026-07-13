@@ -8,7 +8,8 @@
         "./i18n": "./src/i18n/index.ts",
         "./notification": "./src/notification/index.ts",
         "./persist": "./src/persist.ts",
-        "./auth": "./src/auth/index.ts"
+        "./auth": "./src/auth/index.ts",
+        "./tabs": "./src/tabs/index.ts"
     },
     "license": "MIT",
     "scripts": {
@@ -26,7 +27,8 @@
         "@vueuse/core": "catalog:",
         "pinia": "catalog:",
         "pinia-plugin-persistedstate": "catalog:",
-        "vue": "catalog:"
+        "vue": "catalog:",
+        "vue-router": "catalog:"
     },
     "peerDependencies": {
         "vue-i18n": "^9.0.0"
