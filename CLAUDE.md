@@ -55,13 +55,17 @@ internal/*
 ### Dependency direction (no cycles)
 
 ```
-app → effects, layouts, router, stores, config, views, forms
-layouts → stores, shared, uikit-shadcnui
+app → effects, layouts, router, stores, config, views, forms,
+      request, permission, tabs
+layouts → stores, shared, uikit-shadcnui, tabs
 views → uikit-shadcnui  (NOT stores — auth injected via route props)
 forms → uikit-shadcnui, vee-validate, zod
 effects → stores (types only)
 design → uikit-shadcnui
 app-ui → uikit-shadcnui
+request → stores (auth surface only — no circular import)
+permission → router, stores, uikit-shadcnui
+tabs → router, stores, layouts, uikit-shadcnui
 router → vue + vue-router only
 shared → @iconify/vue
 config → (nothing)

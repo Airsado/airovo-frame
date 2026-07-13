@@ -116,10 +116,40 @@ class PreferenceManager {
 
     /** Resolve actual theme mode and toggle dark class. */
     private applyTheme(): void {
+        const root = document.documentElement
         const mode = this.resolveTheme()
         const isDark = mode === 'dark'
-        document.documentElement.classList.toggle('dark', isDark)
-        // CSS variables are managed by the design package (Tailwind dark: variants)
+        root.classList.toggle('dark', isDark)
+
+        // ── Theme tokens (P2-B C4) ──
+        const t = this.state.theme
+        const docStyle = root.style
+
+        // Primary color — only write when set so the global token
+        // keeps its framework default.
+        if (t.primaryColor) docStyle.setProperty('--primary', t.primaryColor)
+
+        // Corner radius (CSS rem).
+        if (typeof t.radius === 'number') {
+            docStyle.setProperty('--radius', `${t.radius}rem`)
+        }
+
+        // Neutral palette family + density — applied as data attrs so
+        // globals.css can scope overrides per variant.
+        if (t.grayColor) root.dataset.gray = t.grayColor
+        else delete root.dataset.gray
+
+        if (t.layoutDensity) root.dataset.density = t.layoutDensity
+        else delete root.dataset.density
+
+        // Animations toggle: add/remove a class that globals.css can
+        // hook into to disable transitions.
+        if (t.animationEnabled === false) root.classList.add('no-anim')
+        else root.classList.remove('no-anim')
+
+        // Weak mode (grayscale filter).
+        if (t.weakMode) root.classList.add('weak')
+        else root.classList.remove('weak')
     }
 
     private resolveTheme(): 'light' | 'dark' {

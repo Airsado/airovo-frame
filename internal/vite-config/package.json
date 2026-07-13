@@ -15,8 +15,11 @@
         "@tailwindcss/vite": "catalog:",
         "@vitejs/plugin-vue": "catalog:",
         "@vue/tsconfig": "catalog:",
+        "rollup-plugin-visualizer": "catalog:",
         "tailwindcss": "catalog:",
-        "vite": "catalog:"
+        "vite": "catalog:",
+        "vite-plugin-compression": "catalog:",
+        "vite-plugin-mock": "catalog:"
     },
     "devDependencies": {
         "@airovo/typescript-config": "workspace:^",

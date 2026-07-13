@@ -22,10 +22,23 @@ export interface AppPreferences {
     logo?: string
 }
 
+export type GrayColor = 'zinc' | 'slate' | 'gray' | 'neutral' | 'stone'
+export type LayoutDensity = 'compact' | 'default' | 'loose'
+
 export interface ThemePreferences {
     mode: ThemeMode
     /** Primary color hex. Empty string means "use the css variable default". */
     primaryColor?: string
+    /** Neutral palette family for surfaces & borders. */
+    grayColor?: GrayColor
+    /** Corner radius token (CSS rem). Default 0.5. */
+    radius?: number
+    /** Layout density — drives spacing/padding tokens. */
+    layoutDensity?: LayoutDensity
+    /** Disable CSS transitions/animations when false. */
+    animationEnabled?: boolean
+    /** Grayscale filter applied to the entire app. */
+    weakMode?: boolean
 }
 
 export interface LocalePreferences {

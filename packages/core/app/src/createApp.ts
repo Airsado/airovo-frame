@@ -304,6 +304,12 @@ export async function createApp(options: AirovoAppOptions = {}): Promise<AirovoA
     }
     app.provide(APP_CONTEXT_KEY, ctx)
 
+    // 17. Global error handler — log + optional Sonner toast.
+    app.config.errorHandler = (err, _instance, info) => {
+        // eslint-disable-next-line no-console
+        console.error('[airovo/app] unhandled error:', err, info)
+    }
+
     function mount(selector: string = '#app') {
         app.mount(selector)
     }

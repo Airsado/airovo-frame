@@ -5,6 +5,35 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ── Theme细化 (P2-B C4) ── */
+
+/* Weak mode — apply grayscale filter to the whole app. */
+:root.weak { filter: grayscale(100%); transition: filter 0.3s; }
+
+/* No-anim mode — drop transitions/animations site-wide. */
+:root.no-anim,
+:root.no-anim * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Layout density — compact pulls padding down by ~25%. */
+:root[data-density="compact"] {
+    --spacing: 0.2rem;
+}
+:root[data-density="loose"] {
+    --spacing: 0.35rem;
+}
+
+/* Neutral palette — maps the data-gray attribute to the tailwind
+   --color-gray-* scale. Only the most-used stops are overridden; the
+   rest falls back to slate defaults. */
+:root[data-gray="zinc"] { --color-gray-50: var(--color-zinc-50); --color-gray-100: var(--color-zinc-100); --color-gray-200: var(--color-zinc-200); --color-gray-300: var(--color-zinc-300); --color-gray-400: var(--color-zinc-400); --color-gray-500: var(--color-zinc-500); --color-gray-600: var(--color-zinc-600); --color-gray-700: var(--color-zinc-700); --color-gray-800: var(--color-zinc-800); --color-gray-900: var(--color-zinc-900); --color-gray-950: var(--color-zinc-950); }
+:root[data-gray="slate"] { --color-gray-50: var(--color-slate-50); --color-gray-100: var(--color-slate-100); --color-gray-200: var(--color-slate-200); --color-gray-300: var(--color-slate-300); --color-gray-400: var(--color-slate-400); --color-gray-500: var(--color-slate-500); --color-gray-600: var(--color-slate-600); --color-gray-700: var(--color-slate-700); --color-gray-800: var(--color-slate-800); --color-gray-900: var(--color-slate-900); --color-gray-950: var(--color-slate-950); }
+:root[data-gray="gray"] { --color-gray-50: var(--color-gray-50); --color-gray-100: var(--color-gray-100); --color-gray-200: var(--color-gray-200); --color-gray-300: var(--color-gray-300); --color-gray-400: var(--color-gray-400); --color-gray-500: var(--color-gray-500); --color-gray-600: var(--color-gray-600); --color-gray-700: var(--color-gray-700); --color-gray-800: var(--color-gray-800); --color-gray-900: var(--color-gray-900); --color-gray-950: var(--color-gray-950); }
+:root[data-gray="neutral"] { --color-gray-50: var(--color-neutral-50); --color-gray-100: var(--color-neutral-100); --color-gray-200: var(--color-neutral-200); --color-gray-300: var(--color-neutral-300); --color-gray-400: var(--color-neutral-400); --color-gray-500: var(--color-neutral-500); --color-gray-600: var(--color-neutral-600); --color-gray-700: var(--color-neutral-700); --color-gray-800: var(--color-neutral-800); --color-gray-900: var(--color-neutral-900); --color-gray-950: var(--color-neutral-950); }
+:root[data-gray="stone"] { --color-gray-50: var(--color-stone-50); --color-gray-100: var(--color-stone-100); --color-gray-200: var(--color-stone-200); --color-gray-300: var(--color-stone-300); --color-gray-400: var(--color-stone-400); --color-gray-500: var(--color-stone-500); --color-gray-600: var(--color-stone-600); --color-gray-700: var(--color-stone-700); --color-gray-800: var(--color-stone-800); --color-gray-900: var(--color-stone-900); --color-gray-950: var(--color-stone-950); }
+
 @theme {
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(0 0% 3.9%);

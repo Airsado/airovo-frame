@@ -14,7 +14,9 @@
     "@airovo/uikit-shadcnui": "workspace:*",
     "@iconify/vue": "catalog:",
     "vue": "catalog:",
-    "vue-router": "catalog:"
+    "vue-router": "catalog:",
+    "vxe-table": "catalog:",
+    "vxe-pc-ui": "catalog:"
   },
   "devDependencies": {
     "@airovo/typescript-config": "workspace:*",

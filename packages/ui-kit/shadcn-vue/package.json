@@ -23,9 +23,11 @@
   },
   "dependencies": {
     "@airovo/shared": "workspace:*",
+    "@iconify/vue": "catalog:",
     "@lucide/vue": "^1.17.0",
     "@radix-icons/vue": "^1.0.0",
     "@vueuse/core": "^14.3.0",
+    "chart.js": "catalog:",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "radix-ui": "^1.4.3",
@@ -33,6 +35,7 @@
     "tailwind-merge": "^2.6.0",
     "tw-animate-css": "catalog:",
     "vue": "catalog:",
+    "vue-chartjs": "catalog:",
     "vue-input-otp": "^0.3.2",
     "vue-sonner": "^2.0.9"
   }

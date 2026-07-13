@@ -24,3 +24,5 @@ export {
     type ResultStatus,
     RESULT_PRESET,
 } from './components/result-page'
+
+export { AirovoTable, type AirovoColumn } from './components/table'

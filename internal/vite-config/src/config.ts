@@ -12,6 +12,19 @@ export interface ViteConfig extends UserConfig {
      * 是否启用Vue Devtools 默认读取VITE_DEVTOOLS环境变量
      */
     devtools?: boolean;
+    /**
+     * Optional Vite plugins that ship with the framework. Apps opt in
+     * per-flag. Each plugin is lazily imported so apps that don't use
+     * them don't pay the dep cost.
+     */
+    vitePlugins?: {
+        /** `vite-plugin-mock` for dev JSON endpoints. */
+        mock?: boolean | { prefix?: string }
+        /** `vite-plugin-compression` for gzip/brotli at build time. */
+        compression?: boolean | { algorithm?: 'gzip' | 'brotli' | 'deflate' | 'deflate-raw' }
+        /** `rollup-plugin-visualizer` to emit a `stats.html` bundle map. */
+        visualizer?: boolean | { template?: 'treemap' | 'sunburst' | 'network' }
+    };
 }
 
 /**
@@ -36,10 +49,48 @@ export interface ViteConfig extends UserConfig {
 export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
     const {
         devtools: _devtools,
+        vitePlugins,
         plugins: appPlugins = [],
         resolve: appResolve,
         ...restConfig
     } = config;
+
+    // Framework-provided Vite plugins, each gated by an opt-in flag so
+    // apps that don't need them don't pay the dep cost (the plugin
+    // modules are lazily imported below).
+    const frameworkPlugins: NonNullable<ViteConfig['plugins']> = []
+
+    if (vitePlugins?.mock) {
+        const opts = typeof vitePlugins.mock === 'object' ? vitePlugins.mock : {}
+        const prefix = (opts as { prefix?: string }).prefix ?? '/mock'
+        // Synchronous import is fine here — these are dev-only deps and
+        // the bundler will tree-shake the unused branches in prod.
+        const { default: vitePluginMock } = require('vite-plugin-mock') as {
+            default: (config: any) => any
+        }
+        frameworkPlugins.push(vitePluginMock({
+            prefix,
+            supportTs: true,
+        }))
+    }
+
+    if (vitePlugins?.compression) {
+        const opts = typeof vitePlugins.compression === 'object' ? vitePlugins.compression : {}
+        const algorithm = opts.algorithm ?? 'gzip'
+        const { default: vitePluginCompression } = require('vite-plugin-compression') as {
+            default: (config: any) => any
+        }
+        frameworkPlugins.push(vitePluginCompression({ algorithm }))
+    }
+
+    if (vitePlugins?.visualizer) {
+        const opts = typeof vitePlugins.visualizer === 'object' ? vitePlugins.visualizer : {}
+        const template = (opts as { template?: 'treemap' | 'sunburst' | 'network' }).template ?? 'treemap'
+        const { visualizer } = require('rollup-plugin-visualizer') as {
+            visualizer: (config?: any) => any
+        }
+        frameworkPlugins.push(visualizer({ template, filename: 'stats.html', gzipSize: true }))
+    }
 
 
     return {
@@ -79,6 +130,7 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
         plugins: [
             vue(),
             tailwindcss(),
+            ...frameworkPlugins,
             ...appPlugins,
         ],
         ...restConfig,

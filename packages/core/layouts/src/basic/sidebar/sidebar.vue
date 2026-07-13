@@ -87,6 +87,56 @@ function onParentToggle(item: SidebarMenuItemType, nextOpen: boolean): void {
     openKey.value = nextOpen ? item.url : null
 }
 
+// ─── drag-resize (P2-D D2) ───
+// Sidebar width lives on the shadcn-vue `Sidebar` element via a
+// `--sidebar-width` CSS variable. We drag the handle to update it,
+// clamp to [180, 480], and persist to localStorage.
+
+const SIDEBAR_WIDTH_KEY = 'airovo-sidebar-width'
+const MIN_W = 180
+const MAX_W = 480
+
+function readStoredWidth(): number | null {
+    if (typeof localStorage === 'undefined') return null
+    const raw = localStorage.getItem(SIDEBAR_WIDTH_KEY)
+    if (!raw) return null
+    const v = Number.parseInt(raw, 10)
+    return Number.isFinite(v) && v >= MIN_W && v <= MAX_W ? v : null
+}
+function writeStoredWidth(w: number): void {
+    try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(w)) } catch { /* ignore */ }
+}
+
+const customWidth = ref<number | null>(readStoredWidth())
+let dragState: { startX: number; startW: number } | null = null
+
+function onResizeMouseDown(e: MouseEvent) {
+    e.preventDefault()
+    const sidebarEl = (e.currentTarget as HTMLElement).closest('[data-sidebar]') as HTMLElement | null
+    const startW = sidebarEl ? sidebarEl.getBoundingClientRect().width : 240
+    dragState = { startX: e.clientX, startW }
+    document.addEventListener('mousemove', onResizeMouseMove)
+    document.addEventListener('mouseup', onResizeMouseUp)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+}
+function onResizeMouseMove(e: MouseEvent) {
+    if (!dragState) return
+    const delta = e.clientX - dragState.startX
+    const w = Math.min(MAX_W, Math.max(MIN_W, dragState.startW + delta))
+    customWidth.value = w
+    const sidebarEl = document.querySelector('[data-sidebar="sidebar"]') as HTMLElement | null
+    if (sidebarEl) sidebarEl.style.setProperty('--sidebar-width', `${w}px`)
+}
+function onResizeMouseUp() {
+    document.removeEventListener('mousemove', onResizeMouseMove)
+    document.removeEventListener('mouseup', onResizeMouseUp)
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+    if (customWidth.value !== null) writeStoredWidth(customWidth.value)
+    dragState = null
+}
+
 // ─── close sidebar sheet (mobile) ───
 
 function closeSidebarOnNavigate(): void {
@@ -216,5 +266,12 @@ function closeSidebarOnNavigate(): void {
             </SidebarGroup>
         </SidebarContent>
         <SidebarRail />
+        <!-- Drag handle for resize. Only visible in expanded desktop mode. -->
+        <div
+            v-if="state === 'expanded' && !isMobile"
+            class="absolute top-0 right-0 z-10 h-full w-1 cursor-col-resize transition-colors hover:bg-primary/30 active:bg-primary/50"
+            aria-label="拖拽调整侧边栏宽度"
+            @mousedown="onResizeMouseDown"
+        />
     </Sidebar>
 </template>
