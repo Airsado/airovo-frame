@@ -43,6 +43,22 @@ const { value, errorMessage, handleChange, handleBlur } = useField(
     rule,
 )
 
+// Form-level zod errors live on `props.api.form.errors`. In vee-validate
+// v4 this is exposed as a reactive Ref, but we accept either form so the
+// template binding works regardless of the wrapper type returned by
+// `useForm()`.
+const formError = computed(() => {
+    const errors = (props.api.form as any)?.errors?.value ?? (props.api.form as any)?.errors
+    return errors?.[field.fieldName] ?? ''
+})
+
+// Combined display: form-level zod errors win (they fire on submit and
+// apply to the whole schema); per-field `field.rules` still surface early
+// while the user is typing.
+const displayError = computed(() => formError.value || errorMessage.value)
+const hasError = computed(() => Boolean(displayError.value))
+const describedById = computed(() => (hasError.value ? `${field.fieldName}-error` : undefined))
+
 function onUpdate(v: any) {
     handleChange(v)
     props.api.setFieldValue(field.fieldName, v)
@@ -86,6 +102,8 @@ const inputType = computed(() => {
             :modelValue="value ?? field.defaultValue ?? ''"
             :placeholder="field.componentProps?.placeholder ?? '请输入'"
             :disabled="field.disabled || (deps && deps.disabled)"
+            :aria-invalid="hasError || undefined"
+            :aria-describedby="describedById"
             v-bind="{ ...(field.componentProps || {}), ...((deps && deps.componentProps) || {}) }"
             @update:modelValue="onUpdate"
             @blur="handleBlur"
@@ -97,8 +115,9 @@ const inputType = computed(() => {
         >{{ field.description }}</p>
 
         <p
-            v-if="errorMessage"
+            v-if="hasError"
+            :id="`${field.fieldName}-error`"
             class="text-destructive text-sm mt-1.5"
-        >{{ errorMessage }}</p>
+        >{{ formError || errorMessage }}</p>
     </div>
 </template>

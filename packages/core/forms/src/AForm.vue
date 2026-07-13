@@ -6,6 +6,7 @@
  * that was breaking vue-tsc).
  */
 import { computed, ref, watch } from 'vue'
+import { Icon } from '@iconify/vue'
 import type { FormComponentMap, FormFieldDependencies, FormFieldSchema } from './types'
 import { FormApi } from './form-api'
 import FormFieldRender from './FormFieldRender.vue'
@@ -77,6 +78,24 @@ watch(
     { immediate: true, deep: true },
 )
 
+// ── Form-level errors ──
+
+// vee-validate exposes `errors` as a reactive (Computed)Ref of
+// `{ [fieldName]: message }`. Unwrap it defensively — `api.form` is
+// typed as `Record<string, any>` so `errors` may arrive as the ref
+// itself or its already-unwrapped value.
+const formErrors = ref<Record<string, string>>({})
+watch(
+    () => {
+        const errs = props.api.form?.errors
+        if (!errs) return {}
+        return (errs && typeof errs === 'object' && 'value' in errs ? errs.value : errs) ?? {}
+    },
+    (v) => { formErrors.value = (v as Record<string, string>) ?? {} },
+    { immediate: true, deep: true },
+)
+const hasFormErrors = computed(() => Object.keys(formErrors.value).length > 0)
+
 // ── Handlers ──
 
 async function handleSubmit(e: Event) { await props.api.submitForm(e) }
@@ -85,6 +104,22 @@ async function handleReset() { await props.api.resetForm() }
 
 <template>
     <form class="space-y-4" @submit="handleSubmit">
+        <div
+            v-if="hasFormErrors"
+            role="alert"
+            class="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+            <div class="mb-1.5 flex items-center gap-2 font-medium">
+                <Icon icon="lucide:circle-alert" class="size-4 shrink-0" />
+                <span>表单校验未通过</span>
+            </div>
+            <ul class="list-disc space-y-0.5 pl-6">
+                <li v-for="(message, field) in formErrors" :key="field">
+                    {{ field }}: {{ message }}
+                </li>
+            </ul>
+        </div>
+
         <div :class="['grid gap-4', wrapperClass]">
             <template v-for="field in visibleSchema" :key="field.fieldName">
                 <FormFieldRender
