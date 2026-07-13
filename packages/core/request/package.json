@@ -1,0 +1,29 @@
+{
+    "name": "@airovo/request",
+    "version": "0.0.0",
+    "type": "module",
+    "main": "src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./useWebSocket": "./src/useWebSocket.ts",
+        "./useEventSource": "./src/useEventSource.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@airovo/stores": "workspace:*",
+        "axios": "catalog:",
+        "vue": "catalog:"
+    },
+    "devDependencies": {
+        "@airovo/typescript-config": "workspace:*",
+        "@types/node": "catalog:",
+        "@vueuse/core": "catalog:",
+        "happy-dom": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:"
+    }
+}

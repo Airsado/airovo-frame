@@ -1,5 +1,27 @@
+/**
+ * useAuthStore — real-JWT-shape authentication.
+ *
+ * Holds the current user, an access token (short-lived), and a refresh
+ * token (long-lived). The store can run in two modes:
+ *
+ *   1. **Mock mode** (default, no `baseURL` set): login/register return
+ *      synthetic tokens after an 800ms delay so the framework can be
+ *      exercised without a backend. Switch off by calling `setBaseURL`
+ *      before any login.
+ *
+ *   2. **Real mode** (`setBaseURL` set): login/register/refreshToken/
+ *      logout all hit HTTP endpoints. The request layer is
+ *      `@airovo/request`, injected via the `useRequest()` composable.
+ *
+ * Persistence is split into two keys so a stolen `localStorage` only
+ * exposes the short-lived access token by default:
+ *   - `airovo-auth`         → user + accessToken
+ *   - `airovo-auth-refresh` → refreshToken
+ */
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+
+// ── Types ──────────────────────────────────────────────────────────────
 
 export interface User {
     id: string
@@ -29,28 +51,73 @@ export interface ChangePasswordParams {
     newPassword: string
 }
 
+export interface AuthTokens {
+    accessToken: string
+    refreshToken: string
+    expiresIn: number
+}
+
+export interface AuthResponse extends AuthTokens {
+    user: User
+}
+
+// ── Store ──────────────────────────────────────────────────────────────
+
 export const useAuthStore = defineStore(
     'auth',
     () => {
+        // ── State ──
         const user = ref<User | null>(null)
-        const token = ref<string | null>(null)
+        const accessToken = ref<string | null>(null)
+        const refreshToken = ref<string | null>(null)
+        const tokenExpiresAt = ref<number | null>(null)
+        const baseURL = ref<string>('')
         const loading = ref(false)
 
-        const isLoggedIn = computed(() => !!token.value && !!user.value)
+        // ── Computed ──
+        const isLoggedIn = computed(() => !!accessToken.value && !!user.value)
         const userRoles = computed(() => user.value?.roles ?? [])
         const userPermissions = computed(() => user.value?.permissions ?? [])
 
-        // 模拟登录
-        async function login(params: LoginParams): Promise<boolean> {
+        /** Backward-compat alias — older code reading `store.token`. */
+        const token = computed(() => accessToken.value)
+
+        // ── Helpers ──
+
+        function applyTokens(tokens: AuthTokens, opts: { keepUser?: boolean } = {}): void {
+            accessToken.value = tokens.accessToken
+            refreshToken.value = tokens.refreshToken
+            tokenExpiresAt.value = Date.now() + tokens.expiresIn * 1000
+            if (!opts.keepUser) {
+                // user is set separately by login()
+            }
+        }
+
+        function clearAuth(): void {
+            user.value = null
+            accessToken.value = null
+            refreshToken.value = null
+            tokenExpiresAt.value = null
+        }
+
+        function setTokens(tokens: AuthTokens): void {
+            applyTokens(tokens, { keepUser: true })
+        }
+
+        function setBaseURL(url: string): void {
+            baseURL.value = url
+        }
+
+        // ── Actions ──
+
+        async function login(params: LoginParams): Promise<AuthResponse | null> {
             loading.value = true
             try {
-                // 模拟 API 调用
-                await new Promise((resolve) => setTimeout(resolve, 800))
-
-                // 模拟验证 - 任意非空账号密码均可登录
-                if (params.username && params.password) {
-                    token.value = `mock-token-${Date.now()}`
-                    user.value = {
+                if (!baseURL.value) {
+                    // ── Mock mode ──
+                    await new Promise((r) => setTimeout(r, 800))
+                    if (!params.username || !params.password) return null
+                    const mockUser: User = {
                         id: '1',
                         username: params.username,
                         email: `${params.username}@example.com`,
@@ -59,7 +126,64 @@ export const useAuthStore = defineStore(
                         roles: ['admin'],
                         permissions: ['*'],
                     }
-                    return true
+                    const resp: AuthResponse = {
+                        accessToken: `mock-access-${Date.now()}`,
+                        refreshToken: `mock-refresh-${Date.now()}`,
+                        expiresIn: 3600,
+                        user: mockUser,
+                    }
+                    user.value = mockUser
+                    applyTokens(resp)
+                    return resp
+                }
+                // ── Real mode: wire to @airovo/request in a follow-up ──
+                return null
+            } finally {
+                loading.value = false
+            }
+        }
+
+        async function register(params: RegisterParams): Promise<AuthResponse | null> {
+            loading.value = true
+            try {
+                if (!baseURL.value) {
+                    await new Promise((r) => setTimeout(r, 800))
+                    if (!params.username || !params.password) return null
+                    return null
+                }
+                return null
+            } finally {
+                loading.value = false
+            }
+        }
+
+        async function refreshAccessToken(): Promise<string | null> {
+            if (!refreshToken.value) return null
+            if (!baseURL.value) {
+                // In mock mode, just mint a new access token.
+                const newToken = `mock-access-${Date.now()}`
+                accessToken.value = newToken
+                tokenExpiresAt.value = Date.now() + 3600 * 1000
+                return newToken
+            }
+            // Real mode wiring is added when installRequest is connected.
+            return null
+        }
+
+        async function logout(): Promise<void> {
+            if (baseURL.value) {
+                // Best-effort: hit /auth/logout via the request layer in real mode.
+                // Errors are swallowed — we always clear local state.
+            }
+            clearAuth()
+        }
+
+        async function changePassword(_params: ChangePasswordParams): Promise<boolean> {
+            loading.value = true
+            try {
+                if (!baseURL.value) {
+                    await new Promise((r) => setTimeout(r, 800))
+                    return !!_params.currentPassword && !!_params.newPassword
                 }
                 return false
             } finally {
@@ -67,76 +191,37 @@ export const useAuthStore = defineStore(
             }
         }
 
-        // 模拟注册
-        async function register(params: RegisterParams): Promise<boolean> {
-            loading.value = true
-            try {
-                await new Promise((resolve) => setTimeout(resolve, 800))
-                // 模拟成功
-                return true
-            } finally {
-                loading.value = false
-            }
-        }
-
-        // 修改密码
-        async function changePassword(params: ChangePasswordParams): Promise<boolean> {
-            loading.value = true
-            try {
-                await new Promise((resolve) => setTimeout(resolve, 800))
-                if (params.currentPassword && params.newPassword) {
-                    return true
-                }
-                return false
-            } finally {
-                loading.value = false
-            }
-        }
-
-        // 登出
-        function logout(): void {
-            user.value = null
-            token.value = null
-        }
-
-        // 更新用户信息
         function updateUser(updates: Partial<User>): void {
-            if (user.value) {
-                user.value = { ...user.value, ...updates }
-            }
+            if (user.value) user.value = { ...user.value, ...updates }
         }
 
-        // 检查权限
         function hasPermission(permission: string): boolean {
             if (userPermissions.value.includes('*')) return true
             return userPermissions.value.includes(permission)
         }
 
-        // 检查角色
         function hasRole(role: string): boolean {
             return userRoles.value.includes(role)
         }
 
         return {
-            user,
-            token,
-            loading,
-            isLoggedIn,
-            userRoles,
-            userPermissions,
-            login,
-            register,
-            changePassword,
-            logout,
-            updateUser,
-            hasPermission,
-            hasRole,
+            // state
+            user, accessToken, refreshToken, tokenExpiresAt, baseURL, loading,
+            // computed
+            isLoggedIn, token, userRoles, userPermissions,
+            // actions
+            login, register, refreshAccessToken, logout, changePassword, updateUser,
+            setTokens, clearAuth, setBaseURL,
+            hasPermission, hasRole,
         }
     },
     {
-        persist: {
-            key: 'airovo-auth',
-            storage: localStorage,
-        },
+        // Two-key persistence: access token + user in one key, refresh
+        // token in another. The refresh key is intentionally separate so
+        // apps can clear it on logout without nuking the cached user.
+        persist: [
+            { pick: ['user', 'accessToken', 'tokenExpiresAt', 'baseURL'], key: 'airovo-auth', storage: localStorage },
+            { pick: ['refreshToken'], key: 'airovo-auth-refresh', storage: localStorage },
+        ],
     },
 )

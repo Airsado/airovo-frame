@@ -13,6 +13,7 @@
         "@airovo/config": "workspace:*",
         "@airovo/effects": "workspace:*",
         "@airovo/layouts": "workspace:*",
+        "@airovo/request": "workspace:*",
         "@airovo/router": "workspace:*",
         "@airovo/shared": "workspace:*",
         "@airovo/stores": "workspace:*",

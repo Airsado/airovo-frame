@@ -10,6 +10,8 @@ import { createPinia, useI18nStore, piniaPersist } from '@airovo/stores'
 import type { Locale } from '@airovo/stores/i18n'
 import { resolvePreferences, type Preferences } from '@airovo/config/preferences'
 import { usePreferencesStore } from '@airovo/stores/preferences'
+import { useAuthStore } from '@airovo/stores/auth'
+import { installRequest } from '@airovo/request'
 import { APP_CONTEXT_KEY, type AppContext } from './context'
 
 /**
@@ -245,7 +247,34 @@ export async function createApp(options: AirovoAppOptions = {}): Promise<AirovoA
         }
     }
 
-    // 13. App context
+    // 13. HTTP request layer (axios + auth interceptors). Uses the
+    //     auth store's getAccessToken/getRefreshToken/setTokens/clear
+    //     surface — no direct dependency on the auth store internals.
+    //     baseURL comes from VITE_API_BASE (Vite env) with a safe
+    //     default; the auth store's setBaseURL mirrors this so that
+    //     refresh/logout calls can find the same origin.
+    const apiBaseURL
+        = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE)
+        ?? ''
+
+    const authStore = useAuthStore()
+    if (apiBaseURL) authStore.setBaseURL(apiBaseURL)
+
+    installRequest(app, {
+        baseURL: apiBaseURL,
+        useStore: () => ({
+            getAccessToken: () => useAuthStore().accessToken,
+            getRefreshToken: () => useAuthStore().refreshToken,
+            setTokens: (t: { accessToken: string; refreshToken: string; expiresIn: number }) => {
+                useAuthStore().setTokens(t)
+            },
+            clear: () => {
+                useAuthStore().clearAuth()
+            },
+        }),
+    })
+
+    // 14. App context
     const ctx: AppContext = {
         app,
         router: router.router,

@@ -35,9 +35,9 @@ async function handleLogin() {
     isLoading.value = true
 
     try {
-        const success = await authStore.login(form.value)
+        const result = await authStore.login(form.value)
 
-        if (success) {
+        if (result) {
             const redirect = (route.query.redirect as string) || '/dashboard'
             router.push(redirect)
         } else {
