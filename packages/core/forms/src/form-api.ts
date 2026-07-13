@@ -19,13 +19,14 @@ export class FormApi {
     private state: FormProps
 
     constructor(options: FormProps) {
+        // Avoid duplicating `schema` (it is part of `options`); spread defaults first
+        // and let the caller-supplied options override.
         this.state = {
-            schema: [],
             showDefaultActions: true,
             wrapperClass: 'grid-cols-1',
             ...options,
-        }
-        this.schema = [...this.state.schema]
+        } as FormProps
+        this.schema = [...(this.state.schema ?? options.schema)]
     }
 
     // ── Lifecycle ──

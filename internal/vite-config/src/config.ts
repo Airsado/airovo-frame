@@ -63,6 +63,17 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
                 '@airovo/router',
                 '@airovo/stores',
                 '@airovo/uikit-shadcnui',
+                // New workspace packages (consumed source-direct, no build step).
+                '@airovo/forms',
+                '@airovo/views',
+                '@airovo/app',
+                '@airovo/design',
+                '@airovo/effects',
+                '@airovo/app-ui',
+                // Reserved for the new P1 packages (no-ops until they're added).
+                '@airovo/request',
+                '@airovo/permission',
+                '@airovo/tabs',
             ],
         },
         plugins: [

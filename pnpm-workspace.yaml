@@ -43,3 +43,4 @@ catalog:
 
   # 加载条
   nprogress: ^0.2.0
+  "@types/nprogress": ^0.2.0

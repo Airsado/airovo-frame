@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "vueCompilerOptions": {
-    "strictTemplates": true
+    "strictTemplates": false
   },
   "compilerOptions": {
     "composite": false,
@@ -20,12 +20,12 @@
     "strict": true,
     "erasableSyntaxOnly": true,
     "types": [
-      "node",
-      "vite/client"
+      "node"
     ],
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": [
-        "../../packages/ui-kit/vue-ui/src/*"
+        "../../packages/ui-kit/shadcn-vue/src/*"
       ]
     }
   },

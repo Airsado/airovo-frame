@@ -13,6 +13,7 @@
         "lint": "eslint \"**/*.ts\""
     },
     "dependencies": {
+        "@airovo/router": "workspace:*",
         "@airovo/shared": "workspace:*",
         "@airovo/stores": "workspace:*",
         "@airovo/uikit-shadcnui": "workspace:*",
@@ -20,5 +21,8 @@
         "vue": "catalog:",
         "vue-i18n": "catalog:",
         "vue-router": "catalog:"
+    },
+    "devDependencies": {
+        "@types/nprogress": "catalog:"
     }
 }

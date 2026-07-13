@@ -14,6 +14,8 @@
         "typescript": "~6.0.2"
     },
     "dependencies": {
-        "@airovo/router": "workspace:*"
+        "@airovo/router": "workspace:*",
+        "pinia": "catalog:",
+        "vue": "catalog:"
     }
 }

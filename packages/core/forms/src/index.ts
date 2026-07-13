@@ -65,7 +65,9 @@ export function useAForm(options: FormProps) {
         errors: formCtx.errors,
         handleSubmit: formCtx.handleSubmit,
         isSubmitting: formCtx.isSubmitting,
-        isValid: formCtx.isValid,
+        // vee-validate v4 FormContext no longer exposes `isValid` directly;
+        // derive it from the current `errors` map.
+        isValid: computed(() => Object.keys(formCtx.errors.value ?? {}).length === 0),
     }
 }
 

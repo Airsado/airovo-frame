@@ -9,6 +9,8 @@ import {
 } from '@airovo/app-ui'
 import { Button } from '@airovo/uikit-shadcnui'
 
+function onAdd() { globalThis.alert('新增') }
+
 defineOptions({ name: 'ComponentsDemo' })
 
 const showResult = ref(false)
@@ -40,7 +42,7 @@ const showResult = ref(false)
         <section class="space-y-4">
             <h2 class="text-lg font-semibold">UserCard 用户卡片</h2>
             <div class="grid gap-4 sm:grid-cols-2">
-                <UserCard :user="{ name: '庄周', username: 'zhuang', email: 'z@airovo.dev', role: ['管理员', { label: 'VIP', tone: 'primary' }] }">
+                <UserCard :user="{ name: '庄周', username: 'zhuang', email: 'z@airovo.dev', role: ['管理员', { label: 'VIP', tone: 'default' as const }] }">
                     <template #actions>
                         <Button variant="outline" size="sm">查看</Button>
                     </template>
@@ -75,7 +77,7 @@ const showResult = ref(false)
                         title="暂无数据"
                         description="请先添加一条记录"
                         action-text="新增记录"
-                        @action="() => alert('新增')"
+                        @action="onAdd"
                     />
                 </div>
                 <div class="rounded-lg border bg-card">

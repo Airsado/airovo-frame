@@ -8,7 +8,7 @@ import {
 import { Icon } from '@iconify/vue'
 import { computed } from 'vue'
 
-export type UserRole = string | { label: string; tone?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'success' }
+export type UserRole = string | { label: string; tone?: 'default' | 'secondary' | 'destructive' | 'outline' }
 
 export interface UserCardUser {
     name: string

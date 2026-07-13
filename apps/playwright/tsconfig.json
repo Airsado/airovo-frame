@@ -1,4 +1,7 @@
 {
   "extends": "@airovo/typescript-config/base.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"]
+  },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

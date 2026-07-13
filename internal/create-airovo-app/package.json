@@ -23,6 +23,7 @@
     "devDependencies": {
         "@airovo/typescript-config": "workspace:*",
         "@airovo/router": "workspace:*",
+        "@types/node": "catalog:",
         "tsup": "^8.0.0",
         "typescript": "~6.0.2"
     }

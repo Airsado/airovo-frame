@@ -31,16 +31,15 @@ class PreferenceManager {
 
         this.namespace = namespace
         // Priority: cached > overrides > framework defaults
-        this.initialPreferences = deepMerge(
-            {} as Preferences,
+        this.initialPreferences = deepMerge<Preferences>(
             frameworkDefaultPreferences as Preferences,
             overrides ?? {},
-        ) as Preferences
+        )
 
         // Load cached prefs (highest priority)
         const cached = this.loadFromCache()
         if (cached) {
-            Object.assign(this.state, deepMerge({}, this.initialPreferences, cached))
+            Object.assign(this.state, deepMerge<Preferences>(this.initialPreferences, cached))
         } else {
             Object.assign(this.state, this.initialPreferences)
         }
@@ -58,7 +57,7 @@ class PreferenceManager {
 
     /** Partially update preferences, merge + persist + apply. */
     updatePreferences(updates: DeepPartial<Preferences>): void {
-        const merged = deepMerge({}, updates, this.state)
+        const merged = deepMerge<Preferences>(this.state, updates)
         Object.assign(this.state, merged)
         this.handleUpdates(updates)
         this.debouncedSave()

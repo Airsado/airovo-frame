@@ -56,7 +56,7 @@ function isExactMatch(item: SidebarMenuItemType): boolean {
 function isActiveScope(item: SidebarMenuItemType): boolean {
     if (isExactMatch(item)) return true
     if (!item.children) return false
-    return item.children.some((c) => route.path === c.url)
+    return item.children.some((c: SidebarMenuItemType) => route.path === c.url)
 }
 
 // ─── open state (accordion — single open) ───
