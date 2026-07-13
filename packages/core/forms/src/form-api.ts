@@ -1,3 +1,4 @@
+import { ref, watch, type Ref } from 'vue'
 import type { FormFieldSchema, FormProps } from './types'
 
 /**
@@ -9,6 +10,15 @@ import type { FormFieldSchema, FormProps } from './types'
 export class FormApi {
     /** vee-validate form context — available after mount(). Stores raw vee-validate return. */
     form: Record<string, any> | null = null
+
+    /**
+     * Reactive mirror of the form-level errors. Updated by the watch
+     * inside `mount()`. The raw `form.errors` from vee-validate is a
+     * ComputedRef nested inside a non-reactive wrapper, so we surface
+     * a proper Vue Ref here so consumers (AForm, etc.) can react to
+     * it without writing a watch themselves.
+     */
+    public readonly errors: Ref<Record<string, string>> = ref({})
 
     /** Current field definitions. */
     schema: FormFieldSchema[] = []
@@ -34,6 +44,21 @@ export class FormApi {
     /** Called by AForm onMounted. */
     mount(form: Record<string, any>): void {
         this.form = form
+
+        // Sync the raw vee-validate errors (a ComputedRef nested in
+        // a non-reactive wrapper) into our exposed Ref so consumers
+        // can react to it via Vue's reactivity. We unwrap defensively
+        // because the wrapper may arrive as a Ref or a plain object
+        // depending on the vee-validate version / build flags.
+        watch(
+            () => {
+                const errs = (form as any)?.errors
+                if (!errs) return {}
+                return ('value' in errs ? errs.value : errs) ?? {}
+            },
+            (v) => { this.errors.value = { ...(v ?? {}) } },
+            { immediate: true, deep: true },
+        )
     }
 
     /** Called by AForm onUnmounted. */

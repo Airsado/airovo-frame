@@ -80,20 +80,10 @@ watch(
 
 // ── Form-level errors ──
 
-// vee-validate exposes `errors` as a reactive (Computed)Ref of
-// `{ [fieldName]: message }`. Unwrap it defensively — `api.form` is
-// typed as `Record<string, any>` so `errors` may arrive as the ref
-// itself or its already-unwrapped value.
-const formErrors = ref<Record<string, string>>({})
-watch(
-    () => {
-        const errs = props.api.form?.errors
-        if (!errs) return {}
-        return (errs && typeof errs === 'object' && 'value' in errs ? errs.value : errs) ?? {}
-    },
-    (v) => { formErrors.value = (v as Record<string, string>) ?? {} },
-    { immediate: true, deep: true },
-)
+// `api.errors` is a proper Vue Ref<Record<string, string>> exposed by
+// the FormApi. It mirrors the raw vee-validate form.errors inside
+// the api's mount() so we get reactive updates for free.
+const formErrors = props.api.errors
 const hasFormErrors = computed(() => Object.keys(formErrors.value).length > 0)
 
 // ── Handlers ──
