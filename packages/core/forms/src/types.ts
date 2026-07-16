@@ -65,3 +65,43 @@ export interface FormFieldSchema {
     /** "删除" 按钮文案。默认 "删除"。 */
     removeButtonText?: string
 }
+
+
+// FormApiLike — 表单控制器接口
+//
+// FormApi 类（form-api.ts）实现这个接口，把 vee-validate 的 form context
+// 包装成一个简洁的 CRUD + 验证 API，并镜像 errors 到响应式 Ref 供模板消费。
+export interface FormApiLike {
+
+    /**
+     * 设置表单值
+     * @param fields         要写入的值
+     * @param filterFields   true（默认）= 只写入 schema 定义的字段
+     * @param shouldValidate 写入后是否立即触发验证
+     */
+    setValues(
+        fields: Record<string, unknown>,
+        filterFields?: boolean,
+        shouldValidate?: boolean,
+    ): Promise<void>
+
+    /**
+     * 获取表单值
+     * @param fields         可选，只返回指定字段；不传则返回所有
+     * @param shouldValidate 获取前是否先触发验证
+     */
+    getValues(
+        fields?: string[],
+        shouldValidate?: boolean,
+    ): Promise<Record<string, unknown>>
+
+    /**
+     * 设置指定字段的值。返回 true 表示成功。
+     */
+    setFieldValue(field: string, value: unknown): boolean
+
+    /**
+     * 重置表单内容到 initialValues。返回 true 表示成功。
+     */
+    resetForm(): boolean
+}
