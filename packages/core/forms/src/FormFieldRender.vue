@@ -29,7 +29,7 @@ import {
     Input,
     Button,
 } from '@airovo/uikit-shadcnui'
-import { useForm, FieldArray as VeeFieldArray } from 'vee-validate'
+import { useForm, Field as VeeField, FieldArray as VeeFieldArray } from 'vee-validate'
 import { computed } from 'vue'
 import type { FormFieldSchema } from './types'
 
