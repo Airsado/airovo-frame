@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 
 /**
- * FormFieldRender — 统一用 VeeFieldArray 渲染所有字段。
+ * FormFieldRender — 纯渲染组件，从父级 inject 拿 form context。
  *
  * 数据 shape（v5 风格）：
  *   - 所有字段在 form values 里都是数组
@@ -24,8 +24,11 @@
  * rules 字段支持 zod schema 或字符串 DSL（'required,email' / 'phone' 等）
  * → 通过 parseRules() 统一转换
  *
- * 字段值（modelValue + onInput）始终来自 vee-validate 的 v-slot
- * field，schema 的 componentProps 不覆盖这些。
+ * 接入模式：
+ *   - 由 useAForm 在父级 provide form context
+ *   - 本组件 inject 该 context；没有时（独立使用场景）自动 create useForm
+ *   - VeeField / VeeFieldArray 自动 inject vee-validate 的 form context，
+ *     所以只要 FormFieldRender 在 useAForm 内部使用，字段就共享同一 context
  */
 import {
     Field,
@@ -39,10 +42,11 @@ import {
     Input,
     Button,
 } from '@airovo/uikit-shadcnui'
-import { useForm, Field as VeeField, FieldArray as VeeFieldArray } from 'vee-validate'
-import { computed } from 'vue'
+import { useForm, Field as VeeField, FieldArray as VeeFieldArray, type FormContext } from 'vee-validate'
+import { inject } from 'vue'
 import type { FormFieldSchema } from './types'
 import { parseRules } from './rules'
+import { FORM_CONTEXT_KEY } from './useAForm'
 
 const props = defineProps<{
     schema: FormFieldSchema[]
@@ -70,11 +74,19 @@ function isAtMax(item: FormFieldSchema, length: number): boolean {
 
 /** 单值字段初值（1 行），数组字段初值（空数组） */
 const initialValues = props.schema.reduce((acc, item) => {
-    acc[item.fieldName] = item.array ? [] : [{ [getArrayField(item)]: '' }]
+    const key = getArrayField(item)
+    acc[item.fieldName] = item.array ? [] : [{ [key]: '' }]
     return acc
 }, {} as Record<string, any>)
 
-const { handleSubmit } = useForm({ initialValues })
+// 优先用 useAForm 提供的 form context；如果没有（独立使用），自建 useForm
+const parentForm = inject(FORM_CONTEXT_KEY, null)
+const standaloneForm = parentForm ? null : useForm({ initialValues })
+
+/** 模板里 VeeField 实际使用的 form context（自动 inject） */
+function useFormContext(): FormContext | null {
+    return parentForm ?? standaloneForm
+}
 
 // ── 组件映射 ──
 const componentMap: Record<string, any> = {
@@ -115,20 +127,13 @@ function getExtraProps(item: FormFieldSchema): Record<string, unknown> {
         placeholder: userProps.placeholder ?? defaultPlaceholder,
     }
 }
-
-const onSubmit = handleSubmit((values) => {
-    // eslint-disable-next-line no-console
-    console.log('Form values:', values)
-})
 </script>
 
 <template>
-    <form @submit.prevent="onSubmit">
-        <FieldGroup>
-            <!-- 统一 VeeFieldArray 模板：单值字段 length 1 固定，数组字段显示 push/remove -->
+    <!-- 数组字段的 VeeFieldArray 模板 -->
+    <FieldGroup>
+        <template v-for="(item, idx) in props.schema" :key="item.fieldName + ':' + idx">
             <VeeFieldArray
-                v-for="item in props.schema"
-                :key="item.fieldName"
                 v-slot="{ fields, push, remove }"
                 :name="item.fieldName"
             >
@@ -156,10 +161,8 @@ const onSubmit = handleSubmit((values) => {
                                 class="flex-1"
                             >
                                 <FieldContent>
-                                    <FieldLabel :for="`AForm-${item.fieldName}-${index}`">
-                                        <template v-if="!item.array">
-                                            {{ item.label || item.fieldName }}
-                                        </template>
+                                    <FieldLabel :for="`AForm-${item.fieldName}-${index}`" v-if="!item.array">
+                                        {{ item.label || item.fieldName }}
                                     </FieldLabel>
 
                                     <FieldDescription v-if="item.description && index === 0">
@@ -229,6 +232,6 @@ const onSubmit = handleSubmit((values) => {
                     </div>
                 </FieldSet>
             </VeeFieldArray>
-        </FieldGroup>
-    </form>
+        </template>
+    </FieldGroup>
 </template>
