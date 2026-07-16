@@ -1,133 +1,187 @@
-<script setup lang="ts">
-/**
- * FormFieldRender — single-field row (label + input + error).
- *
- * Driven by the parent `<AForm>`. Receives the resolved props
- * (already evaluated by AForm's `show` / `disabled` / function
- * `componentProps`) plus the live form values + the FormApi for
- * the `useField()` bridge.
- */
-import { computed } from 'vue'
-import { Input } from '@airovo/uikit-shadcnui'
-import { useField } from 'vee-validate'
-import type { FormComponentMap, FormFieldSchema } from './types'
-import type { FormApi } from './form-api'
+<script lang="ts" setup>
 
-defineOptions({ name: 'FormFieldRender' })
+/**
+ * FormFieldRender — 统一用 VeeFieldArray 渲染所有字段。
+ *
+ * 数据 shape（v5 风格）：
+ *   - 所有字段在 form values 里都是数组
+ *   - `values[fieldName]` 是 Array<{ [ArrayField]: T }>
+ *   - 单值字段固定 1 行；数组字段（`array: true`）支持 push/remove
+ *
+ * placeholder / value 规则：
+ *   - text-input 类组件默认 placeholder = "请输入"+label
+ *   - 选择类默认 placeholder = "请选择"+label
+ *   - 用户显式提供的 componentProps.placeholder 覆盖默认
+ *   - componentProps 其他键整体合并到组件 props
+ *
+ * 字段值（modelValue + onInput）始终来自 vee-validate 的 v-slot
+ * field，schema 的 componentProps 不覆盖这些。
+ */
+import {
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+    FieldSet,
+    FieldLegend,
+    Input,
+    Button,
+} from '@airovo/uikit-shadcnui'
+import { useForm, FieldArray as VeeFieldArray } from 'vee-validate'
+import { computed } from 'vue'
+import type { FormFieldSchema } from './types'
 
 const props = defineProps<{
-    field: FormFieldSchema
-    api: FormApi
-    componentMap: FormComponentMap
-    /** Current form values (passed from AForm; reactive). */
-    currentValues: Record<string, any>
-    /** Disabled state, already evaluated by AForm. */
-    disabled: boolean
-    /** Resolved component props (may include dynamic show/disabled outputs). */
-    resolvedComponentProps: Record<string, any>
+    schema: FormFieldSchema[]
 }>()
 
-const field = props.field as any
-
-// Field-level zod rule (optional). When omitted, useField does no
-// per-field validation — the form-level zod schema (mounted on the
-// FormApi) is the source of truth.
-const rule = field.rules
-    ? (val: any) => {
-          const r = field.rules.safeParse(val === '' ? undefined : val)
-          return r.success ? true : r.error.issues[0]?.message ?? '格式不正确'
-      }
-    : undefined
-
-// vee-validate v4 removed `validateOnBlur` from FieldOptions. We
-// disable input-driven validation and rely on the explicit
-// `handleBlur` returned by useField, attached to the rendered
-// element via @blur in the template.
-const { value, errorMessage, handleChange, handleBlur } = useField(
-    () => field.fieldName,
-    rule,
-)
-
-// Form-level zod errors live on `props.api.errors`. v4 exposes
-// `errors` as a reactive Ref (we wrap a fresh Ref inside the
-// FormApi's mount()).
-const formError = computed(() => {
-    const errs = props.api.errors?.value ?? props.api.errors
-    return errs?.[field.fieldName] ?? ''
-})
-
-// Combined display: form-level zod errors win (they fire on submit
-// and apply to the whole schema); per-field `field.rules` still
-// surface early while the user is typing.
-const displayError = computed(() => formError.value || errorMessage.value)
-const hasError = computed(() => Boolean(displayError.value))
-const describedById = computed(() => (hasError.value ? `${field.fieldName}-error` : undefined))
-
-// The component to render. Falls back to Input. Component props are
-// merged: static field.componentProps ⊕ the resolved (dynamic) props
-// from AForm (which may include a show/disabled override of props).
-const ResolvedComp = computed<any>(
-    () => props.componentMap[field.component] ?? props.componentMap.Input ?? Input,
-)
-
-const mergedProps = computed(() => ({
-    ...(field.componentProps || {}),
-    ...(props.resolvedComponentProps || {}),
-}))
-
-const inputType = computed(() => {
-    switch (field.component) {
-        case 'Number': return 'number'
-        case 'Email': return 'email'
-        case 'Password': return 'password'
-        default: return 'text'
-    }
-})
-
-function onUpdate(v: any) {
-    handleChange(v)
-    props.api.setFieldValue(field.fieldName, v)
+/** 每行子对象的取值键。默认 'value'。 */
+function getArrayField(item: FormFieldSchema): string {
+    return item.ArrayField ?? 'value'
 }
+
+/** 单值字段初值（1 行），数组字段初值（空数组） */
+const initialValues = props.schema.reduce((acc, item) => {
+    acc[item.fieldName] = item.array ? [] : [{ [getArrayField(item)]: '' }]
+    return acc
+}, {} as Record<string, any>)
+
+const { handleSubmit } = useForm({ initialValues })
+
+// ── 组件映射 ──
+const componentMap: Record<string, any> = {
+    input: Input,
+    // select, checkbox, radio, textarea, datepicker, ...
+}
+const TEXT_INPUT_COMPONENTS = new Set([
+    'input', 'Input',
+    'textarea', 'Textarea',
+    'password', 'Password',
+    'number', 'Number',
+    'email', 'Email',
+])
+
+function isTextInput(component: FormFieldSchema['component']): boolean {
+    if (typeof component !== 'string') return true
+    return TEXT_INPUT_COMPONENTS.has(component)
+}
+
+function getComponent(component: FormFieldSchema['component']) {
+    if (typeof component === 'string') {
+        return componentMap[component] || Input
+    }
+    return component
+}
+
+/**
+ * 合并 schema 的 componentProps + 默认 placeholder
+ */
+function getExtraProps(item: FormFieldSchema): Record<string, unknown> {
+    const userProps = (item.componentProps ?? {}) as Record<string, unknown>
+    const isText = isTextInput(item.component)
+    const defaultPlaceholder = isText
+        ? `请输入${item.label}`
+        : `请选择${item.label}`
+    return {
+        ...userProps,
+        placeholder: userProps.placeholder ?? defaultPlaceholder,
+    }
+}
+
+const onSubmit = handleSubmit((values) => {
+    // eslint-disable-next-line no-console
+    console.log('Form values:', values)
+})
 </script>
 
 <template>
-    <div class="space-y-2">
-        <label
-            v-if="field.label"
-            :for="field.fieldName"
-            class="text-sm font-medium leading-none"
-        >
-            {{ field.label }}
-            <span
-                v-if="field.required"
-                class="ml-0.5 text-destructive"
-            >*</span>
-        </label>
+    <form @submit.prevent="onSubmit">
+        <FieldGroup>
+            <!-- 统一 VeeFieldArray 模板：单值字段 length 1 固定，数组字段显示 push/remove -->
+            <VeeFieldArray
+                v-for="item in props.schema"
+                :key="item.fieldName"
+                v-slot="{ fields, push, remove }"
+                :name="item.fieldName"
+            >
+                <FieldSet>
+                    <FieldLegend
+                        v-if="item.array"
+                        variant="label"
+                    >
+                        {{ item.label || item.fieldName }}
+                    </FieldLegend>
 
-        <component
-            :is="ResolvedComp"
-            :id="field.fieldName"
-            :name="field.fieldName"
-            :type="inputType"
-            :modelValue="value ?? field.defaultValue ?? ''"
-            :placeholder="mergedProps.placeholder ?? '请输入'"
-            :disabled="disabled"
-            :aria-invalid="hasError || undefined"
-            :aria-describedby="describedById"
-            v-bind="mergedProps"
-            @update:modelValue="onUpdate"
-            @blur="handleBlur"
-        />
+                    <div
+                        v-for="(row, index) in fields"
+                        :key="row.key"
+                        class="flex items-start gap-2"
+                    >
+                        <VeeField
+                            v-slot="{ field, errors, handleBlur }"
+                            :name="`${item.fieldName}[${index}].${getArrayField(item)}`"
+                        >
+                            <Field
+                                orientation="horizontal"
+                                :data-invalid="!!errors.length"
+                                class="flex-1"
+                            >
+                                <FieldContent>
+                                    <FieldLabel :for="`AForm-${item.fieldName}-${index}`">
+                                        <template v-if="item.array">
+                                            {{ item.label || item.fieldName }} #{{ index + 1 }}
+                                        </template>
+                                        <template v-else>
+                                            {{ item.label || item.fieldName }}
+                                        </template>
+                                    </FieldLabel>
 
-        <p
-            v-if="field.description"
-            class="text-muted-foreground text-xs mt-1"
-        >{{ field.description }}</p>
+                                    <FieldDescription v-if="item.description && index === 0">
+                                        {{ item.description }}
+                                    </FieldDescription>
 
-        <p
-            v-if="hasError"
-            :id="`${field.fieldName}-error`"
-            class="text-destructive text-sm mt-1.5"
-        >{{ displayError }}</p>
-    </div>
+                                    <component
+                                        :id="`AForm-${item.fieldName}-${index}`"
+                                        :is="getComponent(item.component)"
+                                        :name="`${item.fieldName}[${index}].${getArrayField(item)}`"
+                                        :modelValue="field.value"
+                                        @update:modelValue="field.onInput"
+                                        v-bind="getExtraProps(item)"
+                                        :aria-invalid="!!errors.length"
+                                        @blur="handleBlur"
+                                    />
+                                    <FieldError v-if="errors.length" :errors="errors" />
+                                </FieldContent>
+                            </Field>
+                        </VeeField>
+
+                        <Button
+                            v-if="item.array && fields.length > 1"
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            class="shrink-0 self-center text-muted-foreground"
+                            @click="remove(index)"
+                        >
+                            删除
+                        </Button>
+                    </div>
+
+                    <!-- 单值字段的"删除最后一行"被禁用：始终保留 1 行 -->
+                    <Button
+                        v-if="item.array"
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        class="mt-2 self-start"
+                        @click="push({ [getArrayField(item)]: '' })"
+                    >
+                        + 添加
+                    </Button>
+                </FieldSet>
+            </VeeFieldArray>
+        </FieldGroup>
+    </form>
 </template>
