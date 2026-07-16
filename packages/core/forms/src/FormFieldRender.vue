@@ -8,11 +8,21 @@
  *   - `values[fieldName]` 是 Array<{ [ArrayField]: T }>
  *   - 单值字段固定 1 行；数组字段（`array: true`）支持 push/remove
  *
+ * 数组字段扩展点：
+ *   - `maxItems`               限制最大行数
+ *   - `addButtonText`          "+ 添加" 按钮文案（默认 "+ 添加"）
+ *   - `removeButtonText`       "删除" 按钮文案（默认 "删除"）
+ *   - slots: array-add-prefix / array-add-suffix（添加按钮左右）
+ *            array-remove-prefix / array-remove-suffix（删除按钮左右）
+ *
  * placeholder / value 规则：
  *   - text-input 类组件默认 placeholder = "请输入"+label
  *   - 选择类默认 placeholder = "请选择"+label
  *   - 用户显式提供的 componentProps.placeholder 覆盖默认
  *   - componentProps 其他键整体合并到组件 props
+ *
+ * rules 字段支持 zod schema 或字符串 DSL（'required,email' / 'phone' 等）
+ * → 通过 parseRules() 统一转换
  *
  * 字段值（modelValue + onInput）始终来自 vee-validate 的 v-slot
  * field，schema 的 componentProps 不覆盖这些。
@@ -32,6 +42,7 @@ import {
 import { useForm, Field as VeeField, FieldArray as VeeFieldArray } from 'vee-validate'
 import { computed } from 'vue'
 import type { FormFieldSchema } from './types'
+import { parseRules } from './rules'
 
 const props = defineProps<{
     schema: FormFieldSchema[]
@@ -40,6 +51,21 @@ const props = defineProps<{
 /** 每行子对象的取值键。默认 'value'。 */
 function getArrayField(item: FormFieldSchema): string {
     return item.ArrayField ?? 'value'
+}
+
+/** "+ 添加" 按钮文案 */
+function getAddLabel(item: FormFieldSchema): string {
+    return item.addButtonText ?? '+ 添加'
+}
+
+/** "删除" 按钮文案 */
+function getRemoveLabel(item: FormFieldSchema): string {
+    return item.removeButtonText ?? '删除'
+}
+
+/** 是否达到行数上限 */
+function isAtMax(item: FormFieldSchema, length: number): boolean {
+    return typeof item.maxItems === 'number' && length >= item.maxItems
 }
 
 /** 单值字段初值（1 行），数组字段初值（空数组） */
@@ -122,6 +148,7 @@ const onSubmit = handleSubmit((values) => {
                         <VeeField
                             v-slot="{ field, errors, handleBlur }"
                             :name="`${item.fieldName}[${index}].${getArrayField(item)}`"
+                            :rules="(parseRules(item.rules) as any)"
                         >
                             <Field
                                 orientation="horizontal"
@@ -130,10 +157,7 @@ const onSubmit = handleSubmit((values) => {
                             >
                                 <FieldContent>
                                     <FieldLabel :for="`AForm-${item.fieldName}-${index}`">
-                                        <template v-if="item.array">
-                                            {{ item.label || item.fieldName }} #{{ index + 1 }}
-                                        </template>
-                                        <template v-else>
+                                        <template v-if="!item.array">
                                             {{ item.label || item.fieldName }}
                                         </template>
                                     </FieldLabel>
@@ -157,29 +181,52 @@ const onSubmit = handleSubmit((values) => {
                             </Field>
                         </VeeField>
 
-                        <Button
+                        <!-- 删除按钮：左右插槽 + 自定义文案 + 条件显示 -->
+                        <div
                             v-if="item.array && fields.length > 1"
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            class="shrink-0 self-center text-muted-foreground"
-                            @click="remove(index)"
+                            class="flex shrink-0 items-center self-center gap-1"
                         >
-                            删除
-                        </Button>
+                            <slot :name="`array-remove-prefix-${item.fieldName}`" :item="item" :index="index" :fields="fields" />
+                            <slot name="array-remove-prefix" :item="item" :index="index" :fields="fields" />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                class="text-muted-foreground"
+                                @click="remove(index)"
+                            >
+                                {{ getRemoveLabel(item) }}
+                            </Button>
+                            <slot name="array-remove-suffix" :item="item" :index="index" :fields="fields" />
+                            <slot :name="`array-remove-suffix-${item.fieldName}`" :item="item" :index="index" :fields="fields" />
+                        </div>
                     </div>
 
-                    <!-- 单值字段的"删除最后一行"被禁用：始终保留 1 行 -->
-                    <Button
+                    <!-- 添加按钮：左右插槽 + 自定义文案 + 行数上限禁用 -->
+                    <div
                         v-if="item.array"
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        class="mt-2 self-start"
-                        @click="push({ [getArrayField(item)]: '' })"
+                        class="flex items-center gap-1 self-start"
                     >
-                        + 添加
-                    </Button>
+                        <slot :name="`array-add-prefix-${item.fieldName}`" :item="item" :fields="fields" />
+                        <slot name="array-add-prefix" :item="item" :fields="fields" />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            :disabled="isAtMax(item, fields.length)"
+                            @click="push({ [getArrayField(item)]: '' })"
+                        >
+                            {{ getAddLabel(item) }}
+                            <span
+                                v-if="item.maxItems"
+                                class="ml-1 text-xs text-muted-foreground"
+                            >
+                                ({{ fields.length }}/{{ item.maxItems }})
+                            </span>
+                        </Button>
+                        <slot name="array-add-suffix" :item="item" :fields="fields" />
+                        <slot :name="`array-add-suffix-${item.fieldName}`" :item="item" :fields="fields" />
+                    </div>
                 </FieldSet>
             </VeeFieldArray>
         </FieldGroup>
