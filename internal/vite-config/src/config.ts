@@ -125,6 +125,7 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
                 '@airovo/request',
                 '@airovo/permission',
                 '@airovo/tabs',
+                // @airovo/forms removed — apps bring their own form library.
             ],
         },
         plugins: [

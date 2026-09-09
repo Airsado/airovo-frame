@@ -2,24 +2,15 @@
 /**
  * BasicLayoutMix — dual-column / "header-nav + sidebar" variant.
  *
- * Renders a top header with horizontal nav (the main routes) and a
- * left sub-sidebar that drills into the active nav's children. This
- * is the vben-admin "header-nav-sidebar" mode. Wire to your app
- * via route meta `layout: 'mix'`.
- *
- * NOTE: This is a structural skeleton. A full vben-parity
- * implementation would have its own BasicHeader + BasicSidebar
- * variants with separate menus. For now we reuse the standard
- * BasicHeader / BasicSidebar so apps can swap layouts without
- * restructuring their route metadata.
+ * Skeleton with two named slots: `nav-sidebar` for the top horizontal
+ * nav and `main` for the page content. Apps fill both slots; the
+ * `meta.layout: 'mix'` resolver in createApp renders this layout.
  */
-import {
-    BasicLayout as DefaultLayout,
-} from '../layout.vue'
 import { SidebarInset, SidebarProvider } from '@airovo/uikit-shadcnui'
 
 defineOptions({ name: 'BasicLayoutMix' })
 </script>
+
 <template>
     <div class="h-svh flex flex-col">
         <SidebarProvider class="flex h-full flex-col">

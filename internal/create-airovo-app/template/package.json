@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@airovo/app": "workspace:*",
-    "@airovo/forms": "workspace:*",
     "@airovo/layouts": "workspace:*",
     "@airovo/shared": "workspace:*",
     "@airovo/stores": "workspace:*",

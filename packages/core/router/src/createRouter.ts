@@ -23,6 +23,12 @@ export interface AirovoRouterOptions {
     /** Optional dynamic menu loader (used when menusMod !== 'frontend'). */
     fetchMenus?: () => Promise<MenuItem[]>
     /**
+     * Filter applied per-menu-item. Receives the route meta and returns
+     * false to drop the item. The `@airovo/permission` package wires its
+     * `permissionFilter` here so RBAC-driven menu filtering actually works.
+     */
+    permissionFilter?: (meta: unknown) => boolean
+    /**
      * Navigation start guard. Built-in `LoadingBar` watches `progress` (0-100).
      */
     beforeEach?: (to: unknown, from: unknown) => boolean | unknown | Promise<unknown>
@@ -37,6 +43,12 @@ export interface AirovoRouter {
     router: Router
     /** Reactive sidebar menu items derived from the route tree. */
     menus: ComputedRef<MenuItem[]>
+    /**
+     * Install / replace the menu permission filter. Called by
+     * `@airovo/permission` after the router is built so RBAC
+     * filtering actually drops items from `menus`.
+     */
+    setPermissionFilter: (fn: (meta: unknown) => boolean) => void
     /** Navigation progress 0-100. Frameworks's LoadingBar uses this. */
     progress: Ref<number>
     /** Re-fetch backend-driven menus (only relevant when menusMod !== 'frontend'). */
@@ -46,11 +58,21 @@ export interface AirovoRouter {
 /**
  * Walk the route tree and produce MenuItem[] for the sidebar.
  * Skips routes with `meta.hideInMenu` and follows the first redirect child.
+ * If `permissionFilter` is given, items whose meta fails the check are
+ * dropped (this is what the `@airovo/permission` package uses to wire
+ * RBAC menu filtering — without this, the filter is a no-op).
  */
-function deriveMenusFromRoutes(routes: RouteRecordRaw[], parentPath: string = ''): MenuItem[] {
+function deriveMenusFromRoutes(
+    routes: RouteRecordRaw[],
+    parentPath: string = '',
+    permissionFilter?: (meta: unknown) => boolean,
+): MenuItem[] {
     const out: MenuItem[] = []
     for (const r of routes) {
         if (r.meta?.hideInMenu) continue
+        // Drop items the permission filter rejects. Routes with no
+        // meta.roles / meta.permissions are kept (no constraint).
+        if (permissionFilter && !permissionFilter(r.meta)) continue
 
         let path = r.path
 
@@ -70,7 +92,7 @@ function deriveMenusFromRoutes(routes: RouteRecordRaw[], parentPath: string = ''
             isActive: r.meta?.active === true,
         }
         if (r.children?.length) {
-            item.children = deriveMenusFromRoutes(r.children, absolutePath)
+            item.children = deriveMenusFromRoutes(r.children, absolutePath, permissionFilter)
         }
         if (item.title) out.push(item)
     }
@@ -151,12 +173,19 @@ export function createAppRouter(options: AirovoRouterOptions): AirovoRouter {
     })
 
     // ---- Menus ----
+    // The filter is stored in a ref so `installPermission` can update
+    // it after the router is built; the `menus` computed tracks the
+    // ref and re-evaluates accordingly.
+    const permissionFilter = ref<((meta: unknown) => boolean) | undefined>(
+        options.permissionFilter,
+    )
     const menus = computed<MenuItem[]>(() => {
+        const filter = permissionFilter.value
         if (_menusMod === 'frontend') {
-            return deriveMenusFromRoutes(routes)
+            return deriveMenusFromRoutes(routes, '', filter)
         }
         // For 'backend' / 'mixed', start with route-derived menu, overlay dynamic ones.
-        const local = deriveMenusFromRoutes(routes)
+        const local = deriveMenusFromRoutes(routes, '', filter)
         return mergeMenus(local, dynamicMenus.value, _menusMod)
     })
 
@@ -177,6 +206,9 @@ export function createAppRouter(options: AirovoRouterOptions): AirovoRouter {
     return {
         router,
         menus,
+        setPermissionFilter: (fn: (meta: unknown) => boolean) => {
+            permissionFilter.value = fn
+        },
         progress,
         refreshMenus,
     }

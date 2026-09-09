@@ -1,4 +1,7 @@
 export { default as BasicLayout } from './layout.vue'
+export { default as BasicLayoutHost } from './LayoutHost.vue'
 export { default as BasicHeader } from './header/header.vue'
 export { default as BasicSidebar } from './sidebar/sidebar.vue'
 export { default as BasicLoadingBar } from './components/LoadingBar/index.vue'
+export { default as BasicLayoutMix } from './layouts/mix.vue'
+export { default as BasicLayoutFullContent } from './layouts/full-content.vue'

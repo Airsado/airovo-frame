@@ -17,6 +17,12 @@ export { RequestError } from './error'
 export type { AuthStoreShape, RequestOptions } from './types'
 export { REQUEST_KEY } from './types'
 
+// Realtime composables — exported from the main barrel so apps can
+// `import { useWebSocket, useEventSource } from '@airovo/request'`
+// without reaching into deep paths.
+export { useWebSocket, type UseWebSocketOptions, type WebSocketState } from './useWebSocket'
+export { useEventSource, type UseEventSourceOptions, type EventSourceState } from './useEventSource'
+
 /**
  * Install the request layer on a Vue app. Returns the axios instance
  * for direct use (e.g. in stores that want to bypass inject). Idempotent

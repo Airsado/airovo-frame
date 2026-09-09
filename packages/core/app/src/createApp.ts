@@ -283,7 +283,7 @@ export async function createApp(options: AirovoAppOptions = {}): Promise<AirovoA
             userPermissions: useAuthStore().userPermissions,
             isLoggedIn: useAuthStore().isLoggedIn,
         }),
-        router: router.router,
+        router,  // AirovoRouter (has setPermissionFilter + the underlying vue-router inside)
     })
 
     // 15. Multi-tab system: auto-tracks navigation, exposes BasicTabBar
