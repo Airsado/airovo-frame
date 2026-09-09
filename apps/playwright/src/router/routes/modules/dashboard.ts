@@ -37,21 +37,41 @@ const dashboard: RouteRecordRaw = {
             },
         },
         {
-            path: 'aform',
-            name: 'DashboardAForm',
-            component: () => import('../../../views/AFormDemo.vue'),
-            meta: {
-                title: '表单系统',
-                icon: 'lucide:list-checks',
-            },
-        },
-        {
             path: 'design',
             name: 'DashboardDesign',
             component: () => import('@airovo/design/demo'),
             meta: {
                 title: '设计系统',
                 icon: 'lucide:palette',
+            },
+        },
+        {
+            path: 'my-form',
+            name: 'DashboardMyForm',
+            component: () => import('../../../views/MyFormDemo.vue'),
+            meta: {
+                title: '手写表单',
+                icon: 'lucide:form-input',
+            },
+        },
+        {
+            path: 'mix-demo',
+            name: 'DashboardMixDemo',
+            component: () => import('../../../views/LayoutDemo.vue'),
+            meta: {
+                title: 'Mix Layout',
+                icon: 'lucide:columns-2',
+                layout: 'mix',
+            },
+        },
+        {
+            path: 'full-demo',
+            name: 'DashboardFullDemo',
+            component: () => import('../../../views/LayoutDemo.vue'),
+            meta: {
+                title: 'Full-Content Layout',
+                icon: 'lucide:maximize',
+                layout: 'full-content',
             },
         },
     ],

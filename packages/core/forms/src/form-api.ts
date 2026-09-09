@@ -12,61 +12,43 @@
  *   3. Use the API (setValues / getValues / setFieldValue / resetForm / validate)
  *   4. `api.unmount()`            — tear down the errors mirror watch
  */
-import { ref, watch, type Ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { ZodTypeAny } from 'zod'
 import type { FormFieldSchema, FormApiLike } from './types'
+import { FormContext } from 'vee-validate'
 
-/** vee-validate form context — the minimum surface this class reads. */
-interface FormContext {
-    values: any
-    errors: any
-    validate(): Promise<{ valid: boolean; errors?: Record<string, any> }>
-    validateField(name: string): Promise<{ valid: boolean }>
-    setFieldValue(name: string, value: any): void
-    setValues(values: Record<string, any>): void
-    resetForm(): void
-}
-
+// 这里后续需要去修改掉，validation和initialValues都可以从schema中获取
 export interface FormApiOptions {
     schema?: FormFieldSchema[]
     validation?: ZodTypeAny
-    initialValues?: Record<string, any>
+    initialValues?: Record<string, unknown>
 }
 
 export class FormApi implements FormApiLike {
-    // ── Public reactive state ──
-    /** Reactive mirror of the form-level errors. */
-    public readonly errors: Ref<Record<string, string>> = ref({})
 
-    // ── Public config (read-only after construction) ──
-    public readonly schema: FormFieldSchema[]
-    public readonly validation: ZodTypeAny | undefined
-    public readonly initialValues: Record<string, any>
 
-    // ── Internal vee-validate context (set by mount()) ──
-    private form: FormContext | null = null
+    /**
+     * 用来记录错误
+     */
+    private errors = ref<unknown>();
+
+    /**
+     * form实例来自于 vee-validate库,可以访问到其中的所有方法和状态, FormApi是基于他的封装和扩展,更方便业务调用
+     * 这里暴露出去方便特殊情况需要用到
+     */
+    public form: FormContext;
     private stopWatch: (() => void) | null = null
 
-    constructor(options: FormApiOptions = {}) {
-        this.schema = options.schema ?? []
-        this.validation = options.validation
-        this.initialValues = options.initialValues ?? {}
-    }
-
-    // ── Lifecycle ──
-
-    /** Connect to a vee-validate form context (usually from `useForm()`). */
-    mount(form: FormContext): void {
+    constructor(form: FormContext) {
         this.form = form
-        // Mirror the raw vee-validate errors (a ComputedRef nested in
-        // a non-reactive wrapper) into our exposed Ref so consumers
-        // can react to it via Vue's reactivity. We unwrap defensively
-        // because the wrapper may arrive as a Ref or a plain object
-        // depending on the vee-validate version / build flags.
+
+        if (!form) {
+            throw new Error("form 实例为空");
+        }
         this.stopWatch?.()
         this.stopWatch = watch(
             () => {
-                const errs = (form as any)?.errors
+                const errs = form?.errors
                 if (!errs) return {}
                 return ('value' in errs ? errs.value : errs) ?? {}
             },
@@ -75,25 +57,76 @@ export class FormApi implements FormApiLike {
         )
     }
 
-    /** Disconnect the form context and clear errors. */
-    unmount(): void {
-        this.stopWatch?.()
-        this.stopWatch = null
-        this.form = null
-        this.errors.value = {}
+    /**
+     * 该参数用于指示提交处理程序是否仍在运行。一旦处理完成或被拒绝，该参数会自动恢复为“false”。
+     * @link https://vee-validate.logaretm.com/v4/api/use-form/#composable-api
+     */
+    get isSubmitting() {
+        return this.form?.isSubmitting
     }
 
-    // ── FormApiLike implementation ──
+    unmount(): void {
+        // this.form = null;
+        this.stopWatch?.()
+        this.stopWatch = null
+    }
+
+    isFieldValid(fieldName: string): boolean {
+        return this.form.isFieldValid(fieldName);
+    }
+
+    updateSchema(schema: FormFieldSchema): void {
+        console.log(schema)
+        throw new Error('Method not implemented.')
+    }
+
+    setState(): Promise<void> {
+        console.log("还没想好怎么处理")
+        throw new Error('Method not implemented.')
+    }
+
+    async getState(): Promise<void> {
+        // 不知道怎么获取其state，目前一个小想法是定义一个state状态，根据表单的情况去动态变化状态，然后这里再get获取暴露出去
+    }
+
+    getFocusedFiled(): string | undefined {
+        throw new Error('Method not implemented.')
+    }
+
+    async submitForm(payload: any): Promise<Record<string, unknown>> {
+        // 依旧没想好怎么写，先这样吧
+        const cb = this.form?.handleSubmit(payload)
+
+        return cb as any
+    }
+
+    // 重置其验证
+    resetValidate(): Promise<void> {
+        throw new Error('Method not implemented.')
+    }
+
+    async ValidateAndSubmitForm(e: Event): Promise<Record<string, unknown> | boolean> {
+        const { valid } = await this.validate()
+
+        if (!valid) {
+            return Promise.resolve(false);
+        }
+
+        return e as any
+    }
+
+    // 这里需要对所有内容进行验证
+    async validateFiled(filedName: string): Promise<unknown> {
+        return await this.form?.validateField(filedName)
+    }
+
 
     async setValues(
         fields: Record<string, unknown>,
-        filterFields: boolean = true,
         shouldValidate: boolean = false,
     ): Promise<void> {
         if (!this.form) return
-        const payload = filterFields
-            ? this.filterToSchema(fields)
-            : { ...fields }
+        const payload = { ...fields }
         this.form.setValues(payload)
         if (shouldValidate) await this.validate()
     }
@@ -123,58 +156,24 @@ export class FormApi implements FormApiLike {
     resetForm(): boolean {
         if (!this.form) return false
         this.form.resetForm()
-        this.errors.value = {}
         return true
     }
 
-    // ── Extended v5 surface (not in FormApiLike but commonly needed) ──
-
-    /** Run schema-level validation. Updates the errors Ref. */
-    async validate(): Promise<{ valid: boolean; errors: Record<string, any> }> {
+    async validate(): Promise<{ valid: boolean; errors: Record<string, unknown> }> {
         if (!this.form) return { valid: true, errors: {} }
         const result = await this.form.validate()
         return { valid: result.valid, errors: (result as any).errors ?? {} }
     }
 
-    /** Run a single field's rules. */
     async validateField(name: string): Promise<{ valid: boolean }> {
         if (!this.form) return { valid: true }
         return await this.form.validateField(name)
     }
 
-    /** Clear all field errors without resetting values. */
     clearValid(): void {
-        this.form?.resetForm?.({ values: undefined })
-        this.errors.value = {}
+        this.form?.resetForm?.()
     }
 
-    /**
-     * Validate then run the user submit handler with the values.
-     * Returns the values on success, or `null` on validation failure
-     * (with the errors map populated).
-     */
-    async submitForm(
-        onSubmit?: (values: Record<string, any>) => Promise<void> | void,
-    ): Promise<Record<string, any> | null> {
-        const result = await this.validate()
-        if (!result.valid) return null
-        const values = await this.getValues()
-        if (onSubmit) await onSubmit(values)
-        return values
-    }
-
-    // ── Private helpers ──
-
-    /** Filter `fields` down to only the names declared in the schema. */
-    private filterToSchema(fields: Record<string, unknown>): Record<string, unknown> {
-        const allowed = new Set(this.schema.map((s) => s.fieldName))
-        const out: Record<string, unknown> = {}
-        for (const key of Object.keys(fields)) {
-            if (allowed.has(key)) out[key] = fields[key]
-        }
-        return out
-    }
 }
 
-/** Re-export the interface for convenience. */
 export type { FormApiLike } from './types'

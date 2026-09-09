@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { BasicLayout, BasicLoadingBar } from '@airovo/layouts'
+import { BasicLayoutHost, BasicLoadingBar } from '@airovo/layouts'
 import { RouterView } from 'vue-router'
 import { useAirovo } from '@airovo/app'
 
@@ -16,9 +16,9 @@ const showLayout = computed(() => {
 <template>
     <BasicLoadingBar :progress="progress" />
     <template v-if="showLayout">
-        <BasicLayout :menus="menus">
+        <BasicLayoutHost :menus="menus">
             <RouterView />
-        </BasicLayout>
+        </BasicLayoutHost>
     </template>
     <RouterView v-else />
 </template>

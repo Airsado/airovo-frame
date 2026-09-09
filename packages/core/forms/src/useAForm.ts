@@ -1,94 +1,85 @@
-/**
- * useAForm — 顶层 composable，把 vee-validate 的 useForm + FormApi
- * 包成一个统一的入口。返回 FormApi（CRUD + 验证）以及响应式的
- * values / errors refs 供模板直接消费。
- *
- * 用法：
- * ```ts
- * const { api, values, errors, submitForm } = useAForm({
- *     schema: formSchema,
- *     initialValues: { ... },
- *     validation: z.object({ ... }),
- * })
- *
- * async function onSubmit() {
- *     const result = await submitForm(async (vals) => {
- *         await api.login(vals.username[0].value)
- *     })
- *     if (!result) return // validation failed, errors.value populated
- * }
- * ```
- *
- * useAForm 会通过 provide 把 form context 暴露给子组件
- * （FormFieldRender 用 inject 拿到），避免每个字段组件自己创建
- * useForm() 产生多个独立 form context。
- */
-import { onUnmounted, provide, ref, watch, type InjectionKey, type Ref } from 'vue'
-import { useForm, type FormContext } from 'vee-validate'
-import type { ZodTypeAny } from 'zod'
+
+import { Component, defineComponent, h, onUnmounted } from 'vue'
+import { GenericObject, useForm } from 'vee-validate'
+import { toTypedSchema } from "@vee-validate/zod"
 import { FormApi } from './form-api'
-import type { FormFieldSchema, FormApiLike } from './types'
+import type { FormFieldSchema } from './types'
 import { parseRules } from './rules'
+import * as z from 'zod'
+import { PartialDeep } from 'type-fest'
+import AForm from './AForm.vue'
 
-/** inject key — FormFieldRender 用这个 key 拿到 useAForm 创建的 form */
-export const FORM_CONTEXT_KEY: InjectionKey<FormContext> = Symbol('formContext')
-
+/**
+ * useAForm传入的配置项类型
+ */
 export interface UseAFormOptions {
+    // 表单的排列布局：label和表单的布局
+    layout: "horizontal" | "vertical"
+    // 一整个表单的外层class样式
+    wrapperClass: unknown
+
     schema: FormFieldSchema[]
-    initialValues?: Record<string, any>
-    validation?: ZodTypeAny
 }
 
 export interface UseAFormReturn {
-    /** The form controller. */
+    /** 表单的操作api */
     api: FormApi
-    /** Reactive current values. */
-    values: Ref<Record<string, any>>
-    /** Reactive error map (mirrors api.errors). */
-    errors: Ref<Record<string, string>>
-    /** Build initial values for a single field given the schema. */
-    buildFieldInitialValue(item: FormFieldSchema): unknown
-    /**
-     * Validate then call onSubmit. Returns the values on success, or
-     * null on validation failure (errors.value is populated).
-     */
-    submitForm: FormApiLike['submitForm']
+    /** 依照配置创建的动态表单组件 */
+    AForm: Component
 }
 
-/** Compute initial values from the schema (single fields get 1 row, arrays start empty). */
-function computeInitialValues(schema: FormFieldSchema[]): Record<string, any> {
+/** 将Schema中的 fieldName:value 构造为useForm允许的格式 */
+function computeInitialValues(schema: FormFieldSchema[]): PartialDeep<Record<string, unknown>, {
+    recurseIntoArrays: false;
+    allowUndefinedInNonTupleArrays: true;
+}> {
     return schema.reduce((acc, item) => {
         const key = item.ArrayField ?? 'value'
-        acc[item.fieldName] = item.array ? [] : [{ [key]: '' }]
+        acc[item.fieldName] = [{ [key]: '' }]
         return acc
-    }, {} as Record<string, any>)
+    }, {} as PartialDeep<Record<string, unknown>, {
+        recurseIntoArrays: false;
+        allowUndefinedInNonTupleArrays: true;
+    }>)
 }
 
-export function useAForm(options: UseAFormOptions): UseAFormReturn {
-    const { schema, initialValues: userInit } = options
-    const baseInitial = computeInitialValues(schema)
-    const initialValues = userInit
-        ? { ...baseInitial, ...userInit }
-        : baseInitial
+/** 将Schema中的 fieldName:zod规则 构造为useForm允许的格式 */
+function computedValidateFormSchema(schema: FormFieldSchema[]) {
+    const validateRules = schema.reduce((acc, item) => {
+        const zodRule = parseRules(item.rules)
+        acc[item.fieldName] = zodRule
+        return acc;
+    }, {} as Record<string, z.ZodTypeAny>)
 
-    // vee-validate 的 useForm（绑定到 schema 的每个字段的 rules）。
-    // 这个调用也会在组件树里 provide form context。
-    const form = useForm({ initialValues })
+    return z.object(validateRules)
+}
 
-    // Build the FormApi and mount the form context to it.
-    const api = new FormApi({ schema, initialValues })
-    api.mount(form as any)
+/**
+ *
+ * @param options form表单配置项
+ * @returns 返回其组件、和操控api
+ *
+ * @example
+ * const {api,AForm} = useAForm(options);
+ * AForm作为组件使用,直接放到template即可
+ * api 可以操控AForm的表单状态
+ * useAForm内可以传递options,是对AForm的一些基础配置初始化,例如schema,布局等等
+ */
+export function useAForm<T extends GenericObject>(options: UseAFormOptions): UseAFormReturn {
+    const { schema } = options
+    const baseInitial = computeInitialValues(schema) as any
+    const baseValidateValues = computedValidateFormSchema(schema)
 
-    // Explicit provide（vee-validate 自己也会 provide，但这里显式再 provide
-    // 一次方便 FormFieldRender 用 FORM_CONTEXT_KEY 拿到）。
-    provide(FORM_CONTEXT_KEY, form)
+    const form = useForm<T>({ initialValues: baseInitial, validationSchema: toTypedSchema(baseValidateValues) })
+    const api = new FormApi(form)
 
-    // Reactive values mirror.
-    const values = ref<Record<string, any>>(initialValues)
-    watch(
-        () => (form as any).values,
-        (v) => { values.value = (v && typeof v === 'object' && 'value' in v) ? v.value : (v ?? {}) },
-        { immediate: true, deep: true },
+    const AFormComponent = defineComponent(
+        (props: Record<string, unknown>) => {
+            return () => h(AForm, { ...props as any, api, schema }, {})
+        },
+        {
+            props: {},
+        }
     )
 
     // Tear down on unmount.
@@ -98,18 +89,6 @@ export function useAForm(options: UseAFormOptions): UseAFormReturn {
 
     return {
         api,
-        values,
-        errors: api.errors,
-        buildFieldInitialValue: (item) => {
-            const key = item.ArrayField ?? 'value'
-            return item.array ? [] : [{ [key]: '' }]
-        },
-        submitForm: async (onSubmit) => {
-            const result = await api.validate()
-            if (!result.valid) return null
-            const vals = await api.getValues()
-            if (onSubmit) await onSubmit(vals)
-            return vals
-        },
-    } as UseAFormReturn
+        AForm: AFormComponent
+    }
 }

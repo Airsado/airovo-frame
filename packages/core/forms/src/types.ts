@@ -2,6 +2,35 @@ import type { Component } from 'vue'
 import type { ZodTypeAny } from 'zod'
 
 /**
+ * 存放框架现有的可用的组件映射，FormFiledSchema就可以自动推导出其props
+ */
+export interface ComponentPropsMap {
+    'CustomInput': { placeholder?: string; maxlength?: number; size?: 'small' | 'large' },
+    // 后续可扩展
+}
+
+export interface FormDependencies {
+    // 触发字段。只有这些字段值变动时，联动才会触发
+    triggerFields: string[]
+    // 动态判断当前字段是否需要显示，不显示则直接销毁
+    if?: boolean
+    // 动态判断当前字段是否需要显示，不显示用css隐藏
+    show?: boolean
+    // 动态判断当前字段是否需要禁用
+    disabled?: boolean
+    // 字段变更时，都会触发该函数
+    trigger?: void
+    // 动态rules
+    rules?: void
+    // 动态必填
+    required?: void
+    // 动态组件参数
+    componentProps?: void
+}
+
+
+
+/**
  * FormFieldSchema — v5-style unified schema.
  *
  * 每一个字段在内部都按数组渲染（VeeFieldArray），values 因此总是
@@ -29,11 +58,11 @@ import type { ZodTypeAny } from 'zod'
  * }
  * ```
  */
-export interface FormFieldSchema {
+export interface FormFieldSchema<T extends keyof ComponentPropsMap = keyof ComponentPropsMap> {
     fieldName: string
     label: string
-    component: Component | string
-    componentProps?: Record<string, unknown>
+    component: Component | T
+    componentProps?: ComponentPropsMap[T]
     description?: string
     /**
      * 验证规则。两类：
@@ -48,6 +77,10 @@ export interface FormFieldSchema {
      * @example 'required,email' / 'phone' / 'required,min:6,max:20'
      */
     rules?: ZodTypeAny | string
+    /**
+     * 依赖其他一个或多个字段的控制当前字段的行为的字段（显隐、值变化等）
+     */
+    dependencies?: FormDependencies
     /**
      * 数组行对象里取值的键。默认 'value'。
      * 例如 `ArrayField: 'phone'` 时，values.emails[0].phone。
@@ -94,6 +127,57 @@ export interface FormApiLike {
         fields?: string[],
         shouldValidate?: boolean,
     ): Promise<Record<string, unknown>>
+
+    /**
+     * 检查某个字段是否已通过校验
+     * @param fieldName 字段名称
+     */
+    isFieldValid(fieldName: string): boolean
+
+    /**
+     * 更新Schema列表
+     * @param schema
+     */
+    updateSchema(schema: FormFieldSchema): void
+
+    /**
+     * 暂时没想好怎么去弄这个state
+     */
+    setState(): Promise<void>
+
+    /**
+     * 正常return的类型应该是对应表单的props的，而不是void，但是我还没去写对应的props的类型
+     * 所以就先这样，毕竟还没想好怎么去设置其中的内容
+     */
+    getState(): Promise<void>
+
+    /**
+     * 获取当前已获得焦点的字段
+     */
+    getFocusedFiled(): string | undefined
+
+    /**
+     * 提交表单
+     * @param payload 提交的表单值
+     */
+    submitForm(payload: any): Promise<Record<string, unknown>>
+
+    /**
+     * 验证并提交表单
+     * @param e
+     */
+    ValidateAndSubmitForm(e: Event): Promise<Record<string, unknown> | boolean>
+
+    /**
+     * 校验指定字段
+     * @param filedName 字段名称
+     */
+    validateFiled(filedName: string): Promise<unknown>
+
+    /**
+     * 重置其中表单校验
+     */
+    resetValidate(): Promise<void>
 
     /**
      * 设置指定字段的值。返回 true 表示成功。

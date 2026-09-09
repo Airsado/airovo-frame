@@ -18,7 +18,7 @@
  *   parseRules('required,min:6,max:20') → chain
  *   parseRules(someZodSchema)          → someZodSchema
  */
-import { z, type ZodTypeAny } from 'zod'
+import { z, ZodString, type ZodTypeAny } from 'zod'
 
 export function parseRules(
     rules: ZodTypeAny | string | undefined,
@@ -32,23 +32,23 @@ export function parseRules(
         if (!token) continue
 
         if (token === 'required') {
-            schema = (schema as any).min(1, '必填')
+            schema = (schema as ZodString).min(1, '必填')
         } else if (token === 'email') {
-            schema = (schema as any).email('邮箱格式错误')
+            schema = (schema as ZodString).email('邮箱格式错误')
         } else if (token === 'phone') {
-            schema = (schema as any).regex(
+            schema = (schema as ZodString).regex(
                 /^1[3-9]\d{9}$/,
                 '手机号格式错误',
             )
         } else if (token.startsWith('min:')) {
             const n = Number.parseInt(token.slice(4), 10)
             if (Number.isFinite(n) && n >= 0) {
-                schema = (schema as any).min(n, `至少 ${n} 个字符`)
+                schema = (schema as ZodString).min(n, `至少 ${n} 个字符`)
             }
         } else if (token.startsWith('max:')) {
             const n = Number.parseInt(token.slice(4), 10)
             if (Number.isFinite(n) && n >= 0) {
-                schema = (schema as any).max(n, `最多 ${n} 个字符`)
+                schema = (schema as ZodString).max(n, `最多 ${n} 个字符`)
             }
         }
         // 未知 token 静默忽略
