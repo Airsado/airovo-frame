@@ -1,0 +1,9 @@
+{
+  "navigation": {
+    "overview": "Overview",
+    "developer": "Developer integration",
+    "dynamic": "Dynamic demo",
+    "mockApi": "Mock API",
+    "mockHealth": "Health"
+  }
+}

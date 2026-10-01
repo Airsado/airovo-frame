@@ -1,0 +1,9 @@
+{
+  "navigation": {
+    "overview": "概览",
+    "developer": "开发者接入",
+    "dynamic": "动态演示",
+    "mockApi": "Mock API",
+    "mockHealth": "健康检查"
+  }
+}

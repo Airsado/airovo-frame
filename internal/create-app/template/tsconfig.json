@@ -1,0 +1,9 @@
+{
+  "extends": "@airovo/typescript-config/base.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "erasableSyntaxOnly": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+}
