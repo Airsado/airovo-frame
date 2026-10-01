@@ -1,143 +1,349 @@
 import {
     createRouter as createVueRouter,
+    createWebHashHistory,
     createWebHistory,
     type Router,
+    type RouteComponent,
     type RouteRecordRaw,
+    type RouterScrollBehavior,
+    RouterView,
 } from 'vue-router'
-import { computed, ref, type ComputedRef, type Ref } from 'vue'
-import type { MenuItem, MenusMod } from './routeTypes'
+import { computed, defineAsyncComponent, defineComponent, h, ref, type Component, type ComputedRef, type Ref } from 'vue'
+import type { MenuItem, MenuItemInput, MenusMod } from './routeTypes'
+import type { AppMenuSource } from './registry'
 
-/**
- * Plain vue-router config — apps pass `routes: RouteRecordRaw[]`.
- * The framework augments this with:
- *   - meta.ignoreLayout: when true, the route renders outside BasicLayout
- *   - meta.public:       when true, the auth guard allows it through
- *   - menus:             reactive sidebar items derived from routes
- *   - progress:          navigation progress (0-100) for the loading bar
- */
-export interface AirovoRouterOptions {
-    /** Application routes. Must include a root path (`/`) and any other routes. */
+/** Components discovered from the consuming application's `views` glob. */
+export type PageMap = Record<string, RouteComponent>
+
+function normalizeViewPath(path: string): string {
+    const normalized = path.replace(/\\/g, '/').replace(/^\.?\/?/, '')
+    const withViews = normalized.startsWith('views/') ? normalized : `views/${normalized}`
+    const withLeadingSlash = `/${withViews}`
+    return withLeadingSlash.endsWith('.vue') ? withLeadingSlash : `${withLeadingSlash}.vue`
+}
+
+export interface FrameworkRouterOptions {
     routes: RouteRecordRaw[]
-    /** When `frontend` (default), menus come from route meta. `backend` reserves a slot. */
+    history?: 'hash' | 'web'
+    base?: string
+    scrollBehavior?: RouterScrollBehavior
     menusMod?: MenusMod
-    /** Optional dynamic menu loader (used when menusMod !== 'frontend'). */
-    fetchMenus?: () => Promise<MenuItem[]>
-    /**
-     * Filter applied per-menu-item. Receives the route meta and returns
-     * false to drop the item. The `@airovo/permission` package wires its
-     * `permissionFilter` here so RBAC-driven menu filtering actually works.
-     */
+    menus?: AppMenuSource
+    /** Map vben-style backend view paths to statically imported app components. */
+    pageMap?: PageMap
     permissionFilter?: (meta: unknown) => boolean
-    /**
-     * Navigation start guard. Built-in `LoadingBar` watches `progress` (0-100).
-     */
     beforeEach?: (to: unknown, from: unknown) => boolean | unknown | Promise<unknown>
-    /**
-     * After-navigation hook (analytics, cleanup, etc).
-     */
     afterEach?: (to: unknown, from: unknown) => void | Promise<void>
 }
 
-export interface AirovoRouter {
-    /** The underlying vue-router instance — register via `app.use(router)`. */
+export interface FrameworkRouter {
     router: Router
-    /** Reactive sidebar menu items derived from the route tree. */
     menus: ComputedRef<MenuItem[]>
-    /**
-     * Install / replace the menu permission filter. Called by
-     * `@airovo/permission` after the router is built so RBAC
-     * filtering actually drops items from `menus`.
-     */
     setPermissionFilter: (fn: (meta: unknown) => boolean) => void
-    /** Navigation progress 0-100. Frameworks's LoadingBar uses this. */
     progress: Ref<number>
-    /** Re-fetch backend-driven menus (only relevant when menusMod !== 'frontend'). */
-    refreshMenus: () => Promise<void>
+    refreshMenus: () => Promise<boolean>
+    registerDynamicRoutes: (items: MenuItemInput[]) => void
+    clearDynamicRoutes: () => void
+    loadedPaths: Readonly<Ref<string[]>>
+}
+
+function unknownDynamicComponent(viewPath: string): RouteComponent {
+    const safeKey = viewPath.replace(/[^a-zA-Z0-9_$]/g, '_')
+    return defineComponent({
+        name: safeKey ? `UnknownDynamicRoute_${safeKey}` : 'UnknownDynamicRoute',
+        setup() {
+            return () => h(
+                'div',
+                { class: 'flex min-h-32 items-center justify-center p-6 text-sm text-destructive' },
+                `未注册的动态页面组件：${viewPath || 'unknown'}`,
+            )
+        },
+    }) as RouteComponent
 }
 
 /**
- * Walk the route tree and produce MenuItem[] for the sidebar.
- * Skips routes with `meta.hideInMenu` and follows the first redirect child.
- * If `permissionFilter` is given, items whose meta fails the check are
- * dropped (this is what the `@airovo/permission` package uses to wire
- * RBAC menu filtering — without this, the filter is a no-op).
+ * KeepAlive matches the component's registered `name`, not the router name.
+ * Backend routes use stable view paths and are often registered without a
+ * route name that matches the actual Vue component. Give page-map components
+ * a deterministic wrapper name when
+ * they do not already expose one so the tab store can cache them reliably.
  */
+function componentName(component: RouteComponent | undefined): string | undefined {
+    if (!component || typeof component !== 'object') return undefined
+    const candidate = component as unknown as { name?: unknown; __name?: unknown }
+    if (typeof candidate.name === 'string' && candidate.name) return candidate.name
+    if (typeof candidate.__name === 'string' && candidate.__name) return candidate.__name
+    return undefined
+}
+
+function ensureNamedComponent(
+    component: RouteComponent,
+    viewPath: string,
+): { component: RouteComponent; cacheName: string } {
+    const existingName = componentName(component)
+    if (existingName) return { component, cacheName: existingName }
+
+    const safeKey = viewPath.replace(/[^a-zA-Z0-9_$]/g, '_') || 'unknown'
+    const cacheName = `FrameworkDynamic_${safeKey}`
+    // Registry entries are commonly Vite lazy loaders (`() => import(...)`).
+    // Keep them as Vue async components; rendering the loader through `h()`
+    // would treat it as a functional component and return a Promise vnode.
+    if (typeof component === 'function') {
+        const wrapped = defineAsyncComponent(component as () => Promise<Component>) as RouteComponent & { name?: string }
+        wrapped.name = cacheName
+        return { component: wrapped, cacheName }
+    }
+    const wrapped = defineComponent({
+        name: cacheName,
+        inheritAttrs: false,
+        setup(_props, context) {
+            return () => h(component, context.attrs, context.slots)
+        },
+    }) as RouteComponent
+    return { component: wrapped, cacheName }
+}
+
+const DynamicRouteOutlet = defineComponent({
+    name: 'DynamicRouteOutlet',
+    setup() {
+        return () => h(RouterView)
+    },
+})
+
+function joinPath(parentPath: string, path: string): string {
+    if (!path) return parentPath || '/'
+    if (path.startsWith('/')) return path
+    const joined = `${parentPath}/${path}`.replace(/\/+/g, '/')
+    return joined.startsWith('/') ? joined : `/${joined}`
+}
+
+function relativePath(parentPath: string, absolutePath: string): string {
+    if (!parentPath) return absolutePath
+    const prefix = parentPath.endsWith('/') ? parentPath : `${parentPath}/`
+    return absolutePath.startsWith(prefix) ? absolutePath.slice(prefix.length) : absolutePath
+}
+
 function deriveMenusFromRoutes(
     routes: RouteRecordRaw[],
-    parentPath: string = '',
+    parentPath = '',
     permissionFilter?: (meta: unknown) => boolean,
 ): MenuItem[] {
     const out: MenuItem[] = []
-    for (const r of routes) {
-        if (r.meta?.hideInMenu) continue
-        // Drop items the permission filter rejects. Routes with no
-        // meta.roles / meta.permissions are kept (no constraint).
-        if (permissionFilter && !permissionFilter(r.meta)) continue
+    for (const route of routes) {
+        const meta = route.meta
+        if (meta?.hideInMenu) continue
+        // A restricted parent hides its complete subtree. An unrestricted
+        // parent remains visible when some children are filtered out.
+        if (permissionFilter && !permissionFilter(meta)) continue
 
-        let path = r.path
-
-        // Resolve absolute path for children
-        const absolutePath = path.startsWith('/') ? path : `${parentPath}/${path}`
-
-        // Resolve redirect chains
-        if (r.redirect) {
-            path = r.redirect as string
-        }
-        if (!path || path === '') continue
+        const absolutePath = joinPath(parentPath, route.path)
+        const children = route.children?.length
+            ? deriveMenusFromRoutes(route.children, absolutePath, permissionFilter)
+            : undefined
+        const title = meta?.title ?? ''
+        if (!title) continue
 
         const item: MenuItem = {
-            title: r.meta?.title ?? '',
+            title,
+            titleKey: meta?.titleKey,
             url: absolutePath,
-            icon: r.meta?.icon,
-            isActive: r.meta?.active === true,
+            icon: meta?.icon,
+            group: meta?.group,
+            groupKey: meta?.groupKey,
+            badge: meta?.badge,
+            external: meta?.external === true,
+            isActive: meta?.active === true,
+            name: typeof route.name === 'string' ? route.name : undefined,
+            component: meta?.component,
+            meta,
+            redirect: typeof route.redirect === 'string' ? route.redirect : undefined,
         }
-        if (r.children?.length) {
-            item.children = deriveMenusFromRoutes(r.children, absolutePath, permissionFilter)
-        }
-        if (item.title) out.push(item)
+        if (children?.length) item.children = children
+        else if (route.children?.length) continue
+        out.push(item)
     }
     return out
 }
 
-/**
- * Create a framework-augmented vue-router.
- *
- * Thin wrapper around `vue-router` that adds:
- *   - menu derivation
- *   - progress tracking (used by the framework's LoadingBar)
- *   - optional backend menu fetching
- *
- * Apps use the returned `router` directly with `app.use()`.
- */
-export function createAppRouter(options: AirovoRouterOptions): AirovoRouter {
-    const { routes, fetchMenus, menusMod: _menusMod = 'frontend' } = options
+/** Accept both the framework's `url` field and vben-style backend `path`. */
+function rawMenuPath(item: MenuItem | MenuItemInput): string {
+    return item.url || item.path || ''
+}
 
-    // Backend menu state (used when menusMod !== 'frontend')
+function cloneMenu(item: MenuItem | MenuItemInput): MenuItem {
+    return {
+        ...item,
+        url: rawMenuPath(item),
+        meta: item.meta ? { ...item.meta } : undefined,
+        children: item.children?.map(cloneMenu),
+    }
+}
+
+function normalizeMenuPaths(items: MenuItemInput[], parentPath = ''): MenuItem[] {
+    return items.map((item) => {
+        const rawPath = rawMenuPath(item)
+        const url = item.external ? rawPath : joinPath(parentPath, rawPath)
+        return {
+            ...cloneMenu(item),
+            url,
+            children: item.children?.length ? normalizeMenuPaths(item.children, url) : undefined,
+        }
+    })
+}
+
+function menuAllowed(item: MenuItem, permissionFilter?: (meta: unknown) => boolean): boolean {
+    if (item.meta?.hideInMenu) return false
+    const meta = item.meta ?? (item.component ? { component: item.component } : undefined)
+    return !permissionFilter || permissionFilter(meta)
+}
+
+function mergeMenuTrees(
+    local: MenuItem[],
+    dynamic: MenuItem[],
+    permissionFilter?: (meta: unknown) => boolean,
+): MenuItem[] {
+    const dynamicByUrl = new Map(dynamic.map((item) => [item.url, item]))
+    const merged: MenuItem[] = []
+    for (const localItem of local) {
+        const override = dynamicByUrl.get(localItem.url)
+        if (!override) {
+            merged.push(cloneMenu(localItem))
+            continue
+        }
+        dynamicByUrl.delete(localItem.url)
+        // A backend item at the same URL is an explicit override. If it is
+        // denied, remove the local item too; retaining the local copy would
+        // leave a restricted backend menu visible in mixed mode.
+        if (!menuAllowed(override, permissionFilter)) continue
+        const children = mergeMenuTrees(localItem.children ?? [], override.children ?? [], permissionFilter)
+        if (override.children?.length && !children.length && !(override.component ?? override.meta?.component)) continue
+        merged.push({ ...cloneMenu(localItem), ...cloneMenu(override), ...(children.length ? { children } : {}) })
+    }
+    for (const item of dynamic) {
+        if (!dynamicByUrl.has(item.url) || !menuAllowed(item, permissionFilter)) continue
+        const children = item.children?.length
+            ? mergeMenuTrees([], item.children, permissionFilter)
+            : undefined
+        if (item.children?.length && !children?.length && !(item.component ?? item.meta?.component)) continue
+        merged.push({ ...cloneMenu(item), ...(children?.length ? { children } : {}) })
+    }
+    return merged
+}
+
+function filterMenuTree(items: MenuItem[], permissionFilter?: (meta: unknown) => boolean): MenuItem[] {
+    return items.flatMap((item) => {
+        if (item.meta?.hideInMenu) return []
+        const meta = item.meta ?? (item.component ? { component: item.component } : undefined)
+        if (permissionFilter && !permissionFilter(meta)) return []
+        const children = item.children ? filterMenuTree(item.children, permissionFilter) : undefined
+        if (item.children?.length && !children?.length && !(item.component ?? item.meta?.component)) return []
+        return [{ ...item, children: children?.length ? children : undefined }]
+    })
+}
+
+/** Convert a backend menu item using only the application's views whitelist. */
+function menuToRoute(
+    item: MenuItem,
+    parentPath: string,
+    pageMap: PageMap,
+): RouteRecordRaw | null {
+    if (item.external || !item.url) return null
+    const absolutePath = joinPath(parentPath, item.url)
+    const componentPath = item.component ?? item.meta?.component
+    const normalizedComponentPath = componentPath
+        ? normalizeViewPath(componentPath)
+        : undefined
+    const resolved = normalizedComponentPath
+        ? ensureNamedComponent(pageMap[normalizedComponentPath] ?? unknownDynamicComponent(normalizedComponentPath), normalizedComponentPath)
+        : item.children?.length
+            ? { component: DynamicRouteOutlet as RouteComponent, cacheName: 'DynamicRouteOutlet' }
+            : { component: unknownDynamicComponent(''), cacheName: 'UnknownDynamicRoute' }
+    const component = resolved.component
+    const meta = {
+        ...(item.meta ?? {}),
+        title: item.meta?.title ?? item.title,
+        titleKey: item.titleKey ?? item.meta?.titleKey,
+        icon: item.meta?.icon ?? item.icon,
+        group: item.meta?.group ?? item.group,
+        groupKey: item.groupKey ?? item.meta?.groupKey,
+        badge: item.badge ?? item.meta?.badge,
+        component: item.component ?? item.meta?.component,
+        cacheName: item.meta?.cacheName ?? resolved.cacheName,
+    }
+    const children = item.children?.map((child) => menuToRoute(child, absolutePath, pageMap))
+        .filter((child): child is RouteRecordRaw => Boolean(child))
+    const route = {
+        // Child route records must use a path relative to their parent. The
+        // menu model itself keeps absolute URLs, so normalize only at this
+        // router boundary.
+        path: relativePath(parentPath, absolutePath),
+        name: item.name ?? `dynamic:${absolutePath}`,
+        component,
+        redirect: item.redirect ?? (!normalizedComponentPath && item.children?.length
+            ? item.children.find((child) => !child.external)?.url
+            : undefined),
+        meta,
+    } as RouteRecordRaw
+    return children?.length ? { ...route, children } as RouteRecordRaw : route
+}
+
+/**
+ * Route names are global in vue-router, including names of nested records.
+ * Backend menus can be merged with local routes and may repeat a business
+ * name, so make collisions deterministic without exposing arbitrary keys to
+ * the router.
+ */
+function uniqueRouteName(router: Router, preferred: string, absolutePath: string): string {
+    if (!router.hasRoute(preferred)) return preferred
+    const base = `dynamic:${absolutePath}`
+    if (!router.hasRoute(base)) return base
+    let suffix = 2
+    while (router.hasRoute(`${base}:${suffix}`)) suffix += 1
+    return `${base}:${suffix}`
+}
+
+export function createAppRouter(options: FrameworkRouterOptions): FrameworkRouter {
+    const {
+        routes,
+        menus: menuSource,
+        menusMod: mode = 'frontend',
+        history = 'web',
+        pageMap = {},
+    } = options
     const dynamicMenus = ref<MenuItem[]>([])
+    const dynamicRouteNames = new Set<string>()
+    // Backend menus may decorate a route that was already registered by the
+    // app (the usual mixed-mode case). Keep the original metadata so a menu
+    // refresh or logout can remove the backend decoration without leaving the
+    // local route in a stale permission state.
+    const overriddenRouteMeta = new Map<string, {
+        route: ReturnType<Router['getRoutes']>[number]
+        meta: Record<string, unknown>
+    }>()
+    let menuLoadGeneration = 0
 
     const router = createVueRouter({
-        history: createWebHistory(),
+        history: history === 'hash' ? createWebHashHistory(options.base) : createWebHistory(options.base),
         routes,
-        scrollBehavior: () => ({ top: 0 }),
+        scrollBehavior: options.scrollBehavior ?? ((to, _from, savedPosition) => {
+            if (savedPosition) return savedPosition
+            if (to.hash) return { el: to.hash, behavior: 'smooth' }
+            return { top: 0 }
+        }),
     })
 
-    // ---- Progress bar state (0-100) ----
     const progress = ref(0)
     let resetTimer: ReturnType<typeof setTimeout> | null = null
     let midTimer: ReturnType<typeof setTimeout> | null = null
     let inFlight = false
+    const loadedPaths = ref<string[]>([])
 
     function clearTimers(): void {
-        if (resetTimer) {
-            clearTimeout(resetTimer)
-            resetTimer = null
-        }
-        if (midTimer) {
-            clearTimeout(midTimer)
-            midTimer = null
-        }
+        if (resetTimer) clearTimeout(resetTimer)
+        if (midTimer) clearTimeout(midTimer)
+        resetTimer = null
+        midTimer = null
     }
-
     function startProgress(): void {
         clearTimers()
         inFlight = true
@@ -146,8 +352,11 @@ export function createAppRouter(options: AirovoRouterOptions): AirovoRouter {
             if (inFlight && progress.value < 90) progress.value = 70
         }, 200)
     }
-
     function finishProgress(): void {
+        // A navigation to a page that was already visited does not start the
+        // route progress bar. Keep the completion hook idempotent so those
+        // navigations do not briefly flash the bar again.
+        if (!inFlight) return
         clearTimers()
         inFlight = false
         progress.value = 100
@@ -157,76 +366,135 @@ export function createAppRouter(options: AirovoRouterOptions): AirovoRouter {
         }, 250)
     }
 
-    // Custom beforeEach runs first
-    router.beforeEach(() => {
-        startProgress()
+    router.beforeEach((to) => {
+        // Match vben's route guard behaviour: the progress indicator is only
+        // shown the first time a page path is loaded. Switching back to an
+        // existing tab (including a query-only change) should be immediate.
+        if (!loadedPaths.value.includes(to.path)) startProgress()
         return true
     })
-    if (options.beforeEach) {
-        router.beforeEach(options.beforeEach as Parameters<typeof router.beforeEach>[0])
-    }
-    router.afterEach(() => {
+    if (options.beforeEach) router.beforeEach(options.beforeEach as Parameters<typeof router.beforeEach>[0])
+    router.afterEach((to, from, failure) => {
         finishProgress()
-        if (options.afterEach) {
-            void options.afterEach(undefined, undefined)
-        }
+        // A cancelled/redirected navigation did not open a tab. Leave the
+        // path unmarked so the eventual successful navigation still shows
+        // the loading indicator once.
+        if (!failure && !loadedPaths.value.includes(to.path)) loadedPaths.value.push(to.path)
+        void options.afterEach?.(to, from)
     })
 
-    // ---- Menus ----
-    // The filter is stored in a ref so `installPermission` can update
-    // it after the router is built; the `menus` computed tracks the
-    // ref and re-evaluates accordingly.
-    const permissionFilter = ref<((meta: unknown) => boolean) | undefined>(
-        options.permissionFilter,
-    )
+    const permissionFilter = ref(options.permissionFilter)
     const menus = computed<MenuItem[]>(() => {
-        const filter = permissionFilter.value
-        if (_menusMod === 'frontend') {
-            return deriveMenusFromRoutes(routes, '', filter)
-        }
-        // For 'backend' / 'mixed', start with route-derived menu, overlay dynamic ones.
-        const local = deriveMenusFromRoutes(routes, '', filter)
-        return mergeMenus(local, dynamicMenus.value, _menusMod)
+        const local = deriveMenusFromRoutes(routes, '', permissionFilter.value)
+        const dynamic = filterMenuTree(dynamicMenus.value, permissionFilter.value)
+        if (mode === 'backend') return dynamic
+        if (mode === 'mixed') return mergeMenuTrees(local, dynamicMenus.value, permissionFilter.value)
+        return local
     })
 
-    async function refreshMenus(): Promise<void> {
-        if (!fetchMenus) {
-            dynamicMenus.value = []
-            return
+    function clearDynamicRoutes(): void {
+        menuLoadGeneration += 1
+        for (const name of dynamicRouteNames) {
+            if (router.hasRoute(name)) router.removeRoute(name)
         }
+        dynamicRouteNames.clear()
+        for (const { route, meta } of overriddenRouteMeta.values()) {
+            for (const key of Object.keys(route.meta)) delete route.meta[key]
+            Object.assign(route.meta, meta)
+        }
+        overriddenRouteMeta.clear()
+        dynamicMenus.value = []
+    }
+
+    function applyDynamicMeta(
+        existing: ReturnType<Router['getRoutes']>[number],
+        dynamic: RouteRecordRaw,
+    ): void {
+        const key = existing.name != null ? `name:${String(existing.name)}` : `path:${existing.path}`
+        if (!overriddenRouteMeta.has(key)) {
+            overriddenRouteMeta.set(key, { route: existing, meta: { ...existing.meta } })
+        }
+        // Preserve local metadata that the backend did not mention (in
+        // particular a local requiresAuth/permission restriction), while
+        // allowing explicit backend fields to override it.
+        Object.assign(existing.meta, dynamic.meta)
+    }
+
+    function registerDynamicRoutes(items: MenuItemInput[]): void {
+        clearDynamicRoutes()
+        dynamicMenus.value = normalizeMenuPaths(items)
+        if (mode === 'frontend') return
+        function register(itemsToRegister: MenuItem[], parentPath: string, parentName?: string | symbol): void {
+            for (const item of itemsToRegister) {
+                const absolutePath = joinPath(parentPath, item.url)
+                const route = menuToRoute(item, parentPath, pageMap)
+                if (!route) continue
+
+                // A backend menu may override the label and metadata of an
+                // existing local route without replacing its component. In
+                // mixed mode only descendants that do not already exist are
+                // added below that local record.
+                const existing = router.getRoutes().find((candidate) => candidate.path === absolutePath)
+                let currentName = existing?.name == null ? undefined : existing.name
+                if (!existing) {
+                    if (typeof route.name === 'string') route.name = uniqueRouteName(router, route.name, absolutePath)
+                    try {
+                        if (parentName) router.addRoute(parentName, route)
+                        else router.addRoute(route)
+                        currentName = route.name
+                        if (typeof currentName === 'string') dynamicRouteNames.add(currentName)
+                    } catch (error) {
+                        // eslint-disable-next-line no-console
+                        console.error('[framework/router] failed to register dynamic route', route.name, error)
+                        continue
+                    }
+                } else {
+                    applyDynamicMeta(existing, route)
+                }
+
+                // `menuToRoute` already builds the complete child tree. When a
+                // new parent is added, registering its children a second time
+                // would create duplicate records (and duplicate route names).
+                // Recurse only when this path reuses an existing local route;
+                // in that case only the dynamic descendants need to be added.
+                if (item.children?.length && currentName && existing) {
+                    register(item.children, absolutePath, currentName)
+                }
+            }
+        }
+        register(dynamicMenus.value, '')
+    }
+
+    async function refreshMenus(): Promise<boolean> {
+        if (!menuSource?.load || mode === 'frontend') {
+            if (mode === 'frontend') clearDynamicRoutes()
+            return false
+        }
+        const generation = ++menuLoadGeneration
         try {
-            dynamicMenus.value = await fetchMenus()
-        } catch (err) {
+            const raw = await menuSource.load()
+            if (generation !== menuLoadGeneration) return false
+            const items = menuSource.normalize ? menuSource.normalize(raw) : Array.isArray(raw) ? raw as MenuItemInput[] : []
+            registerDynamicRoutes(items)
+            return true
+        } catch (error) {
+            if (generation !== menuLoadGeneration) return false
             // eslint-disable-next-line no-console
-            console.error('[router] fetchMenus failed:', err)
+            console.error('[framework/router] menu load failed:', error)
+            clearDynamicRoutes()
             dynamicMenus.value = []
+            return false
         }
     }
 
     return {
         router,
         menus,
-        setPermissionFilter: (fn: (meta: unknown) => boolean) => {
-            permissionFilter.value = fn
-        },
+        setPermissionFilter: (fn) => { permissionFilter.value = fn },
         progress,
         refreshMenus,
+        registerDynamicRoutes,
+        clearDynamicRoutes,
+        loadedPaths,
     }
-}
-
-/**
- * Combine two menu trees for the `mixed` mode.
- * - `backend`: replace local entirely with dynamic
- * - `mixed`: dynamic overrides local by `url`
- * - `frontend`: dynamic ignored
- */
-function mergeMenus(local: MenuItem[], dynamic: MenuItem[], mod: MenusMod): MenuItem[] {
-    if (mod === 'backend') return dynamic
-    if (mod === 'frontend') return local
-    // mixed: dynamic wins per-url
-    const dynByUrl = new Map(dynamic.map((m) => [m.url, m]))
-    return local.map((l) => {
-        const override = dynByUrl.get(l.url)
-        return override ? { ...l, ...override } : l
-    })
 }

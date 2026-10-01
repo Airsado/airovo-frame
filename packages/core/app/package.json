@@ -7,11 +7,12 @@
     },
     "license": "MIT",
     "scripts": {
-        "lint": "eslint \"**/*.ts\""
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run --config vitest.config.ts"
     },
     "dependencies": {
         "@airovo/config": "workspace:*",
-        "@airovo/effects": "workspace:*",
+        "@airovo/components": "workspace:*",
         "@airovo/layouts": "workspace:*",
         "@airovo/permission": "workspace:*",
         "@airovo/request": "workspace:*",
@@ -28,6 +29,10 @@
         "vue-router": "catalog:"
     },
     "devDependencies": {
-        "@airovo/typescript-config": "workspace:*"
+        "@airovo/typescript-config": "workspace:*",
+        "@types/node": "catalog:",
+        "@vitejs/plugin-vue": "catalog:",
+        "happy-dom": "catalog:",
+        "vitest": "catalog:"
     }
 }

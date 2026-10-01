@@ -1,198 +1,204 @@
-<script lang="ts" setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-    Button,
-    Input,
-    Field,
-    FieldLabel,
-    FieldDescription,
-    FieldError,
-} from '@airovo/uikit-shadcnui'
+<script setup lang="ts">
+import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
+import { useForm, type FormFieldSchema } from '@airovo/forms'
+import { Button } from '@airovo/uikit-shadcnui'
+import { z } from 'zod'
+import type { RegisterValues } from './auth-types'
 
 defineOptions({ name: 'FrameworkRegister' })
 
-/**
- * Injection props — apps pass auth functions / errors.
- * Avoids views depending on stores directly (breaks circular deps).
- */
-interface RegisterError {
-    code?: 'email_taken' | 'invalid' | 'network' | 'validation'
-    message: string
+interface RegisterText {
+    brand: string
+    brandDescription: string
+    title: string
+    description: string
+    username: string
+    usernamePlaceholder: string
+    email: string
+    emailPlaceholder: string
+    password: string
+    passwordPlaceholder: string
+    passwordDescription: string
+    confirmPassword: string
+    confirmPasswordPlaceholder: string
+    confirmPasswordDescription: string
+    submitting: string
+    submit: string
+    loginPrompt: string
+    login: string
 }
-interface FrameworkAuth {
-    register: (params: {
-        username: string
-        email: string
-        password: string
-        confirmPassword: string
-    }) => Promise<RegisterError | null>
+
+interface RegisterDisplay {
+    showBrandPanel: boolean
+    showLoginLink: boolean
 }
 
 const props = withDefaults(defineProps<{
-    auth?: FrameworkAuth
-}>(), { auth: undefined })
+    loading?: boolean
+    text?: Partial<RegisterText>
+    display?: Partial<RegisterDisplay>
+}>(), { loading: false })
 
-import { computed } from 'vue'
-const auth = computed(() => props.auth)
+const emit = defineEmits<{
+    submit: [values: RegisterValues]
+    login: []
+}>()
 
-const router = useRouter()
+const { t } = useI18n()
+const copy = computed<RegisterText>(() => ({
+    brand: props.text?.brand ?? 'Framework',
+    brandDescription: props.text?.brandDescription ?? '',
+    title: props.text?.title ?? t('auth.register.title', '注册'),
+    description: props.text?.description ?? t('auth.register.description', '填写以下信息创建账号'),
+    username: props.text?.username ?? t('auth.register.username', '用户名'),
+    usernamePlaceholder: props.text?.usernamePlaceholder ?? t('auth.register.usernamePlaceholder', '请输入用户名'),
+    email: props.text?.email ?? t('auth.register.email', '邮箱'),
+    emailPlaceholder: props.text?.emailPlaceholder ?? t('auth.register.emailPlaceholder', '请输入邮箱'),
+    password: props.text?.password ?? t('auth.register.password', '密码'),
+    passwordPlaceholder: props.text?.passwordPlaceholder ?? t('auth.register.passwordPlaceholder', '请输入密码'),
+    passwordDescription: props.text?.passwordDescription ?? t('auth.register.passwordDescription', '密码至少需要 6 位字符'),
+    confirmPassword: props.text?.confirmPassword ?? t('auth.register.confirmPassword', '确认密码'),
+    confirmPasswordPlaceholder: props.text?.confirmPasswordPlaceholder ?? t('auth.register.confirmPasswordPlaceholder', '请再次输入密码'),
+    confirmPasswordDescription: props.text?.confirmPasswordDescription ?? t('auth.register.confirmPasswordDescription', '两次密码必须一致'),
+    submitting: props.text?.submitting ?? t('auth.register.submitting', '注册中…'),
+    submit: props.text?.submit ?? t('auth.register.submit', '注册'),
+    loginPrompt: props.text?.loginPrompt ?? t('auth.register.loginPrompt', '已有账号？'),
+    login: props.text?.login ?? t('auth.register.login', '立即登录'),
+}))
 
-const form = ref({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-})
-const error = ref('')
-const isLoading = ref(false)
+const schema: FormFieldSchema[] = [
+    {
+        fieldName: 'username',
+        label: copy.value.username,
+        component: 'Input',
+        rules: z.string().min(1, t('auth.register.requiredUsername', '请输入用户名')),
+        componentProps: { autocomplete: 'username', placeholder: copy.value.usernamePlaceholder },
+    },
+    {
+        fieldName: 'email',
+        label: copy.value.email,
+        component: 'Email',
+        rules: z.string()
+            .min(1, t('auth.register.requiredEmail', '请输入邮箱'))
+            .email(t('auth.register.invalidEmail', '请输入有效的邮箱地址')),
+        componentProps: { autocomplete: 'email', placeholder: copy.value.emailPlaceholder },
+    },
+    {
+        fieldName: 'password',
+        label: copy.value.password,
+        component: 'Password',
+        rules: z.string().min(6, t('auth.register.passwordLength', '密码至少需要 6 位')),
+        description: copy.value.passwordDescription,
+        componentProps: { autocomplete: 'new-password', placeholder: copy.value.passwordPlaceholder },
+    },
+    {
+        fieldName: 'confirmPassword',
+        label: copy.value.confirmPassword,
+        component: 'Password',
+        rules: z.string().min(1, t('auth.register.requiredConfirmPassword', '请再次输入密码')),
+        description: copy.value.confirmPasswordDescription,
+        componentProps: { autocomplete: 'new-password', placeholder: copy.value.confirmPasswordPlaceholder },
+    },
+]
 
-async function handleSubmit() {
-    if (!form.value.username) {
-        error.value = '请输入用户名'
-        return
-    }
-    if (!form.value.email) {
-        error.value = '请输入邮箱'
-        return
-    }
-    if (form.value.password.length < 6) {
-        error.value = '密码至少 6 位'
-        return
-    }
-    if (form.value.password !== form.value.confirmPassword) {
-        error.value = '两次密码输入不一致'
-        return
-    }
-
-    error.value = ''
-    isLoading.value = true
-    try {
-        const result = await auth.value?.register({
-            username: form.value.username,
-            email: form.value.email,
-            password: form.value.password,
-            confirmPassword: form.value.confirmPassword,
+const validation = z.object({
+    username: z.array(z.object({
+        value: z.string().min(1, t('auth.register.requiredUsername', '请输入用户名')),
+    })).min(1),
+    email: z.array(z.object({
+        value: z.string()
+            .min(1, t('auth.register.requiredEmail', '请输入邮箱'))
+            .email(t('auth.register.invalidEmail', '请输入有效的邮箱地址')),
+    })).min(1),
+    password: z.array(z.object({
+        value: z.string().min(6, t('auth.register.passwordLength', '密码至少 6 位')),
+    })).min(1),
+    confirmPassword: z.array(z.object({
+        value: z.string().min(1, t('auth.register.requiredConfirmPassword', '请再次输入密码')),
+    })).min(1),
+}).superRefine((values, context) => {
+    if (values.password[0]?.value !== values.confirmPassword[0]?.value) {
+        context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['confirmPassword', 0, 'value'],
+            message: t('auth.register.passwordMismatch', copy.value.confirmPasswordDescription),
         })
-        if (result) {
-            error.value = result.message
-        } else {
-            router.push('/login')
-        }
-    } finally {
-        isLoading.value = false
     }
+})
+
+function firstValue(values: Record<string, unknown>, fieldName: string): string {
+    const rows = values[fieldName]
+    if (!Array.isArray(rows)) return ''
+    const value = rows[0]
+    return value && typeof value === 'object' && 'value' in value
+        ? String((value as { value?: unknown }).value ?? '')
+        : ''
+}
+
+const [AForm, formApi] = useForm({
+    schema,
+    validation,
+    layout: 'vertical',
+    showDefaultActions: false,
+    wrapperClass: 'flex flex-col gap-4',
+})
+
+watch(() => props.loading, (loading) => {
+    formApi.setProps({ loading })
+}, { immediate: true })
+
+const busy = computed(() => props.loading || formApi.loading)
+
+function submit(values: Record<string, unknown>) {
+    emit('submit', {
+        username: firstValue(values, 'username'),
+        email: firstValue(values, 'email'),
+        password: firstValue(values, 'password'),
+        confirmPassword: firstValue(values, 'confirmPassword'),
+    })
 }
 </script>
 
 <template>
-    <div class="min-h-screen flex">
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative overflow-hidden">
-            <div class="absolute inset-0 opacity-50 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
-            <div class="relative z-10 flex flex-col justify-center items-center w-full text-white p-12">
-                <div class="max-w-md text-center space-y-6">
-                    <h1 class="text-4xl font-bold">加入我们</h1>
-                    <p class="text-lg opacity-90">创建账号，开始使用管理框架</p>
-                    <div class="mt-12 space-y-4 text-sm opacity-80">
-                        <div class="flex items-center justify-center gap-2">
-                            <Icon icon="lucide:check" class="size-5" />
-                            <span>零配置上线</span>
-                        </div>
-                        <div class="flex items-center justify-center gap-2">
-                            <Icon icon="lucide:check" class="size-5" />
-                            <span>完整 TypeScript 类型</span>
-                        </div>
-                        <div class="flex items-center justify-center gap-2">
-                            <Icon icon="lucide:check" class="size-5" />
-                            <span>可插拔架构</span>
-                        </div>
-                    </div>
+    <div class="flex min-h-screen">
+        <div v-if="props.display?.showBrandPanel !== false" class="relative hidden w-1/2 overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-primary/60 lg:flex">
+            <div class="relative z-10 flex w-full items-center justify-center p-12 text-white">
+                <div class="max-w-md space-y-6 text-center">
+                    <h1 class="text-4xl font-bold">{{ copy.brand }}</h1>
+                    <p v-if="copy.brandDescription" class="text-lg opacity-90">{{ copy.brandDescription }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="flex-1 flex items-center justify-center p-8 bg-background">
-            <form class="w-full max-w-md space-y-6" @submit.prevent="handleSubmit">
-                <div class="lg:hidden text-center">
-                    <h1 class="text-2xl font-bold">airovo-frame</h1>
+        <div class="flex flex-1 items-center justify-center bg-background p-8">
+            <div class="w-full max-w-md space-y-6">
+                <div class="text-center lg:hidden">
+                    <h1 class="text-2xl font-bold">{{ copy.brand }}</h1>
                 </div>
 
                 <div class="space-y-2 text-center lg:text-left">
-                    <h2 class="text-2xl font-bold tracking-tight">注册</h2>
-                    <p class="text-sm text-muted-foreground">填写以下信息创建账号</p>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ copy.title }}</h2>
+                    <p class="text-sm text-muted-foreground">{{ copy.description }}</p>
                 </div>
 
-                <div class="space-y-4">
-                    <Field>
-                        <FieldLabel for="username">用户名</FieldLabel>
-                        <Input
-                            id="username"
-                            v-model="form.username"
-                            type="text"
-                            placeholder="请输入用户名"
-                            autocomplete="username"
-                        />
-                    </Field>
+                <AForm :aria-busy="busy" novalidate @submit="submit">
+                    <template #actions="{ submitting }">
+                        <div class="flex flex-col gap-3">
+                            <Button type="submit" class="h-10 w-full" :disabled="busy || submitting">
+                                <Icon v-if="busy || submitting" icon="lucide:loader-2" class="mr-2 size-4 animate-spin" />
+                                {{ busy || submitting ? copy.submitting : copy.submit }}
+                            </Button>
+                        </div>
+                    </template>
+                </AForm>
 
-                    <Field>
-                        <FieldLabel for="email">邮箱</FieldLabel>
-                        <Input
-                            id="email"
-                            v-model="form.email"
-                            type="email"
-                            placeholder="请输入邮箱"
-                            autocomplete="email"
-                        />
-                    </Field>
-
-                    <Field>
-                        <FieldLabel for="password">密码</FieldLabel>
-                        <Input
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            placeholder="请输入密码（至少 6 位）"
-                            autocomplete="new-password"
-                        />
-                        <FieldDescription>密码至少需要 6 位字符</FieldDescription>
-                    </Field>
-
-                    <Field>
-                        <FieldLabel for="confirmPassword">确认密码</FieldLabel>
-                        <Input
-                            id="confirmPassword"
-                            v-model="form.confirmPassword"
-                            type="password"
-                            placeholder="请再次输入密码"
-                            autocomplete="new-password"
-                        />
-                        <FieldDescription>两次密码必须一致</FieldDescription>
-                    </Field>
-
-                    <FieldError v-if="error" :errors="[error]" />
-
-                    <Button
-                        type="submit"
-                        class="w-full h-10"
-                        :class="{ 'opacity-50': isLoading }"
-                    >
-                        <Icon
-                            v-if="isLoading"
-                            icon="lucide:loader-2"
-                            class="mr-2 size-4 animate-spin"
-                        />
-                        {{ isLoading ? '注册中...' : '注册' }}
-                    </Button>
+                <div v-if="props.display?.showLoginLink !== false" class="text-center text-sm">
+                    <span class="text-muted-foreground">{{ copy.loginPrompt }}</span>
+                    <button type="button" class="ml-1 cursor-pointer text-primary hover:underline" :disabled="busy" @click="emit('login')">{{ copy.login }}</button>
                 </div>
-
-                <div class="text-center text-sm">
-                    <span class="text-muted-foreground">已有账号？</span>
-                    <router-link to="/login" class="text-primary hover:underline ml-1">
-                        立即登录
-                    </router-link>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </template>

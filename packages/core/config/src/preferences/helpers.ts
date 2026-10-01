@@ -1,4 +1,4 @@
-import type { Preferences, PreferencesExtension } from './types'
+import type { DeepPartial, Preferences, PreferencesExtension } from './types'
 
 /**
  * Identity helper whose only job is to give a typed name to a partial
@@ -20,6 +20,15 @@ export function defineOverridesPreferences<T extends Partial<Preferences>>(
 }
 
 /**
+ * Typed identity helper for the application preferences file.
+ * The name mirrors the public contract while keeping the runtime completely
+ * framework agnostic.
+ */
+export function definePreferences<T extends DeepPartial<Preferences>>(preferences: T): T {
+    return preferences
+}
+
+/**
  * Settings-drawer field descriptor. Identity helper — returns its
  * argument typed. The generic `T` lets an app extend which keys the
  * drawer knows about:
@@ -38,8 +47,8 @@ export function defineOverridesPreferences<T extends Partial<Preferences>>(
  * })
  * ```
  *
- * The drawer (future iteration) intersects `T` with `Preferences` so
- * the field's `key` accepts both framework keys and app-specific keys.
+ * Lower-level PreferenceManager integrations may use these descriptors.
+ * The framework's createApp() startup contract accepts only preferences.
  */
 export function definePreferencesExtension<
     T extends Record<string, unknown> = Record<string, unknown>,

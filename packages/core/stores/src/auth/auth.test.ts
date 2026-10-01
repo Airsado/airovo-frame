@@ -1,64 +1,55 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from './index'
 
-describe('useAuthStore', () => {
+const user = {
+    id: '1', username: 'ada', email: 'ada@example.com',
+    roles: ['admin'], permissions: ['reports.read'],
+}
+
+describe('useAuthStore session state', () => {
     beforeEach(() => {
+        localStorage.clear()
         setActivePinia(createPinia())
     })
 
-    it('starts logged-out', () => {
-        const store = useAuthStore()
-        expect(store.isLoggedIn).toBe(false)
-        expect(store.user).toBeNull()
-        expect(store.token).toBeNull()
+    it('keeps login data and token persistence without performing API calls', () => {
+        const auth = useAuthStore()
+        expect(auth.isLoggedIn).toBe(false)
+        auth.setSession({ user, accessToken: 'access-1', refreshToken: 'refresh-1', expiresIn: 60 })
+
+        expect(auth.isLoggedIn).toBe(true)
+        expect(auth.userRoles).toEqual(['admin'])
+        expect(auth.userPermissions).toEqual(['reports.read'])
+        expect(localStorage.getItem('framework-auth-refresh')).toBe('refresh-1')
+
+        auth.setTokens({ accessToken: 'access-2', refreshToken: 'refresh-2' })
+        expect(auth.accessToken).toBe('access-2')
+        expect(localStorage.getItem('framework-auth-refresh')).toBe('refresh-2')
+
+        auth.clearSession()
+        expect(auth.isLoggedIn).toBe(false)
+        expect(auth.user).toBeNull()
+        expect(localStorage.getItem('framework-auth-refresh')).toBeNull()
     })
 
-    it('logs in with valid credentials', async () => {
-        const store = useAuthStore()
-        const success = await store.login({ username: 'admin', password: '123456' })
-        expect(success).toBe(true)
-        expect(store.isLoggedIn).toBe(true)
-        expect(store.user?.username).toBe('admin')
-        expect(store.token).toBeTruthy()
+    it('clears the expired-session state after reauthentication', () => {
+        const auth = useAuthStore()
+        auth.markSessionExpired('/reports')
+        expect(auth.sessionExpiredRedirect).toBe('/reports')
+        auth.setSession({ user, accessToken: 'new-access', refreshToken: 'new-refresh' })
+        expect(auth.sessionExpired).toBe(false)
+        auth.markSessionExpired('/reports')
+        auth.completeReauthentication()
+        expect(auth.sessionExpired).toBe(false)
     })
 
-    it('rejects empty credentials', async () => {
-        const store = useAuthStore()
-        const ok1 = await store.login({ username: '', password: '' })
-        expect(ok1).toBe(false)
+    it('treats an explicit null refresh token as a session reset', () => {
+        const auth = useAuthStore()
+        auth.setSession({ user, accessToken: 'access-1', refreshToken: 'refresh-1' })
+        auth.setSession({ user, accessToken: 'access-2', refreshToken: null })
 
-        const ok2 = await store.login({ username: 'admin', password: '' })
-        expect(ok2).toBe(false)
-    })
-
-    it('logs out', async () => {
-        const store = useAuthStore()
-        await store.login({ username: 'admin', password: '123456' })
-        expect(store.isLoggedIn).toBe(true)
-
-        store.logout()
-        expect(store.isLoggedIn).toBe(false)
-        expect(store.user).toBeNull()
-        expect(store.token).toBeNull()
-    })
-
-    it('updates user info', async () => {
-        const store = useAuthStore()
-        await store.login({ username: 'admin', password: '123456' })
-
-        store.updateUser({ email: 'new@example.com' })
-        expect(store.user?.email).toBe('new@example.com')
-        expect(store.user?.username).toBe('admin') // unchanged
-    })
-
-    it('checks permissions and roles', async () => {
-        const store = useAuthStore()
-        await store.login({ username: 'admin', password: '123456' })
-
-        // Mock user has '*' permission and 'admin' role
-        expect(store.hasPermission('*')).toBe(true)
-        expect(store.hasRole('admin')).toBe(true)
-        expect(store.hasRole('user')).toBe(false)
+        expect(auth.refreshToken).toBeNull()
+        expect(localStorage.getItem('framework-auth-refresh')).toBeNull()
     })
 })

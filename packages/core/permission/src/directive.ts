@@ -5,25 +5,43 @@
  *   <Button v-permission="'sys.user.delete'">删除</Button>
  *   <MenuItem v-permission="['sys.user.edit', 'sys.user.create']" />
  */
-import type { App, Directive, DirectiveBinding } from 'vue'
+import { ref, watchEffect, type App, type Directive, type Ref } from 'vue'
 import { usePermissionStore } from './store'
 
 type PermBinding = string | string[]
 
-function check(el: HTMLElement, binding: DirectiveBinding<PermBinding>) {
-    const store = usePermissionStore()
-    const value = binding.value
-    if (!value) return
-    const perms = Array.isArray(value) ? value : [value]
-    const ok = perms.some((p) => store.hasPermission(p))
-    // Use display:none rather than removing the element so the DOM
-    // stays stable (v-if would re-render children and lose focus).
-    el.style.display = ok ? '' : 'none'
+interface PermissionBindingState {
+    value: Ref<PermBinding>
+    stop: () => void
+    originalDisplay: string
 }
 
+const bindings = new WeakMap<HTMLElement, PermissionBindingState>()
+
 export const permissionDirective: Directive<HTMLElement, PermBinding> = {
-    mounted: check,
-    updated: check,
+    mounted(el, binding) {
+        const store = usePermissionStore()
+        const value = ref(binding.value)
+        const originalDisplay = el.style.display
+        const stop = watchEffect(() => {
+            const permissions = (Array.isArray(value.value) ? value.value : [value.value]).filter(Boolean)
+            const allowed = permissions.length === 0 || permissions.some((permission) => store.hasPermission(permission))
+            // Keep the node mounted so denied-to-allowed transitions retain its state.
+            el.style.display = allowed ? originalDisplay : 'none'
+        }, { flush: 'sync' })
+        bindings.set(el, { value, stop, originalDisplay })
+    },
+    updated(el, binding) {
+        const state = bindings.get(el)
+        if (state) state.value.value = binding.value
+    },
+    unmounted(el) {
+        const state = bindings.get(el)
+        if (!state) return
+        state.stop()
+        el.style.display = state.originalDisplay
+        bindings.delete(el)
+    },
 }
 
 export function registerVPermission(app: App) {

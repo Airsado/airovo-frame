@@ -14,11 +14,13 @@
     "license": "MIT",
     "scripts": {
         "lint": "eslint \"**/*.ts\"",
-        "test": "vitest run"
+        "test": "vitest run --config vitest.config.mts"
     },
     "devDependencies": {
+        "@vitejs/plugin-vue": "catalog:",
         "@vue/test-utils": "^2.4.0",
         "happy-dom": "^15.0.0",
+        "vite": "catalog:",
         "typescript": "~6.0.2",
         "vitest": "^2.1.0"
     },

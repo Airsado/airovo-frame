@@ -5,6 +5,7 @@
     "main": "src/index.ts",
     "exports": {
         ".": "./src/index.ts",
+        "./internal": "./src/internal.ts",
         "./useWebSocket": "./src/useWebSocket.ts",
         "./useEventSource": "./src/useEventSource.ts"
     },

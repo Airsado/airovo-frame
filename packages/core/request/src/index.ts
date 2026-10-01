@@ -1,21 +1,29 @@
 /**
- * @airovo/request — unified HTTP client for airovo-frame.
+ * Unified HTTP client for the framework.
  *
- * Provides a single axios instance wired with auth interceptors (Bearer
- * token + single-flight 401 refresh) and a small surface of error
- * normalization. Pairs with the `@airovo/stores` auth store and
- * installs once per app via `installRequest` in `createApp`.
+ * Provides a single axios instance wired with Bearer token injection and
+ * error normalization. The application owns 401 recovery and logout. It
+ * pairs with the framework auth store and installs once per app via
+ * `installRequest` in `createApp`.
  */
-import { inject, type App } from 'vue'
+import { inject } from 'vue'
 import type { AxiosInstance } from 'axios'
-import { createAxios } from './axios'
-import { setupInterceptors } from './interceptor'
 import { REQUEST_KEY } from './types'
-import type { RequestOptions } from './types'
 
-export { RequestError } from './error'
-export type { AuthStoreShape, RequestOptions } from './types'
-export { REQUEST_KEY } from './types'
+export { getRequestErrorDetails, RequestError } from './error'
+export type { RequestErrorDetails } from './error'
+export type {
+    RequestErrorContext,
+    RequestErrorHandler,
+    RequestHooks,
+} from './types'
+export {
+    getRequestClient,
+    registerRequestSetup,
+    registerSessionRestore,
+    type RequestRegistration,
+    type RequestSetupContext,
+} from './registry'
 
 // Realtime composables — exported from the main barrel so apps can
 // `import { useWebSocket, useEventSource } from '@airovo/request'`
@@ -23,24 +31,12 @@ export { REQUEST_KEY } from './types'
 export { useWebSocket, type UseWebSocketOptions, type WebSocketState } from './useWebSocket'
 export { useEventSource, type UseEventSourceOptions, type EventSourceState } from './useEventSource'
 
-/**
- * Install the request layer on a Vue app. Returns the axios instance
- * for direct use (e.g. in stores that want to bypass inject). Idempotent
- * — calling it twice replaces the previous install.
- */
-export function installRequest(app: App, options: RequestOptions): AxiosInstance {
-    const instance = createAxios(options)
-    setupInterceptors(instance, options)
-    app.provide(REQUEST_KEY, instance)
-    return instance
-}
-
 /** Convenience: pull the axios instance from a component context. */
 export function useRequest(): AxiosInstance {
     const instance = inject(REQUEST_KEY)
     if (!instance) {
         throw new Error(
-            '[airovo/request] useRequest() called outside a createApp that ran installRequest().',
+            '[request] useRequest() called outside a createApp that ran installRequest().',
         )
     }
     return instance

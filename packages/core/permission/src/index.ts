@@ -1,5 +1,5 @@
 /**
- * @airovo/permission — standard RBAC for airovo-frame.
+ * Standard RBAC for the framework.
  *
  * Provides:
  *   - \`usePermissionStore\`         — hasRole / hasPermission / hasAccess
@@ -11,25 +11,25 @@
  * \`@airovo/uikit-shadcnui\` for nothing (kept for symmetry; remove
  * if a circular dep surfaces).
  */
-import type { App } from 'vue'
+import { watchEffect, type App } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
-import type { AirovoRouter } from '@airovo/router'
+import type { FrameworkRouter } from '@airovo/router/internal'
 import { usePermissionStore, type AuthSurface } from './store'
 import { registerVPermission } from './directive'
 import { permissionFilter } from './menu-filter'
-import type { RouteMeta } from './types'
 
 export { usePermissionStore } from './store'
 export type { AuthSurface } from './store'
 export { registerVPermission } from './directive'
 export { permissionFilter } from './menu-filter'
-export type { RouteMeta }
+export { default as PermissionButton } from './PermissionButton.vue'
+export type { RouteMeta } from './types'
 
 export interface InstallPermissionOptions {
     /** Accessor returning the current auth surface (roles, permissions, isLoggedIn). */
     getAuth: () => AuthSurface
     /** Framework router — uses `setPermissionFilter` for menu filtering + `beforeEach` for guards. */
-    router: AirovoRouter
+    router: FrameworkRouter
     /**
      * Where to send users when they hit a route they don't have access
      * to. Default: the route named 'Forbidden' (apps should register it).
@@ -54,11 +54,9 @@ export interface InstallPermissionOptions {
 export function installPermission(app: App, options: InstallPermissionOptions): void {
     const store = usePermissionStore()
 
-    // Mirror the auth surface into the store so it has independent reactivity.
-    const sync = () => store.syncFromAuth(options.getAuth())
-    sync()
-    // Re-sync on every navigation via the underlying vue-router.
-    options.router.router.afterEach(() => sync())
+    // Keep menus and directives current when roles change on the same page.
+    // The accessor reads the auth store's reactive values inside watchEffect.
+    watchEffect(() => store.syncFromAuth(options.getAuth()), { flush: 'sync' })
 
     // 1. Directive
     registerVPermission(app)
@@ -68,16 +66,13 @@ export function installPermission(app: App, options: InstallPermissionOptions): 
     //    filter was a no-op (the previous code reassigned router.menus
     //    to itself, which doesn't re-trigger the computed).
     options.router.setPermissionFilter(
-        permissionFilter({ hasAccess: (meta) => store.hasAccess(meta as any) }),
+        permissionFilter({ hasAccess: (meta) => store.hasAccess(meta) }),
     )
 
     // 3. Route guard (uses the underlying vue-router)
     if (options.guardRoutes !== false) {
         options.router.router.beforeEach((to) => {
-            const meta = to.meta as RouteMeta
-            if (meta.public) return true
-            if (!meta.roles?.length && !meta.permissions?.length) return true
-            if (store.hasAccess(meta)) return true
+            if (store.canAccessRoute(to)) return true
             return options.onDeny ?? { name: 'Forbidden' }
         })
     }

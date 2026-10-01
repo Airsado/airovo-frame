@@ -1,18 +1,17 @@
-import { inject, type App } from 'vue'
+import { inject, type Ref } from 'vue'
+import type { MenuItem } from '@airovo/router'
 
 /**
  * App context key for dependency injection.
- * Allows composables to access app-level state (router, pinia, etc.)
+ * Exposes only the shell-facing reactive state. The framework-owned Vue app,
+ * Pinia container, and router remain internal to `createApp()`.
  */
-export const APP_CONTEXT_KEY = Symbol('airovoAppContext')
+export const APP_CONTEXT_KEY = Symbol('frameworkAppContext')
 
 export interface AppContext {
-    app: App
-    router: import('vue-router').Router
-    pinia: import('pinia').Pinia
     i18n: unknown
-    menus: unknown
-    progress: import('vue').Ref<number>
+    menus: Ref<MenuItem[]>
+    progress: Ref<number>
 }
 
 /**

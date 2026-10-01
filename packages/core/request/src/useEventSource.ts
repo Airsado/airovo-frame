@@ -12,7 +12,7 @@ export interface UseEventSourceOptions {
     reconnectDelay?: number
     /** If provided, listen to this named event instead of the default message stream. */
     eventName?: string
-    onMessage?: (data: any, event: MessageEvent) => void
+    onMessage?: (data: unknown, event: MessageEvent) => void
     onOpen?: (event: Event) => void
     onError?: (event: Event) => void
 }
@@ -54,7 +54,7 @@ export function useEventSource(options: UseEventSourceOptions) {
         const target = options.eventName ? es : es
         target.addEventListener(options.eventName ?? 'message', (ev) => {
             const me = ev as MessageEvent
-            let data: any = me.data
+            let data: unknown = me.data
             if (typeof data === 'string') {
                 try { data = JSON.parse(data) } catch { /* leave as string */ }
             }

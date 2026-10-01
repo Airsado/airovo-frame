@@ -1,318 +1,242 @@
-import { createApp as createVueApp, type App, type Component } from 'vue'
-import type { RouteRecordRaw, NavigationGuardWithThis } from 'vue-router'
-import type { Pinia } from 'pinia'
+import { createApp as createVueApp, watch, type Component } from 'vue'
 import {
-    createAppRouter,
-    type AirovoRouter,
+    type AppRouterRegistration,
 } from '@airovo/router'
-import { createLayoutsI18n } from '@airovo/layouts'
-import { createPinia, useI18nStore, piniaPersist } from '@airovo/stores'
+import { createAppRouter, getAppRouterRegistration, setActiveAppRouter, type FrameworkRouterOptions } from '@airovo/router/internal'
+import { createLayoutsI18n, loadLocalesMapFromDir } from '@airovo/layouts'
+import { useAuthStore, useI18nStore } from '@airovo/stores'
+import { piniaPersist } from '@airovo/stores/persist'
+import { createPinia, setActivePinia } from 'pinia'
 import type { Locale } from '@airovo/stores/i18n'
-import { resolvePreferences, type Preferences } from '@airovo/config/preferences'
+import { resolvePreferences, type DeepPartial, type Preferences } from '@airovo/config/preferences'
 import { usePreferencesStore } from '@airovo/stores/preferences'
-import { useAuthStore } from '@airovo/stores/auth'
-import { installRequest } from '@airovo/request'
-import { installPermission } from '@airovo/permission'
+import { getRequestRegistration, getSessionRestore, installRequest, setRequestClient } from '@airovo/request/internal'
+import { installPermission, usePermissionStore } from '@airovo/permission'
 import { installTabs } from '@airovo/tabs'
+import { registerLocalIcons } from '@airovo/shared/icons'
+import { getAppLocaleRegistration } from './localeRegistry'
 import { APP_CONTEXT_KEY, type AppContext } from './context'
 
-/**
- * Pre-declared route modules map.
- *
- * Apps call `import.meta.glob('./routes/modules/*.ts', { eager: false })`
- * at their module level (Vite needs a static literal) and pass the result here.
- */
-export type RouteModuleLoader = () => Promise<RouteRecordRaw | { default: RouteRecordRaw | RouteRecordRaw[] }>
-export type RouteModuleGlobs = Record<string, RouteModuleLoader>
-/** Convenience: pass either a glob map or a thunk that returns one. */
-export type RouteModulesInput = RouteModuleGlobs | (() => RouteModuleGlobs)
+let activeRuntime: { app: ReturnType<typeof createVueApp>; mounted: boolean } | null = null
 
-
-/**
- * Third-party UI adapter configuration.
- */
-export type EffectsConfig = false | {
-    adapters?: Array<'element-plus' | 'naive-ui'>
-    initialLocale?: Locale
+export interface FrameworkAppOptions {
+    root: Component
+    preferences?: DeepPartial<Preferences>
 }
 
-/**
- * Built-in auth-guard configuration.
- *
- * When set, a beforeEach guard is appended that:
- *   - lets through any route with `meta.public: true`
- *   - lets through any path under `allowPrefix`
- *   - bounces unauthenticated users to `loginPath` (with `?redirect=...`)
- *   - bounces already-logged-in users away from `loginPath`
- *
- * Apps bring their own store via `useStore`. Returns at least
- * `{ isLoggedIn: boolean }`.
- */
-export interface AuthGuardConfig {
-    /** Reactive accessor returning `{ isLoggedIn }`. */
-    useStore: () => { isLoggedIn: boolean }
-    /** Login route path. Default: '/login' */
-    loginPath?: string
-    /** Extra allow-list path prefixes */
-    allowPrefix?: string[]
-}
-
-export interface AirovoAppOptions {
-    /** App name - used for branding and `<title>` tag */
-    name?: string
-    /** App title - defaults to VITE_APP_TITLE or name */
-    title?: string
-    /** Home path - defaults to '/dashboard' */
-    homePath?: string
-    /** Menu mode */
-    menusMod?: 'frontend' | 'backend' | 'mixed'
-    /** Custom app-level preference overrides */
-    overrides?: Partial<Preferences>
-    /**
-     * Root component. Apps pass their App.vue (or a custom layout root).
-     * If omitted, createApp will lazily import `./App.vue` from the consumer
-     * package, falling back to a noop render so a fresh project can still boot.
-     */
-    root?: Component
-    /** Pre-declared route module globs (Vite-agnostic). */
-    routeModules?: RouteModulesInput
-    /**
-     * Extra beforeEach guards. The built-in auth guard (when `auth`
-     * is provided) is appended BEFORE these so apps can layer additional
-     * checks (e.g. permissions) on top of the auth result.
-     */
-    beforeEach?: NavigationGuardWithThis<undefined>
-    /**
-     * Built-in auth guard. Pass an `AuthGuardConfig` to enable.
-     * Omit or set `false` to disable (apps roll their own in `beforeEach`).
-     */
-    auth?: false | AuthGuardConfig
-    /** Third-party UI adapters (set to false to disable) */
-    effects?: EffectsConfig
-}
-
-export interface AirovoApp {
-    app: App
-    router: AirovoRouter
-    pinia: Pinia
-    i18n: ReturnType<typeof createLayoutsI18n>
-    /** Mount the app to a DOM element */
+export interface FrameworkApp {
     mount: (selector?: string) => void
 }
 
-/**
- * Try to dynamically import the app's `App.vue`.
- * Currently disabled: keeping this surface stable for future use,
- * but apps must pass `root: App` explicitly. The auto-import proved
- * brittle with Vite's import-analysis.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function _tryLoadDefaultRoot(): Promise<Component | null> {
-    return null
+type RouteRecordRaw = FrameworkRouterOptions['routes'][number]
+type RouteComponent = NonNullable<FrameworkRouterOptions['pageMap']>[string]
+
+function isRouteRecord(value: unknown): value is RouteRecordRaw {
+    return typeof value === 'object' && value !== null
+        && ('path' in value || 'redirect' in value || 'component' in value)
 }
 
-/**
- * Create an Airovo app with sensible defaults.
- *
- * Built-in: Pinia, i18n, Router, Preferences, Effects integration.
- * Optional: built-in auth guard (just pass `auth: { useStore }`).
- *
- * @example
- * ```ts
- * // apps/myapp/src/routes.ts
- * export default import.meta.glob('./router/modules/*.ts', { eager: false })
- *
- * // apps/myapp/src/main.ts
- * import { createApp } from '@airovo/app'
- * import { useAuthStore } from '@airovo/stores/auth'
- * import routes from './routes'
- *
- * const { mount } = await createApp({
- *   name: 'my-app',
- *   routeModules: routes,
- *   auth: { useStore: () => ({ isLoggedIn: useAuthStore().isLoggedIn }) },
- * })
- * mount('#app')
- * ```
- */
-export async function createApp(options: AirovoAppOptions = {}): Promise<AirovoApp> {
-    // 1. Preferences
-    const appOverrides = (options.overrides ?? {}) as Partial<Preferences>
-    const preferences = resolvePreferences(appOverrides)
-
-    // 2. Pinia
-    const pinia = createPinia()
-    pinia.use(piniaPersist)
-
-    // 3. I18n
-    const i18n = createLayoutsI18n()
-
-    // 4. Load route modules
-    //    Accept either:
-    //    - a function returning a glob map (Vite-idiomatic)
-    //    - a glob map directly
-    //    - a flat array of RouteRecordRaw
+async function loadRoutes(registration: AppRouterRegistration | null): Promise<RouteRecordRaw[]> {
     const routes: RouteRecordRaw[] = []
-    if (options.routeModules) {
-        let globs: RouteModuleGlobs | null = null
-        if (typeof options.routeModules === 'function') {
-            globs = options.routeModules()
+    for (const loader of Object.values(registration?.routes ?? {})) {
+        const module = await loader()
+        const exported = Array.isArray(module) || isRouteRecord(module)
+            ? module
+            : (module as { default?: RouteRecordRaw | RouteRecordRaw[] }).default
+        if (Array.isArray(exported)) routes.push(...exported as RouteRecordRaw[])
+        else if (exported) routes.push(exported as RouteRecordRaw)
+    }
+    return routes
+}
+
+function createPageMap(registration: AppRouterRegistration | null): Record<string, RouteComponent> {
+    const pageMap: Record<string, RouteComponent> = {}
+    for (const [key, loader] of Object.entries(registration?.pages ?? {})) {
+        const match = key.replace(/\\/g, '/').match(/(?:^|\/)views\/(.+\.vue)$/)
+        if (!match) continue
+        if (typeof loader === 'function') {
+            pageMap[`/views/${match[1]}`] = (() => Promise.resolve(loader()).then((module) => {
+                if (module && typeof module === 'object' && 'default' in module) {
+                    return module.default
+                }
+                return module
+            })) as RouteComponent
         } else {
-            globs = options.routeModules
-        }
-        for (const key of Object.keys(globs)) {
-            const loader = globs[key]
-            const mod = (await loader()) as { default?: RouteRecordRaw | RouteRecordRaw[] }
-            const exp = mod?.default
-            if (!exp) continue
-            if (Array.isArray(exp)) routes.push(...exp)
-            else routes.push(exp)
+            pageMap[`/views/${match[1]}`] = loader as RouteComponent
         }
     }
+    return pageMap
+}
 
-    // Root redirect (if no '/' defined)
-    if (!routes.some((r) => r.path === '/')) {
-        routes.push({ path: '/', redirect: options.homePath ?? '/dashboard' })
-    }
+/** Create one framework runtime; application modules register their policies before this call. */
+export async function createApp(options: FrameworkAppOptions): Promise<FrameworkApp> {
+    if (!options?.root) throw new Error('[framework/app] root is required')
+    // A framework runtime is a singleton per page. Tear down a previous
+    // runtime before HMR/tests create another one so its mounted component
+    // tree cannot keep reacting to the new app's preferences and router.
+    if (activeRuntime?.mounted) activeRuntime.app.unmount()
+    activeRuntime = null
+    registerLocalIcons()
+    const defaults = resolvePreferences(options.preferences)
+    const routerRegistration = getAppRouterRegistration()
+    const requestRegistration = getRequestRegistration()
+    const localeRegistration = getAppLocaleRegistration()
 
-    // 5. Router
-    const router = createAppRouter({
-        routes,
-        menusMod: options.menusMod,
-    })
-
-    // 6. Built-in auth guard (apps opt in by passing `auth: { useStore }`)
-    if (options.auth) {
-        const authCfg = options.auth
-        const loginPath = authCfg.loginPath ?? '/login'
-        const allowPrefix = authCfg.allowPrefix ?? []
-        const homePath = options.homePath ?? '/dashboard'
-
-        router.router.beforeEach((to) => {
-            if (to.meta.public) return true
-            if (allowPrefix.some((p) => to.path.startsWith(p))) return true
-
-            const { isLoggedIn } = authCfg.useStore()
-            if (!isLoggedIn) {
-                return { path: loginPath, query: { redirect: to.fullPath } }
-            }
-            if (to.path === loginPath) {
-                return { path: homePath }
-            }
-            return true
-        })
-    }
-
-    // 7. Extra guards
-    if (options.beforeEach) {
-        router.router.beforeEach(options.beforeEach)
-    }
-
-    // 8. Resolve root component — apps must pass `root: App` explicitly.
-    //    We do not auto-import to keep the surface predictable and avoid
-    //    Vite's import-analysis issues with cross-package dynamic imports.
-    const root = options.root
-    if (!root) {
-        // eslint-disable-next-line no-console
-        console.warn(
-            '[@airovo/app] No root component provided. Pass `root: App` to createApp().',
-        )
-    }
-
-    // 9. Vue app
-    const app = root ? createVueApp(root) : createVueApp({})
+    const pinia = createPinia()
+    // Make the framework-owned container the active instance even before the
+    // Vue root is mounted. This keeps app-side stores and startup guards on
+    // the same Pinia instance during tests, HMR, and async bootstrap.
+    setActivePinia(pinia)
+    pinia.use(piniaPersist)
+    const i18n = createLayoutsI18n()
+    const app = createVueApp(options.root)
     app.use(pinia)
     app.use(i18n)
-    app.use(router.router)
 
-    // 10. Apply preferences (init manager + persist)
-    await usePreferencesStore().init({
-        namespace: options.name ?? 'airovo',
-        overrides: appOverrides,
+    const preferencesStore = usePreferencesStore()
+    await preferencesStore.init({ namespace: defaults.app.name, overrides: defaults })
+    const preferences = preferencesStore.preferences
+    if (typeof document !== 'undefined') document.title = preferences.app.title || preferences.app.name
+
+    const localeLoaders = loadLocalesMapFromDir(localeRegistration?.modules ?? {})
+    const i18nStore = useI18nStore()
+    i18nStore.configure({
+        loaders: Object.fromEntries(Object.entries(localeLoaders).map(([locale, loader]) => [locale, async () => {
+            const loaded = await loader()
+            if (loaded && typeof loaded === 'object') i18n.global.mergeLocaleMessage(locale, loaded)
+        }])) as Partial<Record<Locale, () => Promise<void>>>,
     })
-
-    // 11. Bind i18n locale
-    useI18nStore().bindExternal(
-        (i18n as unknown as { global: { locale: { value: Locale } } }).global.locale,
-    )
-
-    // 12. Third-party UI adapters
-    if (options.effects !== false) {
-        try {
-            const { installAdapters } = await import('@airovo/effects')
-            await installAdapters(app, {
-                adapters: options.effects?.adapters,
-                initialLocale: options.effects?.initialLocale ?? 'zh-CN',
-            })
-        } catch {
-            /* @airovo/effects not installed — opt-in only */
-        }
+    const globalI18n = i18n.global as unknown as {
+        locale: { value: Locale }
+        fallbackLocale: { value: Locale } | Locale
     }
+    i18nStore.bindExternal(globalI18n.locale)
+    if (typeof globalI18n.fallbackLocale === 'object') {
+        globalI18n.fallbackLocale.value = preferences.locale.fallback
+    } else {
+        globalI18n.fallbackLocale = preferences.locale.fallback
+    }
+    await i18nStore.loadLocale(preferences.locale.fallback)
+    await i18nStore.setLocale(preferences.locale.current)
 
-    // 13. HTTP request layer (axios + auth interceptors). Uses the
-    //     auth store's getAccessToken/getRefreshToken/setTokens/clear
-    //     surface — no direct dependency on the auth store internals.
-    //     baseURL comes from VITE_API_BASE (Vite env) with a safe
-    //     default; the auth store's setBaseURL mirrors this so that
-    //     refresh/logout calls can find the same origin.
-    const apiBaseURL
-        = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE)
-        ?? ''
+    const auth = useAuthStore()
+    const routes = await loadRoutes(routerRegistration)
+    if (!routes.some((route) => route.path === '/')) {
+        routes.push({ path: '/', redirect: preferences.app.homePath })
+    }
+    const router = createAppRouter({
+        routes,
+        pageMap: createPageMap(routerRegistration),
+        menusMod: preferences.app.menusMod,
+        menus: routerRegistration?.menus,
+        history: routerRegistration?.history,
+        base: routerRegistration?.base,
+    })
+    setActiveAppRouter(router.router)
 
-    const authStore = useAuthStore()
-    if (apiBaseURL) authStore.setBaseURL(apiBaseURL)
-
-    installRequest(app, {
-        baseURL: apiBaseURL,
+    const request = installRequest(app, {
+        baseURL: requestRegistration?.baseURL ?? '',
+        timeout: requestRegistration?.timeout,
+        debug: requestRegistration?.debug,
+        hooks: requestRegistration?.hooks,
+        errorHandler: requestRegistration?.errorHandler,
         useStore: () => ({
-            getAccessToken: () => useAuthStore().accessToken,
-            getRefreshToken: () => useAuthStore().refreshToken,
-            setTokens: (t: { accessToken: string; refreshToken: string; expiresIn: number }) => {
-                useAuthStore().setTokens(t)
-            },
-            clear: () => {
-                useAuthStore().clearAuth()
-            },
+            getAccessToken: () => auth.accessToken,
         }),
     })
+    setRequestClient(request)
+    await requestRegistration?.setup?.({ client: request })
 
-    // 14. Permission layer (RBAC): directive + route guard + menu filter
+    await getSessionRestore()?.()
+
+    let dynamicMenusLoaded = false
+    router.router.beforeEach((to) => {
+        if (!preferences.auth?.enabled) return true
+        if (to.path === '/login' && auth.isLoggedIn) return { path: preferences.app.homePath }
+        // A catch-all route is only a temporary match for a backend page
+        // until its menu has been loaded. It must not bypass authentication.
+        const isNotFoundFallback = to.matched.some((record) =>
+            record.name === 'NotFoundFallback' || record.path.includes(':pathMatch'),
+        )
+        if (to.meta.public && !isNotFoundFallback) return true
+        if (!auth.isLoggedIn) return { path: '/login', query: { redirect: to.fullPath } }
+        return true
+    })
     installPermission(app, {
         getAuth: () => ({
-            userRoles: useAuthStore().userRoles,
-            userPermissions: useAuthStore().userPermissions,
-            isLoggedIn: useAuthStore().isLoggedIn,
+            userRoles: auth.userRoles,
+            userPermissions: auth.userPermissions,
+            isLoggedIn: auth.isLoggedIn,
         }),
-        router,  // AirovoRouter (has setPermissionFilter + the underlying vue-router inside)
+        router,
+        onDeny: '/403',
     })
-
-    // 15. Multi-tab system: auto-tracks navigation, exposes BasicTabBar
-    //     as a global component. Apps mount it inside their layout.
-    installTabs(app, {
-        router: router.router,
-        defaultTabPath: options.homePath ?? '/dashboard',
+    router.router.beforeEach(async (to) => {
+        if (preferences.app.menusMod === 'frontend' || !routerRegistration?.menus?.load) return true
+        if (preferences.auth?.enabled && !auth.isLoggedIn) return true
+        if (dynamicMenusLoaded) return true
+        dynamicMenusLoaded = await router.refreshMenus()
+        if (!dynamicMenusLoaded) {
+            // A menu request can be the first request that discovers an
+            // expired session. In page mode the request interceptor has
+            // already cleared auth and marked the session expired; cancel the
+            // in-flight protected navigation instead of letting it render
+            // once after the redirect attempt.
+            if (preferences.auth?.loginExpiredMode === 'page' && auth.sessionExpired && !auth.isLoggedIn) {
+                return { path: '/login', query: { redirect: to.fullPath }, replace: true }
+            }
+            return true
+        }
+        return { path: to.path, query: to.query, hash: to.hash, replace: true }
     })
+    watch(() => auth.isLoggedIn, (loggedIn) => {
+        if (!loggedIn && dynamicMenusLoaded) {
+            router.clearDynamicRoutes()
+            dynamicMenusLoaded = false
+        }
+    }, { flush: 'sync' })
+    watch(() => [auth.userRoles.join(','), auth.userPermissions.join(',')], () => {
+        if (!auth.isLoggedIn) return
+        const permission = usePermissionStore()
+        permission.syncFromAuth({
+            userRoles: auth.userRoles,
+            userPermissions: auth.userPermissions,
+            isLoggedIn: auth.isLoggedIn,
+        })
+        if (dynamicMenusLoaded) void router.refreshMenus()
+        const current = router.router.currentRoute.value
+        if (current.path !== '/403' && !permission.canAccessRoute(current)) {
+            void router.router.replace('/403')
+        }
+    })
+    installTabs(app, { router: router.router, defaultTabPath: preferences.app.homePath })
+    for (const guard of routerRegistration?.beforeEach ?? []) {
+        router.router.beforeEach(guard as Parameters<typeof router.router.beforeEach>[0])
+    }
+    for (const guard of routerRegistration?.beforeResolve ?? []) {
+        router.router.beforeResolve(guard as Parameters<typeof router.router.beforeResolve>[0])
+    }
+    for (const guard of routerRegistration?.afterEach ?? []) {
+        router.router.afterEach(guard as Parameters<typeof router.router.afterEach>[0])
+    }
 
-    // 16. App context
-    const ctx: AppContext = {
-        app,
-        router: router.router,
-        pinia,
+    const context: AppContext = {
         i18n,
         menus: router.menus,
         progress: router.progress,
     }
-    app.provide(APP_CONTEXT_KEY, ctx)
-
-    // 17. Global error handler — log + optional Sonner toast.
-    app.config.errorHandler = (err, _instance, info) => {
-        // eslint-disable-next-line no-console
-        console.error('[airovo/app] unhandled error:', err, info)
+    app.provide(APP_CONTEXT_KEY, context)
+    app.config.errorHandler = (error, _instance, info) => {
+        console.error('[framework/app] unhandled error:', error, info)
     }
+    app.use(router.router)
 
-    function mount(selector: string = '#app') {
-        app.mount(selector)
+    activeRuntime = { app, mounted: false }
+
+    return {
+        mount: (selector = '#app') => {
+            app.mount(selector)
+            if (activeRuntime?.app === app) activeRuntime.mounted = true
+        },
     }
-
-    return { app, router, pinia, i18n, mount }
 }

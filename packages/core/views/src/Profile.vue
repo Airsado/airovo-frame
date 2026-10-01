@@ -1,19 +1,16 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useToast } from '@airovo/composables'
 import {
     Button,
     Input,
     Field,
     FieldLabel,
-    FieldError,
     FieldDescription,
 } from '@airovo/uikit-shadcnui'
 import { Icon } from '@iconify/vue'
 
 defineOptions({ name: 'FrameworkProfile' })
-
-const router = useRouter()
 
 /**
  * User data injected from app side via the auth store.
@@ -31,8 +28,8 @@ interface FrameworkUser {
 interface FrameworkAuth {
     user: FrameworkUser | null
     isLoggedIn: boolean
-    changePassword: (params: { currentPassword: string; newPassword: string }) => Promise<boolean>
-    logout: () => void
+    changePassword?: (params: { currentPassword: string; newPassword: string }) => Promise<boolean>
+    logout: () => void | Promise<void>
 }
 
 const props = withDefaults(defineProps<{
@@ -42,9 +39,8 @@ const props = withDefaults(defineProps<{
 // Reactive bridge: re-read props when they change.
 import { computed } from 'vue'
 const auth = computed(() => props.auth)
+const toast = useToast()
 const user = computed(() => auth.value?.user ?? null)
-const isLoggedIn = computed(() => auth.value?.isLoggedIn ?? false)
-const userAvatar = computed(() => user.value?.avatar || '')
 const userInitial = computed(() => user.value?.username?.[0]?.toUpperCase() || 'U')
 const userName = computed(() => user.value?.nickname || user.value?.username || '未登录')
 const userEmail = computed(() => user.value?.email || '')
@@ -55,24 +51,19 @@ const passwordForm = ref({
     newPassword: '',
     confirmPassword: '',
 })
-const passwordError = ref('')
-const passwordSuccess = ref(false)
 const isPasswordLoading = ref(false)
 
 async function handleChangePassword() {
-    passwordError.value = ''
-    passwordSuccess.value = false
-
     if (!passwordForm.value.currentPassword) {
-        passwordError.value = '请输入当前密码'
+        toast.error('请输入当前密码')
         return
     }
     if (passwordForm.value.newPassword.length < 6) {
-        passwordError.value = '新密码至少 6 位'
+        toast.error('新密码至少 6 位')
         return
     }
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-        passwordError.value = '两次新密码输入不一致'
+        toast.error('两次新密码输入不一致')
         return
     }
 
@@ -83,24 +74,24 @@ async function handleChangePassword() {
             newPassword: passwordForm.value.newPassword,
         })) ?? false
         if (success) {
-            passwordSuccess.value = true
+            toast.success('密码修改成功')
             passwordForm.value = {
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: '',
             }
-            setTimeout(() => (passwordSuccess.value = false), 3000)
         } else {
-            passwordError.value = '当前密码错误'
+            toast.error('当前密码错误')
         }
+    } catch (cause) {
+        toast.error(cause instanceof Error ? cause.message : '密码修改失败')
     } finally {
         isPasswordLoading.value = false
     }
 }
 
-function handleLogout() {
-    auth.value?.logout()
-    router.push('/login')
+async function handleLogout() {
+    await auth.value?.logout()
 }
 </script>
 
@@ -145,7 +136,7 @@ function handleLogout() {
         </div>
 
         <!-- 修改密码卡片 -->
-        <div class="rounded-lg border bg-card p-6 text-card-foreground">
+        <div v-if="auth?.changePassword" class="rounded-lg border bg-card p-6 text-card-foreground">
             <div class="mb-4">
                 <h2 class="text-lg font-semibold">修改密码</h2>
                 <p class="text-sm text-muted-foreground">更新您的账户密码</p>
@@ -182,11 +173,6 @@ function handleLogout() {
                     />
                     <FieldDescription>两次密码必须一致</FieldDescription>
                 </Field>
-                <FieldError v-if="passwordError" :errors="[passwordError]" />
-                <FieldDescription v-if="passwordSuccess" class="text-emerald-600 dark:text-emerald-400">
-                    <Icon icon="lucide:check" class="mr-1 inline size-4" />
-                    密码修改成功
-                </FieldDescription>
                 <Button
                     type="submit"
                     :class="{ 'opacity-50': isPasswordLoading }"

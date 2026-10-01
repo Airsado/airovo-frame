@@ -18,7 +18,7 @@ export interface UseWebSocketOptions {
     heartbeatInterval?: number
     /** Custom heartbeat payload. Default: 'ping' (text frame). */
     heartbeatPayload?: string | (() => string)
-    onMessage?: (data: any, raw: MessageEvent) => void
+    onMessage?: (data: unknown, raw: MessageEvent) => void
     onOpen?: (event: Event) => void
     onClose?: (event: CloseEvent) => void
     onError?: (event: Event) => void
@@ -68,7 +68,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
                 options.onOpen?.(event)
             })
             ws.addEventListener('message', (raw) => {
-                let data: any = raw.data
+                let data: unknown = raw.data
                 if (typeof data === 'string') {
                     try { data = JSON.parse(data) } catch { /* leave as string */ }
                 }

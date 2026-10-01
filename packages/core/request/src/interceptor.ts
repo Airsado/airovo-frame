@@ -1,76 +1,46 @@
-/**
- * Interceptor — request + response + single-flight refresh queue.
- *
- * The refresh queue lives at module scope so it's shared across every
- * import of this module. Concurrent 401s from any axios instance reuse
- * the same refresh Promise (single-flight) and replay their original
- * request with the new token.
- */
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
-import { RequestError } from './error'
+import { getRequestErrorDetails, RequestError } from './error'
 import type { RequestOptions } from './types'
 
-let inFlightRefresh: Promise<string | null> | null = null
-
 declare module 'axios' {
+    export interface AxiosRequestConfig {
+        /** Auth endpoints do not receive an access token. */
+        __skipAuth?: boolean
+    }
     export interface InternalAxiosRequestConfig {
-        /** Marks a request that has already been retried after a refresh. */
+        /** Application-owned retry marker. */
         __retried?: boolean
+        /** Auth endpoints do not receive an access token. */
+        __skipAuth?: boolean
+        /** Token applied on the request, available to application interceptors. */
+        __authToken?: string | null
     }
 }
 
-async function performRefresh(
-    instance: AxiosInstance,
+async function getAccessToken(
     opts: RequestOptions,
+    config: InternalAxiosRequestConfig,
 ): Promise<string | null> {
-    if (inFlightRefresh) return inFlightRefresh
-
     const store = opts.useStore()
-    const refreshToken = store.getRefreshToken()
-    if (!refreshToken) {
-        await Promise.resolve(opts.onUnauthorized?.())
-        return null
-    }
-
-    inFlightRefresh = (async () => {
-        try {
-            // Bypass interceptors to avoid recursion; use a fresh request.
-            const response = await instance.post(
-                opts.refreshTokenUrl ?? '/auth/refresh',
-                { refreshToken },
-                { __skipAuth: true } as any,
-            )
-            const data = response.data as {
-                accessToken: string
-                refreshToken: string
-                expiresIn: number
-            }
-            await store.setTokens(data)
-            return data.accessToken
-        } catch {
-            await store.clear()
-            await opts.onUnauthorized?.()
-            return null
-        } finally {
-            inFlightRefresh = null
-        }
-    })()
-
-    return inFlightRefresh
+    return opts.hooks?.getAccessToken
+        ? opts.hooks.getAccessToken(store, config)
+        : store.getAccessToken()
 }
 
-/** Install request + response interceptors on the given axios instance. */
+
 export function setupInterceptors(instance: AxiosInstance, opts: RequestOptions): void {
-    // ── Request: attach Bearer token (unless opted out) ──
-    instance.interceptors.request.use((config) => {
-        // Allow a request to bypass auth (e.g. the refresh call itself)
-        const skipAuth = (config as any).__skipAuth === true
-        if (!skipAuth) {
-            const token = opts.useStore().getAccessToken()
-            if (token) {
+    instance.interceptors.request.use(async (config) => {
+        let token: string | null = null
+        if (!config.__skipAuth) {
+            token = await getAccessToken(opts, config)
+            if (opts.hooks?.setAuthHeader) {
+                config = await opts.hooks.setAuthHeader(config, token) ?? config
+            } else if (token) {
                 config.headers.set('Authorization', `Bearer ${token}`)
             }
         }
+        config = await opts.hooks?.onRequest?.(config) ?? config
+        if (!config.__skipAuth) config.__authToken = token
         if (opts.debug) {
             // eslint-disable-next-line no-console
             console.debug(`[request] ${config.method?.toUpperCase()} ${config.url}`)
@@ -78,39 +48,68 @@ export function setupInterceptors(instance: AxiosInstance, opts: RequestOptions)
         return config
     })
 
-    // ── Response: normalize errors + 401 → single-flight refresh + retry ──
     instance.interceptors.response.use(
-        (response) => {
-            if (opts.debug) {
-                // eslint-disable-next-line no-console
-                console.debug(`[request] ← ${response.status} ${response.config.url}`)
+        async (response) => {
+            try {
+                if (opts.debug) {
+                    // eslint-disable-next-line no-console
+                    console.debug(`[request] ← ${response.status} ${response.config.url}`)
+                }
+                return await opts.hooks?.onResponse?.(response) ?? response
+            } catch (error) {
+                const requestError = toRequestError(error, undefined, response.config as InternalAxiosRequestConfig)
+                await notifyError(opts, requestError, response.config as InternalAxiosRequestConfig, error)
+                throw requestError
             }
-            return response
         },
         async (error) => {
             const status: number | undefined = error.response?.status
             const original = error.config as InternalAxiosRequestConfig | undefined
 
-            if (status === 401 && original && !original.__retried) {
-                original.__retried = true
-                const newToken = await performRefresh(instance, opts)
-                if (newToken) {
-                    original.headers.set('Authorization', `Bearer ${newToken}`)
-                    return instance(original)
-                }
-                // Refresh failed — fall through to throw the normalized error.
-            }
-
-            const message =
-                (error.response?.data as { message?: string } | undefined)?.message
-                ?? error.message
-                ?? 'Request failed'
-
-            throw new RequestError(message, {
-                code: error.code,
-                httpStatus: status,
-                data: error.response?.data,
-            })
+            const requestError = toRequestError(error, status, original)
+            await notifyError(opts, requestError, original, error)
+            throw requestError
         },
     )
+}
+
+async function notifyError(
+    opts: RequestOptions,
+    error: RequestError,
+    config: InternalAxiosRequestConfig | undefined,
+    originalError: unknown,
+): Promise<void> {
+    const context = {
+        error,
+        originalError,
+        message: error.message,
+        code: error.code,
+        httpStatus: error.httpStatus,
+        data: error.data,
+        config,
+    }
+    let shouldNotify = true
+    try {
+        shouldNotify = await opts.hooks?.onError?.(context) !== false
+    } catch {
+        // Error reporting must never replace the original request failure.
+    }
+    if (!shouldNotify) return
+    try {
+        await opts.errorHandler?.(context)
+    } catch {
+        // Error reporting must never replace the original request failure.
+    }
+}
+
+function toRequestError(error: unknown, status?: number, config?: InternalAxiosRequestConfig): RequestError {
+    if (error instanceof RequestError) return error
+    const details = getRequestErrorDetails(error)
+    return new RequestError(details.message, {
+        code: details.code,
+        httpStatus: status ?? details.httpStatus,
+        data: details.data,
+        config,
+        cause: error,
+    })
 }

@@ -2,11 +2,13 @@
     "name": "@airovo/router",
     "version": "0.0.0",
     "exports": {
-        ".": "./src/index.ts"
+        ".": "./src/index.ts",
+        "./internal": "./src/internal.ts"
     },
     "license": "MIT",
     "scripts": {
-        "lint": "eslint \"**/*.ts\""
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run --config vitest.config.ts"
     },
     "dependencies": {
         "vue": "catalog:",
@@ -14,6 +16,10 @@
     },
     "devDependencies": {
         "@airovo/typescript-config": "workspace:*",
-        "typescript": "catalog:"
+        "@types/node": "catalog:",
+        "happy-dom": "catalog:",
+        "typescript": "catalog:",
+        "vite": "catalog:",
+        "vitest": "catalog:"
     }
 }

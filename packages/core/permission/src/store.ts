@@ -25,7 +25,7 @@ export interface PermissionStoreOptions {
 export interface PermissionStoreActions {
     hasRole(role: string): boolean
     hasPermission(permission: string): boolean
-    hasAccess(meta: { roles?: string[]; permissions?: string[] } | undefined | null): boolean
+    hasAccess(meta: { roles?: string[]; permissions?: string[]; requiresAuth?: boolean } | undefined | null): boolean
     canAccessRoute(to: RouteLocationNormalized): boolean
 }
 
@@ -37,11 +37,13 @@ export const usePermissionStore = defineStore(
         // the auth store internals).
         const roles = ref<string[]>([])
         const permissions = ref<string[]>([])
+        const isLoggedIn = ref(false)
         const isSuper = computed(() => permissions.value.includes('*'))
 
         function syncFromAuth(auth: AuthSurface) {
             roles.value = [...auth.userRoles]
             permissions.value = [...auth.userPermissions]
+            isLoggedIn.value = auth.isLoggedIn
         }
 
         function hasRole(role: string): boolean {
@@ -55,25 +57,38 @@ export const usePermissionStore = defineStore(
         function hasAccess(meta: {
             roles?: string[]
             permissions?: string[]
+            requiresAuth?: boolean
         } | undefined | null): boolean {
             if (!meta) return true
+            if (meta.requiresAuth && !isLoggedIn.value) return false
             if (meta.roles?.length && !meta.roles.some(hasRole)) return false
             if (meta.permissions?.length && !meta.permissions.some(hasPermission)) return false
             return true
         }
 
         function canAccessRoute(to: RouteLocationNormalized): boolean {
-            const m = to.meta as { public?: boolean; requiresAuth?: boolean } & {
-                roles?: string[]
-                permissions?: string[]
-            }
-            if (m.public) return true
-            if (!m.requiresAuth && !m.roles?.length && !m.permissions?.length) return true
-            return hasAccess(m)
+            // `to.meta` is a shallow merge in vue-router: a child record can
+            // overwrite the parent's roles/permissions there. Check every
+            // matched record so a restricted parent cannot be bypassed by a
+            // permissive child route.
+            const metas = to.matched?.length
+                ? to.matched.map((record) => record.meta)
+                : [to.meta]
+            return metas.every((rawMeta) => {
+                const meta = rawMeta as { public?: boolean; requiresAuth?: boolean } & {
+                    roles?: string[]
+                    permissions?: string[]
+                }
+                // Public is a per-record escape hatch. A public parent does
+                // not make restricted child records public because the child
+                // is checked in the same `every` pass.
+                if (meta.public) return true
+                return hasAccess(meta)
+            })
         }
 
         return {
-            roles, permissions, isSuper,
+            roles, permissions, isSuper, isLoggedIn,
             syncFromAuth,
             hasRole, hasPermission, hasAccess, canAccessRoute,
         }

@@ -13,14 +13,33 @@ import type { Preferences } from './types'
  */
 export const frameworkDefaultPreferences: Preferences = {
     app: {
-        name: 'airovo-frame',
-        title: 'airovo-frame',
+        name: 'framework',
+        title: 'Framework',
         homePath: '/dashboard',
         menusMod: 'frontend',
     },
+    auth: {
+        enabled: true,
+        loginExpiredMode: 'modal',
+    },
     theme: {
         mode: 'system',
+        // new-api's DEFAULT_THEME_CUSTOMIZATION.
+        preset: 'default',
+        radiusScale: 'default',
+        font: 'default',
         primaryColor: '',
+        layoutDensity: 'default',
+        animationEnabled: true,
+        weakMode: false,
+    },
+    layout: {
+        mode: 'sidebar',
+        sidebarVariant: 'inset',
+        sidebarCollapsible: 'icon',
+        // new-api's DEFAULT_THEME_CUSTOMIZATION uses the fluid content layout.
+        contentLayout: 'full',
+        contentMaxWidth: 1280,
     },
     locale: {
         current: 'zh-CN',
@@ -31,5 +50,7 @@ export const frameworkDefaultPreferences: Preferences = {
         showMessages: true,
         showLanguage: true,
         showTheme: true,
+        showSettings: true,
+        showTabs: true,
     },
 }

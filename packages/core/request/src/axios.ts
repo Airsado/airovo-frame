@@ -4,8 +4,7 @@ import type { RequestOptions } from './types'
 /**
  * Create a new axios instance with the framework-defaults. Callers
  * typically don't use this directly — `installRequest` wraps it with
- * the auth interceptors. Exposed for advanced use (e.g. parallel
- * request layers, mock servers).
+ * access-token injection and error normalization.
  */
 export function createAxios(opts: Pick<RequestOptions, 'baseURL' | 'timeout'>): AxiosInstance {
     return axios.create({

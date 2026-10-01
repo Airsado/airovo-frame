@@ -4,5 +4,15 @@ export * from './notification'
 export * from './preferences'
 export * from './auth'
 export * from './tabs'
-export { piniaPersist } from './persist'
-export { createPinia } from 'pinia'
+export type {
+    AuthPreferences,
+    ContentLayout,
+    LayoutDensity,
+    LoginExpiredMode,
+    SidebarCollapsible,
+    SidebarVariant,
+    ThemeFont,
+    ThemeMode,
+    ThemePreset,
+    ThemeRadius,
+} from '@airovo/config/preferences'

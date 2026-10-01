@@ -1,5 +1,2 @@
-/**
- * Re-export of `pinia-plugin-persistedstate` so apps can wire it up with
- * a single import from the framework.
- */
+/** Pinia persistence plugin installed by the framework bootstrap. */
 export { default as piniaPersist } from 'pinia-plugin-persistedstate'

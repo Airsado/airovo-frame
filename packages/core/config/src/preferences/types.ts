@@ -24,9 +24,57 @@ export interface AppPreferences {
 
 export type GrayColor = 'zinc' | 'slate' | 'gray' | 'neutral' | 'stone'
 export type LayoutDensity = 'compact' | 'default' | 'loose'
+/** Preset names used by the new-api-inspired theme registry. */
+export type ThemePreset =
+    | 'default'
+    | 'anthropic'
+    | 'simple-large'
+    | 'underground'
+    | 'rose-garden'
+    | 'lake-view'
+    | 'sunset-glow'
+    | 'forest-whisper'
+    | 'ocean-breeze'
+    | 'lavender-dream'
+    | 'ocean'
+    | 'emerald'
+    | 'rose'
+    | 'slate'
+export type ThemeRadius = 'default' | 'none' | 'sm' | 'md' | 'lg' | 'xl'
+export type ThemeFont = 'default' | 'sans' | 'serif'
+export type LayoutMode = 'sidebar' | 'mix' | 'full-content'
+export type SidebarVariant = 'sidebar' | 'inset' | 'floating'
+export type SidebarCollapsible = 'offcanvas' | 'icon' | 'none'
+export type ContentLayout = 'full' | 'centered'
+
+export interface LayoutPreferences {
+    /** Main application shell selected by the route host. */
+    mode: LayoutMode
+    /** Visual treatment of the desktop sidebar. */
+    sidebarVariant: SidebarVariant
+    /** Collapse behavior for the desktop sidebar. */
+    sidebarCollapsible: SidebarCollapsible
+    /** Whether page content is edge-to-edge or centered in a readable column. */
+    contentLayout: ContentLayout
+    /** Maximum content width in pixels when `contentLayout` is `centered`. */
+    contentMaxWidth?: number
+}
+
+/** Presentation used when a request can no longer refresh the session. */
+export type LoginExpiredMode = 'modal' | 'page'
+
+/** Authentication-related presentation preferences. */
+export interface AuthPreferences {
+    /** Whether the framework installs the default authentication guard. */
+    enabled: boolean
+    loginExpiredMode: LoginExpiredMode
+}
 
 export interface ThemePreferences {
     mode: ThemeMode
+    preset?: ThemePreset
+    radiusScale?: ThemeRadius
+    font?: ThemeFont
     /** Primary color hex. Empty string means "use the css variable default". */
     primaryColor?: string
     /** Neutral palette family for surfaces & borders. */
@@ -51,40 +99,42 @@ export interface HeaderPreferences {
     showMessages: boolean
     showLanguage: boolean
     showTheme: boolean
+    showSettings: boolean
+    showTabs: boolean
 }
 
 /**
- * Flat shape — matches the vben V5 style. Namespaced sub-objects keep
- * the surface area legible when extending via `definePreferencesExtension`.
- *
- * Apps that need additional keys should declare a project-local
- * interface and pass it as the generic to `definePreferencesExtension<T>`.
- * The framework does NOT read those custom keys; the settings drawer
- * (a future iteration) will.
+ * Namespaced sections keep application structure and user appearance settings
+ * separate. Applications pass a partial value to createApp().
  */
 export interface Preferences {
     app: AppPreferences
+    /** Optional for source compatibility; framework defaults always provide it. */
+    auth?: AuthPreferences
     theme: ThemePreferences
+    layout: LayoutPreferences
     locale: LocalePreferences
     header: HeaderPreferences
 }
 
 /**
  * Field descriptor for the settings drawer UI. The `key` is a path
- * into the Preferences object (e.g. `'app.homePath'`). The framework
- * does not consume this type today; it exists so apps can declare
- * extensions with full typing.
+ * into the Preferences object (e.g. `'app.homePath'`) or a free-form key
+ * for app-owned preferences. This descriptor remains available to lower-level
+ * PreferenceManager integrations, outside the createApp() startup contract.
  *
  * The generic `T` lets an app augment which keys the drawer knows about.
  */
 export interface PreferencesField<T = Preferences> {
-    component: 'Switch' | 'Select' | 'InputNumber' | 'Input'
+    component: 'Switch' | 'Select' | 'InputNumber' | 'Input' | 'switch' | 'select' | 'number' | 'input'
     /** Dotted path into Preferences, or a free-form key for app extensions. */
     key: keyof T | string
     label: string
     defaultValue: unknown
     options?: { label: string; value: unknown }[]
     componentProps?: Record<string, unknown>
+    disabled?: boolean
+    placeholder?: string
     tip?: string
 }
 
@@ -92,6 +142,6 @@ export interface PreferencesExtension<T = Preferences> {
     /** Label shown on the settings drawer tab. */
     tabLabel: string
     /** Title of the section inside the tab. */
-    title: string
+    title?: string
     fields: PreferencesField<T>[]
 }
