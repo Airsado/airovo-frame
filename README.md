@@ -1,117 +1,97 @@
 # airovo-frame
 
-pnpm + Turborepo monorepo，提供**零配置**的 Vue 3 框架。业务应用只需
-`@import "@airovo/uikit-shadcnui/style.css"`、继承基础 tsconfig 并调用
-`defineViteConfig()` —— 路径别名、Tailwind 扫描及工具链全部由框架层托管。
+[![GitHub](https://img.shields.io/badge/GitHub-Airsado%2Fairovo--frame-181717?logo=github)](https://github.com/Airsado/airovo-frame)
+[![Branch](https://img.shields.io/badge/branch-dev-orange)](https://github.com/Airsado/airovo-frame/tree/dev)
+[![Node](https://img.shields.io/badge/Node.js-20.19%2B-339933?logo=node.js)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-9.15.4-F69220?logo=pnpm)](https://pnpm.io/)
 
-技术栈：**Vue 3 + Vite 8 + Tailwind 4 + shadcn-vue（基于 reka-ui）**，
-图标统一通过 `@airovo/shared/icons`（基于 `@iconify/vue`）。
+一个面向 Vue 3 中后台应用的可复用框架工作区。项目把**框架能力**与**业务应用**分开：框架提供布局、主题、i18n、认证状态、权限、请求基础能力、路由守卫、tabs 和表单系统；应用负责页面、业务路由、API、认证流程和业务组件。
 
----
+当前代码位于 `dev` 分支，属于持续完善中的早期版本。它适合学习、二次开发和构建演示应用；在稳定 API 和正式版本发布前，请不要把它当作生产版本依赖。
 
 ## 特性
 
-- **零配置接入** — `defineViteConfig()` + 一行样式导入 + 继承 tsconfig。
-- **完整工程栈** — Pinia（持久化）+ vue-router + vue-i18n + vee-validate/zod
-  表单 + 主题偏好。
-- **统一设计系统** — shadcn-vue 组件**源码直接消费**（无构建步骤），类型严格性贯穿。
-- **可组合的包** — `core / ui-kit` 按需采纳。
-- **CLI 脚手架** — `pnpm create:app` 在本工作区生成业务应用。
-
----
+- `createApp({ root, preferences })` 作为应用唯一启动入口。
+- 应用通过副作用导入自注册请求、路由、语言包和会话恢复逻辑。
+- 基于 new-api 风格的工作区布局：融合的 header/sidebar、圆角内容区、主题设置和 tabs。
+- 基于 vben-admin 思路的 preferences、路由、i18n、权限和请求边界。
+- 框架级组件位于 `packages/core`；`app-ui` 只承载应用业务组合和 DIY 扩展。
+- `AForm`、`useAForm`、`useForm` 和 `FormApi` 共用一套表单契约，支持校验、动态字段、必填标记和 Modal 联动。
+- Nitro mock API 提供登录、注册、refresh token、动态菜单、权限和错误处理演示。
+- `create-app` 脚手架生成可直接连接 mock API 的业务应用模板。
+- shadcn-vue 基础组件源码保留在 ui-kit 中，由框架组件进行组合。
 
 ## 环境要求
 
-- **Node.js 20.19.x（或 ≥22.12.0）**
-- **pnpm 9.15.4**（catalog protocol）。更早版本会在 `catalog:` 声明符上失败。
-
-建议用 Corepack 固定包管理器版本：
+- Node.js `20.19.x` 或 `22.12+`
+- pnpm `9.15.4`
 
 ```bash
 corepack enable
 corepack prepare pnpm@9.15.4 --activate
-pnpm --version       # 9.15.4
+pnpm --version
 ```
 
-根目录的 `preinstall` 会拒绝其他 pnpm 版本。脚手架模板使用工作区依赖，
-所以 `pnpm create:app <name>` 要在仓库根目录执行，
-生成位置为 `apps/<name>`。
-
----
+仓库的 `preinstall` 会检查 pnpm 版本。修改依赖或 workspace 配置后重新执行 `pnpm install`。
 
 ## 快速开始
 
 ```bash
 pnpm install
-pnpm dev          # turbo run dev —— 并行启动所有 apps
-pnpm build        # turbo run build —— 按依赖顺序构建
-pnpm lint         # turbo run lint —— 每个包执行 ESLint
-pnpm format       # prettier --write "**/*.{ts,tsx,md}"
+
+# 终端一：启动 Nitro mock API
+pnpm --filter mock-api dev
+
+# 终端二：启动演示应用
+pnpm --filter playwright dev
 ```
 
-创建新业务应用：
+打开 <http://localhost:5174/dashboard/overview>，使用演示账号 `admin / 123456` 登录。mock API 默认地址为 <http://127.0.0.1:4174>。
+
+也可以使用 Turbo 启动工作区任务：
+
+```bash
+pnpm dev
+```
+
+当只需要验证框架包时，可以运行：
+
+```bash
+pnpm build
+pnpm lint
+pnpm --filter playwright build
+pnpm --filter mock-api typecheck
+pnpm --filter @airovo/forms test
+pnpm --filter @airovo/app test
+```
+
+## 创建业务应用
+
+脚手架只能在当前工作区根目录或 `apps/` 目录运行，因为生成应用使用 workspace 依赖：
 
 ```bash
 pnpm create:app my-app
 pnpm install
-pnpm --filter mock-api dev    # Nitro API，默认 4174；另开终端运行下一行
+pnpm --filter mock-api dev
 pnpm --filter my-app dev
 ```
 
----
+生成的应用会包含：
 
-## 目录结构
-
-```
-apps/
-  playwright/                 ← 框架验收与开发者接入演示
-  mock-api/                   ← Nitro mock 服务，供演示应用验收认证和请求链路
-app-ui/                       ← 可选的业务级组合与 DIY 扩展层（不放框架组件）
-packages/
-  core/
-    app/                      ← createApp() 工厂 —— 业务应用唯一入口
-    router/                   ← 薄 vue-router 封装（菜单 + 进度条）
-    layouts/                  ← BasicLayout / BasicHeader / BasicSidebar + 布局级插槽与 i18n
-    components/               ← 框架级页面容器、数据展示、选择器、Drawer 等可复用组件
-    views/                    ← 默认 Login / Register / Profile / NotFound / Redirect
-    stores/                   ← auth / theme / i18n / preferences（Pinia + persist）
-    forms/                    ← useForm + <AForm>（vee-validate + zod）
-    composables/              ← useModal 与 controller host
-    permission/               ← RBAC、菜单过滤、v-permission、PermissionButton
-    request/                  ← Axios、Bearer、RequestError 与自注册器
-    tabs/                     ← tabs/KeepAlive controller
-    config/                   ← Preferences 类型定义
-  ui-kit/shadcn-vue/          ← shadcn-vue 组件，源码直接消费（无构建步骤）
-  shared/                     ← icons（@iconify/vue 再导出）+ utils
-internal/
-  vite-config/                ← defineViteConfig 工厂（tsup → dist 消费）
-  typescript-config/          ← base.json + vite.json（JSON 配置，无构建）
-  eslint-config/              ← 旧式 .eslintrc 配置（ESLint 8）
-  create-app/                 ← CLI 脚手架（pnpm create:app）
+```text
+apps/my-app/
+  src/main.ts                  # 导入注册模块并调用 createApp()
+  src/preferences.ts           # 覆写框架默认偏好
+  src/api/request.ts           # 应用请求头、响应解包和错误处理
+  src/api/core/                # 业务 API
+  src/auth/handlers.ts         # 登录、注册、恢复、重认证和退出
+  src/router/                  # 业务路由和动态菜单
+  src/locales/                 # 应用语言包
+  src/views/_core/             # 可替换的默认登录/注册/错误页面
+  .env*                        # 应用标题、端口和 API 地址
 ```
 
-### 依赖方向（无循环）
-
-```
-app          → layouts, components, router, stores, config, views, forms,
-               request, permission, tabs
-app-ui       → public framework APIs for app-owned business composition only
-layouts      → router, stores, shared, uikit-shadcnui
-components   → uikit-shadcnui, shared, Vue primitives
-views        → uikit-shadcnui          （不依赖 stores —— 认证通过路由 props 注入）
-forms        → uikit-shadcnui, vee-validate, zod
-router       → vue + vue-router        （leaf）
-shared       → @iconify/vue
-  config       → （无依赖）
-```
-
----
-
-## 核心概念
-
-### `createApp()` 工厂（`packages/core/app`）
-
-业务应用先通过副作用导入注册请求、路由和语言包，再用唯一的 `createApp()` 入口启动：
+## 启动契约
 
 ```ts
 import './api/request'
@@ -122,251 +102,110 @@ import App from './App.vue'
 import preferences from './preferences'
 import { createApp } from '@airovo/app'
 
-const { mount } = await createApp({ root: App, preferences })
+const { mount } = await createApp({
+  root: App,
+  preferences,
+})
+
 mount('#app')
 ```
 
-工厂负责创建并安装 Pinia、i18n、Axios、Router、Preferences、认证守卫、权限、tabs
-和布局上下文。应用只覆写 `preferences`，业务 API、请求拦截器、认证 handlers、路由
-和语言包都留在 `apps/<app>/src`。
+`createApp()` 只接收 `root` 和可选的 `preferences`，只返回 `mount()`。Pinia、i18n、Axios、Router、认证守卫、权限、tabs 和布局上下文由框架创建；应用不需要注入第二个 Pinia、Axios 或 Router。
 
-`createApp()` 只接收 `{ root, preferences? }`，只返回 `{ mount }`。注册器由应用模块
-通过副作用导入消费：`registerRequestSetup()`、`registerSessionRestore()`、
-`registerAppRouter()`、`registerAppLocales()`。动态菜单的后端组件路径必须匹配应用
-`views` glob 白名单中的 `/views/...` 路径。
+应用通过这些注册器接入框架：
 
-### `defineViteConfig` 工厂（`internal/vite-config`）
+- `registerRequestSetup()`：注册 baseURL、业务请求头、拦截器和应用错误处理。
+- `registerSessionRestore()`：在硬刷新时恢复 refresh token 和用户信息。
+- `registerAppRouter()`：注册业务路由、页面 glob、动态菜单和追加守卫。
+- `registerAppLocales()`：注册应用语言包，覆盖框架 fallback。
+- `getRequestClient()`：从框架获取唯一 Axios 实例。
 
-```ts
-import { defineViteConfig } from '@airovo/vite-config'
-export default defineViteConfig()
+## 框架与应用边界
+
+```text
+apps/
+  playwright/                 # 完整演示应用
+  mock-api/                   # Nitro mock 服务
+app-ui/                       # 应用业务组合组件和 DIY 扩展
+packages/
+  core/app/                   # createApp、AppShell、启动上下文
+  core/components/            # 框架级页面容器和业务无关组件
+  core/composables/           # useModal、toast 等控制器
+  core/config/                # Preferences 类型、默认值和持久化
+  core/forms/                 # AForm、useForm、useAForm、FormApi
+  core/layouts/               # header、sidebar、tabs 容器和主题设置
+  core/permission/            # RBAC、菜单过滤和权限指令
+  core/request/               # Axios、token 注入和 RequestError
+  core/router/                # 路由、动态菜单和默认守卫
+  core/stores/                # auth、theme、i18n、preferences、tabs
+  core/tabs/                  # tabs/KeepAlive 控制器
+  core/views/                 # 纯 UI 的默认登录、注册、错误页面
+  ui-kit/shadcn-vue/          # shadcn-vue 基础组件源码
+  shared/                     # 图标和通用工具
+internal/
+  create-app/                 # 应用脚手架
+  vite-config/                # defineViteConfig()
 ```
 
-工厂注入 Vue + Tailwind + 路径别名：
+框架负责通用能力，应用负责业务。需要替换登录界面时，直接修改应用的 `src/views/_core/Login.vue`；需要修改登录 API 时，修改应用的 `src/api/core/auth.ts` 和 `src/auth/handlers.ts`，不需要改动框架包。
 
-- `#` → `apps/<name>/src`
-- `@` → `packages/ui-kit/shadcn-vue/src`（供 shadcn-vue 内部 `@/lib/utils` 使用）
+## 环境变量
 
-> ⚠️ 通过 tsup 构建 —— 修改 `src/config.ts` 后**必须**运行
-> `pnpm --filter @airovo/vite-config build`，否则改动不会生效。
+演示应用和脚手架按 `.env`、`.env.development`、`.env.production` 分层：
 
-### 源码直连的 ui-kit
+- `VITE_APP_TITLE`、`VITE_APP_NAMESPACE`：应用身份。
+- `VITE_PORT`、`VITE_BASE`：前端开发和部署设置。
+- `VITE_GLOB_API_URL`：请求 API 地址。
+- `VITE_NITRO_MOCK`：是否启用本地 mock 代理。
+- `VITE_ROUTER_HISTORY`：路由 history 模式。
 
-`packages/ui-kit/shadcn-vue/package.json` 的 `exports["."]` 直接指向
-`./src/index.ts`，**无构建步骤**；Vite 在应用中直接打包源码。应用的 tsconfig
-严格性会反向作用于 shadcn-vue 源码（模板类型错误会在应用的 `vue-tsc` 中暴露）。
+`VITE_*` 会被 Vite 注入浏览器，不能放密码、私钥或其他敏感信息。机器相关覆盖请放在 `.env.local` 或 `.env.<mode>.local`，这些文件不会提交。
 
-### Tailwind 扫描（`packages/ui-kit/shadcn-vue/src/styles/globals.css`）
+## 文档
 
-```css
-@import "tailwindcss";
-@source "../../../../core";   /* 覆盖 packages/core */
-```
+- [框架能力与启动契约](docs/architecture/framework-capabilities.md)
+- [新应用接入指南](docs/architecture/starter-integration.md)
+- [路由、请求和认证迁移说明](docs/architecture/api-migration.md)
+- [表单与路由架构](docs/architecture/routing-and-forms.md)
+- [UI 参考源码映射](docs/ui-source-map.md)
+- [UI 视觉验收记录](docs/ui-visual-verification.md)
+- [app-ui 使用边界](app-ui/README.md)
+- [Playwright 演示说明](apps/playwright/README.md)
+- [Nitro mock API 说明](apps/mock-api/README.md)
 
-业务应用只需 `@import "@airovo/uikit-shadcnui/style.css";` 一次。
+## 开发约定
 
-### pnpm catalog
+- 框架组件放在 `packages/core`，不要放进 `app-ui`。
+- shadcn-vue 组件保持基础层定位；需要框架行为时在 `packages/core` 组合，不直接把业务逻辑写进基础组件。
+- 应用路由、页面、API、认证 handlers 和第三方 Provider 放在 `apps/<name>`。
+- 应用源代码使用 `#` 别名；`@` 保留给 shadcn-vue 内部路径。
+- 修改 `internal/vite-config/src/config.ts` 后，先运行 `pnpm --filter @airovo/vite-config build`。
+- 提交前至少执行与改动相关的 typecheck、lint、test 或 build。
 
-`pnpm-workspace.yaml` 中的 catalog 统一共享版本号。包清单中引用为
-`"<dep>": "catalog:"`。
+## 项目状态
 
-### 视图与 stores 解耦
+当前版本仍在 `dev` 分支迭代。后续会在 API、主题、布局、表单、认证、路由和脚手架稳定后，再合并到主分支并发布正式版本。欢迎通过 Issue 或 Pull Request 提交问题、建议和改进；涉及大范围架构调整时，请先说明使用场景和兼容性影响。
 
-`@airovo/views`（Login / Register / Profile）只负责 UI。应用在 `src/views/_core/`
-保留默认转发文件，handlers 和 API 位于应用自己的 `src/auth`、`src/api/core`；
-开发者可以直接替换这些 view 或业务流程而不修改 `packages/core`。
+正式开源发布前还需要补充根目录许可证、贡献指南和版本发布流程；当前包内的 `MIT` 声明仅表示包级别的预期许可证信息。
 
-### 表单系统（`packages/core/forms/`）
+## 参考项目与资料
 
-页面开发优先使用 tuple/controller API：
+本项目参考了以下开源项目和官方资料。参考内容主要用于布局、交互、工程分层和基础组件设计；本项目保留自己的 API、目录结构和实现，不将参考项目作为运行时适配层。
 
-```ts
-import { useForm } from '@airovo/forms'
-import { useModal } from '@airovo/composables'
+### 项目参考
 
-const [Form, formApi] = useForm({ schema, handleSubmit })
-const [Modal, modalApi] = useModal({ title: '编辑' })
-```
+- [new-api](https://github.com/QuantumNous/new-api) —— 参考后台布局、侧栏导航、工作区圆角容器、主题视觉、抽屉和交互细节。重点对照了其 [`app-sidebar.tsx`](https://github.com/QuantumNous/new-api/blob/main/web/src/components/layout/components/app-sidebar.tsx)、[`nav-group.tsx`](https://github.com/QuantumNous/new-api/blob/main/web/src/components/layout/components/nav-group.tsx)、[`nav-link-item.tsx`](https://github.com/QuantumNous/new-api/blob/main/web/src/components/layout/components/nav-link-item.tsx)、[`sidebar.tsx`](https://github.com/QuantumNous/new-api/blob/main/web/src/components/ui/sidebar.tsx) 和 [`theme.css`](https://github.com/QuantumNous/new-api/blob/main/web/src/styles/theme.css)。
+- [vue-vben-admin](https://github.com/vbenjs/vue-vben-admin) —— 参考通用中后台工程结构、preferences、路由守卫、i18n、请求层、表单和 Modal controller。重点对照了其 [`preferences`](https://github.com/vbenjs/vue-vben-admin/tree/main/packages/%40core/preferences)、[`router`](https://github.com/vbenjs/vue-vben-admin/tree/main/packages/%40core/router)、[`request`](https://github.com/vbenjs/vue-vben-admin/tree/main/packages/%40core/request)、[`form-ui`](https://github.com/vbenjs/vue-vben-admin/tree/main/packages/%40core/ui-kit/shadcn-ui/src/ui/form) 和 [`modal`](https://github.com/vbenjs/vue-vben-admin/tree/main/packages/%40core/ui-kit/shadcn-ui/src/ui/modal) 相关实现。
+- [shadcn-vue](https://www.shadcn-vue.com/) —— 参考可复制源码组件的组织方式和 CLI 工作流；基础组件位于 [`packages/ui-kit/shadcn-vue`](packages/ui-kit/shadcn-vue)。
+- [Nitro](https://nitro.build/) —— 用于 `apps/mock-api` 的独立 mock 服务和演示 API。
 
-`useForm`、`useAForm`、`AForm` 与 `FormApi` 共享同一套字段 schema、值、错误和
-提交契约。新页面优先使用 tuple/controller 形式的 `useForm`；已有页面可以使用
-对象形式的 `useAForm`，两者返回同一个 `FormApi` 实例，不再维护两套行为。
-`schema` 描述字段布局，`validation` 可传入 Zod schema。
+### 官方资料
 
-预设工厂：`createLoginSchema()` / `createRegisterSchema()` /
-`createChangePasswordSchema()`。
-
-业务级组件见 [`app-ui/README.md`](app-ui/README.md)。新应用接入步骤见
-[`docs/architecture/starter-integration.md`](docs/architecture/starter-integration.md)，
-旧 API 迁移表见 [`docs/architecture/api-migration.md`](docs/architecture/api-migration.md)。
-主题、i18n、路由、权限、认证、token 和 tabs 接入契约见
-[`docs/architecture/framework-capabilities.md`](docs/architecture/framework-capabilities.md)。
-
-### 偏好系统（`@airovo/config`）
-
-框架默认配置在 `@airovo/config`，应用通过 `apps/*/src/preferences.ts` 覆盖：
-
-```ts
-import { definePreferences } from '@airovo/config/preferences'
-
-const appPreferences = definePreferences({
-    app: { name: 'playwright', homePath: '/dashboard', menusMod: 'frontend' },
-    theme: { mode: 'system' },
-    locale: { current: 'zh-CN', fallback: 'zh-CN' },
-})
-
-export { appPreferences }
-export default appPreferences
-```
-
-将 `appPreferences` 传给 `createApp({ preferences: appPreferences })`；工厂合并框架
-默认值与应用覆盖，偏好 store 持久化到 `localStorage`。
-
-### 菜单访问模式（menusMod）
-
-`@airovo/router` 支持三种模式：
-
-| 模式 | 行为 | 适用场景 |
-|---|---|---|
-| `frontend`（默认） | 仅本地模块声明的菜单 | SPA，菜单完全由前端控制 |
-| `backend` | 仅后端 API 返回的菜单 | 权限驱动，按用户角色下发 |
-| `mixed` | 本地 + 后端混合，按 `url` 去重，本地优先 | 固定导航 + 动态菜单 |
-
-应用通过 `preferences.app.menusMod` 选择模式；未覆盖时使用框架默认值 `frontend`。
-
-`@airovo/layouts` 的 `BasicSidebar` 通过 `useRoute()` 自动展开匹配的父级菜单
-组（`isInScope`），并用精确匹配（`path === url`）高亮当前项 —— 不会出现父子
-同时高亮。
-
-### Nitro mock 服务
-
-`apps/mock-api` 是演示应用使用的独立 Nitro 服务，提供登录、refresh、当前用户、
-动态菜单、健康检查和受保护资源接口。它只保存进程内数据，不属于框架运行时，
-也不会占用演示应用的 `5174` 端口：
-
-```bash
-pnpm --filter mock-api dev             # http://127.0.0.1:4174
-pnpm --filter playwright dev            # 默认连接 Nitro，走真实 request/auth 链路
-```
-
-演示应用的环境变量按 vben-admin 的方式分层：`.env` 放应用标题和命名空间，
-`.env.development` / `.env.production` 放端口、`VITE_GLOB_API_URL`、mock 开关和
-路由模式；开发环境的 `/api` 由 Vite 代理到 Nitro。生产构建会生成 `_app.config.js`，部署后可以直接调整
-`VITE_GLOB_API_URL` 而不重新构建。启动 mock 服务后，普通
-`pnpm --filter playwright dev` 和 `pnpm dev` 都会走真实 Axios、token 刷新和动态菜单。
-
----
-
-## 业务应用结构（最小）
-
-```
-apps/my-app/src/
-  main.ts          ← 导入注册模块后 createApp({ root, preferences })
-  preferences.ts   ← 覆写框架默认偏好
-  App.vue          ← AppShell + 业务 slots
-  api/request.ts   ← 应用请求头、解包、错误和 401 刷新
-  api/core/        ← 登录、用户、菜单等业务 API
-  auth/handlers.ts ← 登录、注册、恢复、重认证和退出
-  router/
-    index.ts       ← registerAppRouter + 字面量 glob
-    routes/modules/
-      core.ts      ← login / register / profile / 默认错误页路由
-      errors.ts    ← 可选的独立错误页路由
-      dashboard.ts ← 业务路由
-  views/_core/
-    Login.vue      ← 应用级转发入口，默认引入 @airovo/views，可直接自定义
-    Register.vue   ← 应用级注册视图入口
-    Profile.vue    ← 应用级个人资料视图入口
-    ...
-```
-
-### 框架组件与 `app-ui` 边界
-
-`packages/core` 提供可跨应用复用的布局、页面容器、数据展示、状态、Modal、表单
-和权限组件；这些组件可以直接从对应的 `@airovo/*` 公共包导入。`app-ui` 只用于
-开发者组合框架组件、第三方组件和应用自己的业务组件，适合承载接口字段、业务
-流程和应用专属视觉调整。将扩展放在 `app-ui` 不会覆盖或修改框架组件。
-
----
-
-## 布局 / 滚动模式（关键）
-
-`BasicLayout` 使用垂直 `SidebarProvider`，顶部 Header 与侧栏共享背景，内容区以
-圆角 inset 工作区呈现。**高度链必
-须在顶部锁定**，使内容区滚动节点成为唯一的滚动容器：
-
-```vue
-<div class="h-svh overflow-hidden bg-sidebar">
-  <SidebarProvider class="flex h-full flex-col">
-    <BasicHeader />
-    <div class="flex min-h-0 flex-1">
-      <BasicSidebar />
-      <SidebarInset class="relative z-20 min-h-0 min-w-0 overflow-hidden bg-background">
-        <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <slot name="tabs" />
-          <div class="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
-            <slot name="content" />
-          </div>
-        </main>
-      </SidebarInset>
-    </div>
-  </SidebarProvider>
-</div>
-```
-
-规则：
-
-- 滚动元素需要**有固定高度**的祖先（`h-svh`，**不要** `min-h-svh`）；
-- 每个 `flex-1` 子项需要 `min-h-0` / `min-w-0`；
-- 内容滚动节点需要 `overflow-x-hidden` 抑制横向滚动。
-- tabs 位于内容区域顶部，由 `tabs` 插槽提供；不要给 tabs 添加 `sticky`、`z-30`
-  或额外的顶部偏移，避免内容区上方出现空白。
-
-布局提供 `header`、`header-left`、`header-tools`、`header-right`、`business`、
-`sidebar`、`tabs`、`content` 和 `footer` 命名插槽。`header-tools` 可以整体替换
-默认工具区，`header-right` 用于在默认工具区之后追加应用入口。
-Header 默认只放框架工具入口和一段演示业务文本；真实的业务导航、概览或认证入口
-应由应用通过 `business` 插槽注入，避免框架替业务应用决定顶部菜单。
-
----
-
-## 常用命令
-
-| 命令 | 说明 |
-|---|---|
-| `pnpm dev` | `turbo run dev` —— 同时启动 Nitro mock API 和演示应用 |
-| `pnpm build` | `turbo run build` —— 按依赖顺序构建 |
-| `pnpm --filter playwright dev` | 启动演示应用 |
-| `pnpm --filter mock-api dev` | 启动 Nitro mock API（4174） |
-| `pnpm --filter @airovo/vite-config build` | **修改 `src/config.ts` 后必须重建** |
-| `pnpm --filter @airovo/stores test` | 单包 vitest |
-| `pnpm --filter @airovo/forms test` | 表单包 vitest |
-| `pnpm --filter @airovo/uikit-shadcnui exec -- pnpm dlx shadcn-vue@latest add <component>` | 添加 shadcn-vue 基础组件 |
-
----
-
-## 添加 shadcn-vue 组件
-
-```bash
-pnpm --filter @airovo/uikit-shadcnui exec -- pnpm dlx shadcn-vue@latest add <component>
-```
-
-组件源码直接写入 `packages/ui-kit/shadcn-vue/src/components/ui/`，无需构建
-步骤。这里的 `exec` 只负责进入 ui-kit 包目录，真正的 CLI 由 `pnpm dlx` 临时执行；直接写成 `pnpm ... exec shadcn-vue@latest` 会因为仓库没有安装本地 CLI 而找不到命令。
-
----
-
-## 已知问题 / Gotchas
-
-- **`@` 别名冲突** —— 工厂将 `@` → `shadcn-vue/src`（供其内部 `@/lib/utils`
-  使用）。业务应用**不应**在 `vite.config.ts` 中覆盖 `@`；请使用 `#`（已提供）。
-  演示应用的 `vite.config.ts` 当前未覆盖 `@`（正确）。
-- **`vite-config` 需重建** —— `internal/vite-config` 通过 tsup 构建。修改
-  `src/config.ts` 后必须 `pnpm --filter @airovo/vite-config build`，否则改动
-  不生效。
-### 应用级请求层扩展
-
-应用在 `src/api/request.ts` 中调用 `registerRequestSetup()`，通过 `hooks` 自定义业务
-请求头、响应解包和错误提示，并在同一模块实现 401 单飞刷新。框架只提供唯一 Axios
-实例、默认 token 读取、基础请求头和 `RequestError` 标准化；登录、注册、刷新、用户
-信息和菜单协议全部属于应用侧 API。
+- [Vue 3 文档](https://vuejs.org/guide/introduction.html)
+- [Vite 文档](https://vite.dev/guide/)
+- [Tailwind CSS v4 文档](https://tailwindcss.com/docs)
+- [Vue Router 文档](https://router.vuejs.org/)
+- [Pinia 文档](https://pinia.vuejs.org/)
+- [Vue I18n 文档](https://vue-i18n.intlify.dev/)
+- [vee-validate 文档](https://vee-validate.logaretm.com/v4/)
+- [pnpm workspace 文档](https://pnpm.io/workspaces)
