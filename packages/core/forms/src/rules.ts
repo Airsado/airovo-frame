@@ -55,3 +55,37 @@ export function parseRules(
     }
     return schema
 }
+
+/**
+ * Whether a schema rule rejects an empty/undefined value.
+ *
+ * String rules use the public DSL consumed by `parseRules`; Zod rules use
+ * Zod's optional contract so labels stay in sync with the validation schema.
+ */
+export function isRequiredRule(
+    rules: ZodTypeAny | string | undefined,
+): boolean {
+    if (rules === undefined) return false
+    if (typeof rules === 'string') {
+        return rules
+            .split(',')
+            .some((token) => token.trim() === 'required')
+    }
+
+    const schema = rules as ZodTypeAny & {
+        isOptional?: () => boolean
+    }
+    if (typeof schema.isOptional === 'function') {
+        try {
+            return !schema.isOptional()
+        } catch {
+            return false
+        }
+    }
+
+    try {
+        return !schema.safeParse(undefined).success
+    } catch {
+        return false
+    }
+}
