@@ -208,6 +208,9 @@ importers:
       vue-router:
         specifier: 'catalog:'
         version: 5.1.0(@vue/compiler-sfc@3.5.35)(esbuild@0.28.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.35(typescript@6.0.3)))(rolldown@1.0.2)(rollup@4.60.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.0))(vue@3.5.35(typescript@6.0.3))
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@airovo/typescript-config':
         specifier: workspace:^
