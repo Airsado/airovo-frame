@@ -20,7 +20,7 @@ const store = useNotificationStore()
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" class="cursor-pointer relative">
+            <Button data-slot="header-messages" variant="ghost" size="icon" class="relative size-9 cursor-pointer" aria-label="消息" title="消息">
                 <Icon icon="lucide:bell" class="size-4" />
                 <Badge
                     v-if="store.unreadCount > 0"

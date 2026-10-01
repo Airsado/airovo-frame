@@ -4,13 +4,15 @@
     "exports": {
         ".": "./src/index.ts",
         "./basic": "./src/basic/layout.vue",
+        "./style.css": "./src/basic/theme.css",
         "./i18n": "./src/i18n.ts",
         "./locales/zh-CN": "./src/locales/zh-CN.json",
         "./locales/en-US": "./src/locales/en-US.json"
     },
     "license": "MIT",
     "scripts": {
-        "lint": "eslint \"**/*.ts\""
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run --config vitest.config.ts"
     },
     "dependencies": {
         "@airovo/router": "workspace:*",
@@ -23,6 +25,10 @@
         "vue-router": "catalog:"
     },
     "devDependencies": {
-        "@types/nprogress": "catalog:"
+        "@types/nprogress": "catalog:",
+        "@types/node": "catalog:",
+        "happy-dom": "catalog:",
+        "pinia": "catalog:",
+        "vitest": "catalog:"
     }
 }

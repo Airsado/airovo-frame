@@ -26,7 +26,7 @@ function select(l: Locale): void {
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" class="cursor-pointer">
+            <Button data-slot="header-language" variant="ghost" size="icon" class="size-9 cursor-pointer" aria-label="切换语言" title="切换语言">
                 <Icon icon="lucide:languages" class="size-4" />
             </Button>
         </DropdownMenuTrigger>

@@ -19,9 +19,7 @@ function toggle(): void {
 </script>
 
 <template>
-    <div class="cursor-pointer" @click="toggle">
-        <Button variant="ghost" size="icon">
-            <Icon :icon="icon" class="size-4" />
-        </Button>
-    </div>
+    <Button variant="ghost" size="icon" aria-label="切换主题" title="切换主题" @click="toggle">
+        <Icon :icon="icon" class="size-4" />
+    </Button>
 </template>

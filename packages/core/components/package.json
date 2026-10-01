@@ -1,0 +1,47 @@
+{
+    "name": "@airovo/components",
+    "version": "0.0.0",
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts",
+        "./data-panel": "./src/data-panel/index.ts",
+        "./data-table": "./src/data-table/index.ts",
+        "./empty-state": "./src/empty-state/index.ts",
+        "./filter-bar": "./src/filter-bar/index.ts",
+        "./metric-strip": "./src/metric-strip/index.ts",
+        "./result-page": "./src/result-page/index.ts",
+        "./section-page": "./src/section-page/index.ts",
+        "./stat-card": "./src/stat-card/index.ts",
+        "./status-badge": "./src/status-badge/index.ts",
+        "./user-card": "./src/user-card/index.ts",
+        "./select": "./src/select/index.ts",
+        "./date-picker": "./src/date-picker/index.ts",
+        "./drawer": "./src/drawer/index.ts",
+        "./faceted-filter": "./src/faceted-filter/index.ts",
+        "./toast": "./src/toast/index.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run --passWithNoTests --config vitest.config.ts"
+    },
+    "dependencies": {
+        "@airovo/shared": "workspace:*",
+        "@airovo/uikit-shadcnui": "workspace:*",
+        "@internationalized/date": "^3.12.1",
+        "@lucide/vue": "^1.17.0",
+        "reka-ui": "^2.9.8",
+        "@vueuse/core": "^14.3.0",
+        "vue": "catalog:",
+        "vue-i18n": "catalog:",
+        "vue-sonner": "^2.0.9"
+    },
+    "devDependencies": {
+        "@airovo/typescript-config": "workspace:*",
+        "@types/node": "catalog:",
+        "@vitejs/plugin-vue": "catalog:",
+        "happy-dom": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:"
+    }
+}

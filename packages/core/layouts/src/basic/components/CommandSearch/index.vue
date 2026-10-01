@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {
+    Button,
     Command,
     CommandEmpty,
     CommandGroup,
@@ -13,6 +14,7 @@ import {
 import { Icon } from '@airovo/shared/icons'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import type { SidebarMenuItemType } from '../../sidebar/types'
 
 defineOptions({ name: 'CommandSearch' })
@@ -23,6 +25,11 @@ const props = defineProps<{
 
 const open = ref(false)
 const router = useRouter()
+const { t, te } = useI18n({ useScope: 'global' })
+
+function menuLabel(item: SidebarMenuItemType): string {
+    return item.titleKey && te(item.titleKey) ? t(item.titleKey) : item.title
+}
 
 
 function onSelect(url: string): void {
@@ -32,12 +39,20 @@ function onSelect(url: string): void {
 </script>
 
 <template>
-    <button
-        class="group/button inline-flex items-center border bg-clip-padding whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 bg-muted/25 group text-muted-foreground hover:bg-accent relative h-8 w-full flex-1 justify-start rounded-md text-sm font-normal shadow-none sm:w-40 sm:pe-12 md:flex-none lg:w-52 xl:w-64 cursor-pointer"
+    <Button
+        data-slot="header-search"
+        type="button"
+        variant="outline"
+        aria-label="搜索菜单"
+        title="搜索菜单"
+        class="group relative h-8 w-8 shrink-0 justify-start rounded-md bg-muted/25 px-2.5 text-sm font-normal text-muted-foreground shadow-none hover:bg-accent hover:text-foreground sm:w-40 sm:pe-12 md:w-52 lg:w-56 xl:w-64"
         @click="open = true">
-        <Icon icon="lucide:search" class="size-4" />
-        <span class="hidden sm:inline">搜索...</span>
-    </button>
+        <Icon icon="lucide:search" class="size-4 shrink-0 sm:absolute sm:start-1.5 sm:top-1/2 sm:-translate-y-1/2" />
+        <span class="ms-2 hidden truncate sm:inline">搜索...</span>
+        <kbd class="pointer-events-none absolute end-1 top-1 hidden h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium select-none sm:flex group-hover:bg-accent">
+            <span class="text-xs">⌘</span>K
+        </kbd>
+    </Button>
 
     <Dialog :open="open" @update:open="(v) => (open = v)">
         <DialogContent>
@@ -46,11 +61,11 @@ function onSelect(url: string): void {
                 <CommandInput />
                 <CommandList>
                     <CommandEmpty>没有找到结果。</CommandEmpty>
-                    <CommandGroup :heading="item.title" class="p-1" v-for="item in props.menus" :key="item.url">
-                        <CommandItem v-for="subItem in item.children" :key="subItem.url" :value="subItem.title"
+                    <CommandGroup :heading="menuLabel(item)" class="p-1" v-for="item in props.menus" :key="item.url">
+                        <CommandItem v-for="subItem in item.children" :key="subItem.url" :value="menuLabel(subItem)"
                             class="cursor-pointer" @select="onSelect(subItem.url)">
                             <Icon :icon="subItem.icon || 'lucide:link'" class="mr-2 size-4" />
-                            <span>{{ subItem.title }}</span>
+                            <span>{{ menuLabel(subItem) }}</span>
                         </CommandItem>
                     </CommandGroup>
                 </CommandList>

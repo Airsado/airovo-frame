@@ -11,21 +11,27 @@ import {
     SidebarMenuSubButton,
     SidebarRail,
     SidebarMenuSub,
+    Badge,
     CollapsibleTrigger,
     Collapsible,
     SidebarProps,
     CollapsibleContent,
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
     useSidebar,
 } from '@airovo/uikit-shadcnui'
 
 import { Icon } from '@airovo/shared/icons'
-import { ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { SidebarMenuItemType } from './types'
+import { activeMenuPath, containsActiveMenu, isActiveMenu } from './menuActive'
 
 defineOptions({ name: 'BasicSidebar' })
 
@@ -37,9 +43,41 @@ const props = withDefaults(defineProps<SideBarPropsType>(), {
     collapsible: 'icon',
 })
 
-const { t } = useI18n()
+const { t, te } = useI18n({ useScope: 'global' })
+function label(key: string | undefined, fallback: string): string {
+    return key && te(key) ? t(key) : fallback
+}
+
+const groupedMenus = computed(() => {
+    const groups = new Map<string, { title: string; titleKey?: string; items: SidebarMenuItemType[] }>()
+
+    function addToGroup(menu: SidebarMenuItemType, fallbackGroup: { title: string; titleKey?: string } = { title: '导航' }): void {
+        // new-api's root sidebar is a list of NavGroups. A route container
+        // such as `/dashboard` is only a redirect in this demo, so its
+        // grouped children become the visible NavGroup items. Real parent
+        // menus without grouped children stay collapsible below.
+        if (menu.children?.length && !menu.group && menu.children.some(child => child.group)) {
+            for (const child of menu.children) addToGroup(child, { title: menu.title, titleKey: menu.titleKey })
+            return
+        }
+
+        const title = menu.group ?? fallbackGroup.title
+        const titleKey = menu.groupKey ?? fallbackGroup.titleKey
+        const groupId = titleKey ?? title
+        const group = groups.get(groupId) ?? { title, titleKey, items: [] }
+        group.items.push(menu)
+        groups.set(groupId, group)
+    }
+
+    for (const menu of props.menus) addToGroup(menu)
+    return [...groups.values()]
+})
+
 const route = useRoute()
+const router = useRouter()
 const { state, isMobile, setOpenMobile } = useSidebar()
+
+const selectedPath = computed(() => activeMenuPath(route))
 
 // ─── helpers ───
 
@@ -49,14 +87,15 @@ function hasChildren(item: SidebarMenuItemType): boolean {
 
 /** True when the current route path exactly matches the item URL. */
 function isExactMatch(item: SidebarMenuItemType): boolean {
-    return route.path === item.url
+    if (isActiveMenu(item, selectedPath.value)) return true
+    // Mixed menus can be decorated by a backend item and lose the original
+    // URL formatting. Keep local route names as a stable active-state key.
+    return Boolean(item.name && route.name && item.name === String(route.name))
 }
 
 /** True when the item (or any of its children) is the current page. */
 function isActiveScope(item: SidebarMenuItemType): boolean {
-    if (isExactMatch(item)) return true
-    if (!item.children) return false
-    return item.children.some((c: SidebarMenuItemType) => route.path === c.url)
+    return containsActiveMenu(item, selectedPath.value)
 }
 
 // ─── open state (accordion — single open) ───
@@ -65,8 +104,10 @@ const openKey = ref<string | null>(null)
 
 /** Find which top-level menu group (if any) contains the current route. */
 function findActiveGroupKey(): string | null {
-    for (const item of props.menus) {
-        if (isActiveScope(item)) return item.url
+    for (const group of groupedMenus.value) {
+        for (const item of group.items) {
+            if (hasChildren(item) && isActiveScope(item)) return item.url
+        }
     }
     return null
 }
@@ -76,7 +117,7 @@ openKey.value = findActiveGroupKey()
 
 // On route change: switch open group to the new active group
 watch(
-    () => route.path,
+    [selectedPath, groupedMenus],
     () => {
         openKey.value = findActiveGroupKey()
     },
@@ -87,84 +128,62 @@ function onParentToggle(item: SidebarMenuItemType, nextOpen: boolean): void {
     openKey.value = nextOpen ? item.url : null
 }
 
-// ─── drag-resize (P2-D D2) ───
-// Sidebar width lives on the shadcn-vue `Sidebar` element via a
-// `--sidebar-width` CSS variable. We drag the handle to update it,
-// clamp to [180, 480], and persist to localStorage.
-
-const SIDEBAR_WIDTH_KEY = 'airovo-sidebar-width'
-const MIN_W = 180
-const MAX_W = 480
-
-function readStoredWidth(): number | null {
-    if (typeof localStorage === 'undefined') return null
-    const raw = localStorage.getItem(SIDEBAR_WIDTH_KEY)
-    if (!raw) return null
-    const v = Number.parseInt(raw, 10)
-    return Number.isFinite(v) && v >= MIN_W && v <= MAX_W ? v : null
-}
-function writeStoredWidth(w: number): void {
-    try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(w)) } catch { /* ignore */ }
-}
-
-const customWidth = ref<number | null>(readStoredWidth())
-let dragState: { startX: number; startW: number } | null = null
-
-function onResizeMouseDown(e: MouseEvent) {
-    e.preventDefault()
-    const sidebarEl = (e.currentTarget as HTMLElement).closest('[data-sidebar]') as HTMLElement | null
-    const startW = sidebarEl ? sidebarEl.getBoundingClientRect().width : 240
-    dragState = { startX: e.clientX, startW }
-    document.addEventListener('mousemove', onResizeMouseMove)
-    document.addEventListener('mouseup', onResizeMouseUp)
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-}
-function onResizeMouseMove(e: MouseEvent) {
-    if (!dragState) return
-    const delta = e.clientX - dragState.startX
-    const w = Math.min(MAX_W, Math.max(MIN_W, dragState.startW + delta))
-    customWidth.value = w
-    const sidebarEl = document.querySelector('[data-sidebar="sidebar"]') as HTMLElement | null
-    if (sidebarEl) sidebarEl.style.setProperty('--sidebar-width', `${w}px`)
-}
-function onResizeMouseUp() {
-    document.removeEventListener('mousemove', onResizeMouseMove)
-    document.removeEventListener('mouseup', onResizeMouseUp)
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
-    if (customWidth.value !== null) writeStoredWidth(customWidth.value)
-    dragState = null
-}
-
 // ─── close sidebar sheet (mobile) ───
 
 function closeSidebarOnNavigate(): void {
     if (isMobile.value) setOpenMobile(false)
 }
+
+function linkHref(item: SidebarMenuItemType): string {
+    return item.external ? item.url : router.resolve(item.url).href
+}
+
+function navigateLink(event: MouseEvent, item: SidebarMenuItemType): void {
+    if (item.external || event.defaultPrevented || event.button !== 0
+        || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    void router.push(item.url)
+}
+
+function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
+    navigateLink(event, item)
+    closeSidebarOnNavigate()
+}
 </script>
 
 <template>
+    <!-- Keep the fixed sidebar container transparent in its inset padding.
+         Applying bg-sidebar here paints over the adjacent SidebarInset edge
+         while expanded; Sidebar.vue already paints its inner surface. -->
     <Sidebar
-        class="text-sidebar-foreground top-[var(--header-height)] h-[calc(100svh-var(--header-height))]!"
-        v-bind="props"
+        class="text-sidebar-foreground"
+        :side="props.side"
+        :variant="props.variant"
+        :collapsible="props.collapsible"
     >
-        <SidebarContent>
-            <SidebarGroup>
-                <SidebarGroupLabel>{{ t('sidebar.navigation') }}</SidebarGroupLabel>
+        <SidebarContent class="py-2">
+            <SidebarGroup v-for="group in groupedMenus" :key="group.titleKey ?? group.title" class="px-2 py-1">
+                <SidebarGroupLabel class="px-2 text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase">
+                    {{ label(group.titleKey, group.title) }}
+                </SidebarGroupLabel>
                 <SidebarMenu>
-                    <template v-for="item in menus" :key="item.url">
+                    <template v-for="item in group.items" :key="item.url">
                         <!-- ── Leaf item (no children) ── -->
                         <SidebarMenuItem v-if="!hasChildren(item)">
                             <SidebarMenuButton
-                                as-child
-                                :tooltip="item.title"
+                                as="a"
+                                :tooltip="label(item.titleKey, item.title)"
                                 :is-active="isExactMatch(item)"
+                                :href="linkHref(item)"
+                                class="app-sidebar-nav-item"
+                                :data-app-sidebar-active="isExactMatch(item) ? 'true' : 'false'"
+                                :target="item.external ? '_blank' : undefined"
+                                :rel="item.external ? 'noopener noreferrer' : undefined"
+                                @click="handleMenuClick($event, item)"
                             >
-                                <RouterLink :to="item.url" @click="closeSidebarOnNavigate">
-                                    <Icon :icon="item.icon" v-if="item.icon" />
-                                    <span>{{ item.title }}</span>
-                                </RouterLink>
+                                <Icon :icon="item.icon" v-if="item.icon" />
+                                <span>{{ label(item.titleKey, item.title) }}</span>
+                                <Badge v-if="item.badge !== undefined && item.badge !== ''" class="ml-auto shrink-0 px-1 py-0 text-xs group-data-[collapsible=icon]:hidden">{{ item.badge }}</Badge>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
 
@@ -179,11 +198,13 @@ function closeSidebarOnNavigate(): void {
                             <SidebarMenuItem>
                                 <CollapsibleTrigger as-child>
                                     <SidebarMenuButton
-                                        :tooltip="item.title"
-                                        :is-active="isActiveScope(item)"
+                                        :tooltip="label(item.titleKey, item.title)"
+                                        :data-app-sidebar-active="isActiveScope(item) ? 'true' : 'false'"
+                                        class="app-sidebar-nav-item"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
-                                        <span>{{ item.title }}</span>
+                                        <span>{{ label(item.titleKey, item.title) }}</span>
+                                        <Badge v-if="item.badge !== undefined && item.badge !== ''" class="ml-auto shrink-0 px-1 py-0 text-xs">{{ item.badge }}</Badge>
                                         <Icon
                                             icon="lucide:chevron-right"
                                             class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
@@ -197,19 +218,18 @@ function closeSidebarOnNavigate(): void {
                                             :key="subItem.url"
                                         >
                                             <SidebarMenuSubButton
-                                                as-child
+                                                as="a"
                                                 :is-active="isExactMatch(subItem)"
+                                                :href="linkHref(subItem)"
+                                                class="app-sidebar-nav-item data-[active=true]:font-medium"
+                                                :data-app-sidebar-active="isExactMatch(subItem) ? 'true' : 'false'"
+                                                :target="subItem.external ? '_blank' : undefined"
+                                                :rel="subItem.external ? 'noopener noreferrer' : undefined"
+                                                @click="handleMenuClick($event, subItem)"
                                             >
-                                                <RouterLink
-                                                    :to="subItem.url"
-                                                    @click="closeSidebarOnNavigate"
-                                                >
-                                                    <Icon
-                                                        :icon="subItem.icon"
-                                                        v-if="subItem.icon"
-                                                    />
-                                                    <span>{{ subItem.title }}</span>
-                                                </RouterLink>
+                                                <Icon :icon="subItem.icon" v-if="subItem.icon" />
+                                                <span>{{ label(subItem.titleKey, subItem.title) }}</span>
+                                                <Badge v-if="subItem.badge !== undefined && subItem.badge !== ''" class="ml-auto shrink-0 px-1 py-0 text-xs">{{ subItem.badge }}</Badge>
                                             </SidebarMenuSubButton>
                                         </SidebarMenuSubItem>
                                     </SidebarMenuSub>
@@ -219,59 +239,54 @@ function closeSidebarOnNavigate(): void {
 
                         <!-- ── Parent with children (collapsed desktop) ── -->
                         <SidebarMenuItem v-else>
-                            <HoverCard :open-delay="100" :close-delay="80">
-                                <HoverCardTrigger as-child>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger as-child class="group/dropdown-trigger">
                                     <SidebarMenuButton
+                                        :tooltip="label(item.titleKey, item.title)"
                                         :is-active="isActiveScope(item)"
+                                        :data-app-sidebar-active="isActiveScope(item) ? 'true' : 'false'"
+                                        class="app-sidebar-nav-item cursor-pointer"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
+                                        <span class="min-w-0 flex-1 truncate">{{ label(item.titleKey, item.title) }}</span>
+                                        <Badge v-if="item.badge !== undefined && item.badge !== ''" class="shrink-0 px-1 py-0 text-xs group-data-[collapsible=icon]:hidden">{{ item.badge }}</Badge>
+                                        <Icon
+                                            icon="lucide:chevron-right"
+                                            class="ml-auto transition-transform duration-200 group-data-[state=open]/dropdown-trigger:rotate-90"
+                                        />
                                     </SidebarMenuButton>
-                                </HoverCardTrigger>
-                                <HoverCardContent
-                                    side="right"
-                                    align="start"
-                                    :side-offset="8"
-                                    class="min-w-48 p-2"
-                                >
-                                    <div class="text-foreground mb-1 px-2 text-xs font-medium">
-                                        {{ item.title }}
-                                    </div>
-                                    <SidebarMenuSub>
-                                        <SidebarMenuSubItem
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent side="right" align="start" :side-offset="4">
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuLabel>{{ label(item.titleKey, item.title) }}</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
                                             v-for="subItem in item.children"
                                             :key="subItem.url"
+                                            as-child
+                                            :data-sidebar-nav-active="isExactMatch(subItem) ? 'true' : 'false'"
+                                            class="app-sidebar-nav-item"
                                         >
-                                            <SidebarMenuSubButton
-                                                as-child
-                                                :is-active="isExactMatch(subItem)"
-                                            >
-                                                <RouterLink
-                                                    :to="subItem.url"
-                                                    @click="closeSidebarOnNavigate"
-                                                >
-                                                    <Icon
-                                                        :icon="subItem.icon"
-                                                        v-if="subItem.icon"
-                                                    />
-                                                    <span>{{ subItem.title }}</span>
-                                                </RouterLink>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                    </SidebarMenuSub>
-                                </HoverCardContent>
-                            </HoverCard>
+                                            <a
+                                                :href="linkHref(subItem)"
+                                                class="app-sidebar-nav-item cursor-pointer"
+                                                :data-app-sidebar-active="isExactMatch(subItem) ? 'true' : 'false'"
+                                                :target="subItem.external ? '_blank' : undefined"
+                                                :rel="subItem.external ? 'noopener noreferrer' : undefined"
+                                                @click="handleMenuClick($event, subItem)">
+                                                <Icon :icon="subItem.icon" v-if="subItem.icon" />
+                                                <span class="max-w-52 text-wrap">{{ label(subItem.titleKey, subItem.title) }}</span>
+                                                <Badge v-if="subItem.badge !== undefined && subItem.badge !== ''" class="ml-auto shrink-0 px-1 py-0 text-xs">{{ subItem.badge }}</Badge>
+                                            </a>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </SidebarMenuItem>
                     </template>
                 </SidebarMenu>
             </SidebarGroup>
         </SidebarContent>
         <SidebarRail />
-        <!-- Drag handle for resize. Only visible in expanded desktop mode. -->
-        <div
-            v-if="state === 'expanded' && !isMobile"
-            class="absolute top-0 right-0 z-10 h-full w-1 cursor-col-resize transition-colors hover:bg-primary/30 active:bg-primary/50"
-            aria-label="拖拽调整侧边栏宽度"
-            @mousedown="onResizeMouseDown"
-        />
     </Sidebar>
 </template>

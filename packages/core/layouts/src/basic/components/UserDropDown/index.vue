@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
     Avatar,
@@ -17,23 +18,29 @@ import { useAuthStore } from '@airovo/stores/auth'
 
 defineOptions({ name: 'UserDropDown' })
 
+const props = defineProps<{ onLogout?: () => void | Promise<void> }>()
+
 const router = useRouter()
+const { t } = useI18n({ useScope: 'global' })
 const authStore = useAuthStore()
 
 const user = computed(() => authStore.user)
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const userAvatar = computed(() => user.value?.avatar || '')
 const userInitial = computed(() => user.value?.username?.[0]?.toUpperCase() || 'U')
-const userName = computed(() => user.value?.nickname || user.value?.username || '用户')
-const userEmail = computed(() => user.value?.email || '未登录')
+const userName = computed(() => user.value?.nickname || user.value?.username || t('user.account'))
+const userEmail = computed(() => user.value?.email || t('user.notSignedIn'))
 
 function goToProfile() {
     router.push('/profile')
 }
 
-function handleLogout() {
-    authStore.logout()
-    router.push('/login')
+function goToSettings() {
+    router.push({ name: 'Preferences' })
+}
+
+async function handleLogout() {
+    await props.onLogout?.()
 }
 
 function goToLogin() {
@@ -45,7 +52,9 @@ function goToLogin() {
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
             <button
-                class="cursor-pointer inline-flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-accent focus-visible:ring-ring/40 focus-visible:ring-2 outline-none"
+                type="button"
+                :aria-label="t('user.accountMenu')"
+                class="cursor-pointer inline-flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-muted focus-visible:ring-ring/40 focus-visible:ring-2 outline-none"
             >
                 <Avatar class="size-7">
                     <AvatarImage :src="userAvatar" />
@@ -60,24 +69,24 @@ function goToLogin() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <template v-if="isLoggedIn">
-                <DropdownMenuItem>
+                <DropdownMenuItem @select="goToProfile">
                     <Icon icon="lucide:user" class="mr-2 size-4" />
-                    <span @click="goToProfile">个人资料</span>
+                    <span>{{ t('user.profile') }}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem v-if="router.hasRoute('Preferences')" @select="goToSettings">
                     <Icon icon="lucide:settings" class="mr-2 size-4" />
-                    <span>设置</span>
+                    <span>{{ t('user.settings') }}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem v-if="props.onLogout" @select="handleLogout">
                     <Icon icon="lucide:log-out" class="mr-2 size-4" />
-                    <span @click="handleLogout">退出登录</span>
+                    <span>{{ t('user.logout') }}</span>
                 </DropdownMenuItem>
             </template>
             <template v-else>
-                <DropdownMenuItem>
+                <DropdownMenuItem @select="goToLogin">
                     <Icon icon="lucide:log-in" class="mr-2 size-4" />
-                    <span @click="goToLogin">登录</span>
+                    <span>{{ t('user.login') }}</span>
                 </DropdownMenuItem>
             </template>
         </DropdownMenuContent>

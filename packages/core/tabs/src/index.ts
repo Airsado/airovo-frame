@@ -23,7 +23,7 @@ export { BasicTabBar }
 
 export function useCachedTabNames() {
     const store = useTabStore()
-    return computed(() => store.cachedTabIds)
+    return computed(() => store.cachedComponentNames)
 }
 
 export interface InstallTabsOptions {
@@ -40,20 +40,25 @@ export interface InstallTabsOptions {
  * Install the tabs system: registers BasicTabBar as a global
  * component and wires router.afterEach to keep the tab list in sync.
  */
-export function installTabs(_app: App, options: InstallTabsOptions): { tabStore: ReturnType<typeof useTabStore> } {
+export function installTabs(app: App, options: InstallTabsOptions): { tabStore: ReturnType<typeof useTabStore> } {
     const store = useTabStore()
+
+    // BasicLayout consumes the tab strip through its named slot. Registering
+    // it globally keeps the framework install path useful for apps that use
+    // the layout without importing the component into every root.
+    app.component('BasicTabBar', BasicTabBar)
 
     // Seed the default tab on first install (so the strip isn't empty
     // before any navigation happens).
     if (options.defaultTabPath && store.tabs.length === 0) {
         const resolved = options.router.resolve(options.defaultTabPath)
-        if (resolved) store.addOrActivate(resolved as any)
+        if (resolved) store.addOrActivate(resolved)
     }
 
     // Auto-track every navigation.
     options.router.afterEach((to) => {
         // Skip tabs that opt out via meta.hideInTab.
-        if (to.meta?.hideInTab === true) return
+        if (to.meta?.hideInTab === true || to.meta?.ignoreLayout === true) return
         store.addOrActivate(to)
     })
 

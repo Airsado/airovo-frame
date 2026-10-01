@@ -7,11 +7,14 @@
     },
     "license": "MIT",
     "scripts": {
-        "lint": "eslint \"**/*.ts\""
+        "lint": "eslint \"**/*.ts\"",
+        "icons:generate": "node scripts/generate-lucide-icons.mjs --write",
+        "icons:check": "node scripts/generate-lucide-icons.mjs --check"
     },
     "devDependencies": {
         "@airovo/typescript-config": "workspace:*",
         "@airovo/vite-config": "workspace:*",
+        "@lucide/vue": "^1.17.0",
         "@vue/tsconfig": "^0.9.1",
         "typescript": "~6.0.2"
     },

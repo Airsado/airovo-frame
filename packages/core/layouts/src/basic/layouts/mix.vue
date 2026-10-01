@@ -1,27 +1,85 @@
 <script setup lang="ts">
-/**
- * BasicLayoutMix — dual-column / "header-nav + sidebar" variant.
- *
- * Skeleton with two named slots: `nav-sidebar` for the top horizontal
- * nav and `main` for the page content. Apps fill both slots; the
- * `meta.layout: 'mix'` resolver in createApp renders this layout.
- */
+import { computed, ref } from 'vue'
 import { SidebarInset, SidebarProvider } from '@airovo/uikit-shadcnui'
+import { usePreferencesStore } from '@airovo/stores/preferences'
+import BasicHeader from '../header/header.vue'
+import BasicSidebar from '../sidebar/sidebar.vue'
+import type { SidebarMenuItemType } from '../sidebar/types'
+import { useTabScroll } from '../useTabScroll'
 
 defineOptions({ name: 'BasicLayoutMix' })
+
+const props = withDefaults(defineProps<{
+    menus?: SidebarMenuItemType[]
+    siteTitle?: string
+    siteLogo?: string
+    showSearch?: boolean
+    showMessages?: boolean
+    showTheme?: boolean
+    showLanguage?: boolean
+    showSettings?: boolean
+    showTabs?: boolean
+    maximized?: boolean
+    sidebarVariant?: 'sidebar' | 'inset' | 'floating'
+    collapsible?: 'offcanvas' | 'icon' | 'none'
+    onLogout?: () => void | Promise<void>
+}>(), {
+    menus: () => [],
+    siteTitle: 'Framework',
+    showSearch: true,
+    showMessages: true,
+    showTheme: true,
+    showLanguage: true,
+    showSettings: true,
+    showTabs: true,
+    maximized: false,
+})
+
+const preferences = usePreferencesStore()
+const effectiveVariant = computed(() => props.sidebarVariant ?? preferences.preferences.layout.sidebarVariant)
+const effectiveCollapsible = computed(() => props.collapsible ?? preferences.preferences.layout.sidebarCollapsible)
+const contentClass = computed(() => preferences.preferences.layout.contentLayout === 'centered'
+    ? 'mx-auto w-full max-w-[var(--content-max-width,1280px)]'
+    : 'w-full')
+const contentScroll = ref<HTMLElement | null>(null)
+useTabScroll(contentScroll)
 </script>
 
 <template>
-    <div class="h-svh flex flex-col">
+    <div data-layout-shell class="flex h-svh flex-col overflow-hidden bg-sidebar [--app-header-height:3rem] [--header-height:3rem]">
         <SidebarProvider class="flex h-full flex-col">
-            <div class="flex flex-1 min-h-0">
-                <slot name="nav-sidebar" />
-                <SidebarInset class="flex-1 min-w-0">
-                    <slot name="main">
-                        <div class="p-6 text-sm text-muted-foreground">
-                            Mix-layout 占位 —— 通过 <code>nav-sidebar</code> 和 <code>main</code> 插槽填充顶部导航 + 子侧栏。
+            <slot v-if="!props.maximized" name="header" :title="siteTitle" :menus="menus">
+                <BasicHeader
+                    :title="siteTitle"
+                    :logo="siteLogo"
+                    :menus="menus"
+                    :show-search="showSearch"
+                    :show-messages="showMessages"
+                    :show-theme="showTheme"
+                    :show-language="showLanguage"
+                    :show-settings="showSettings"
+                    :on-logout="onLogout"
+                >
+                    <template v-if="$slots['header-left']" #left><slot name="header-left" /></template>
+                    <template v-if="$slots.business" #business><slot name="business" /></template>
+                    <template v-if="$slots['header-tools']" #tools><slot name="header-tools" /></template>
+                    <template v-if="$slots['header-right']" #right><slot name="header-right" /></template>
+                </BasicHeader>
+            </slot>
+            <div class="flex min-h-0 flex-1">
+                <slot v-if="!props.maximized" name="sidebar" :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible">
+                    <BasicSidebar :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible" />
+                </slot>
+                <SidebarInset class="@container/content relative min-h-0 min-w-0 overflow-hidden md:h-[calc(100svh-var(--app-header-height))]">
+                    <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                        <slot v-if="props.showTabs" name="tabs" />
+                        <div ref="contentScroll" data-slot="layout-content-scroll" class="hover-scrollbar min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+                            <div :class="contentClass">
+                                <slot name="content"><slot name="main"><slot /></slot></slot>
+                            </div>
                         </div>
-                    </slot>
+                        <slot name="footer" />
+                    </main>
                 </SidebarInset>
             </div>
         </SidebarProvider>

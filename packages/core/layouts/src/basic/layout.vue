@@ -1,58 +1,108 @@
 <script lang="ts" setup>
-import { SidebarInset, SidebarProvider, ScrollArea } from '@airovo/uikit-shadcnui'
+import { computed, ref } from 'vue'
+import { SidebarInset, SidebarProvider } from '@airovo/uikit-shadcnui'
+import { usePreferencesStore } from '@airovo/stores'
 import { BasicHeader, BasicSidebar } from './index'
 import type { SidebarMenuItemType } from './sidebar/types'
+import { useTabScroll } from './useTabScroll'
 
 defineOptions({ name: 'BasicLayout' })
 
-withDefaults(
-    defineProps<{
-        menus?: SidebarMenuItemType[]
-        siteTitle?: string
-        siteLogo?: string
-        showSearch?: boolean
-        showMessages?: boolean
-        showTheme?: boolean
-        showLanguage?: boolean
-    }>(),
-    {
-        menus: () => [] as SidebarMenuItemType[],
-        siteTitle: 'AirOvO',
-        siteLogo: 'https://www.airsado.cn/usr/uploads/avatar_24.jpg',
-        showSearch: true,
-        showMessages: true,
-        showTheme: true,
-        showLanguage: true,
-    },
-)
+const props = withDefaults(defineProps<{
+    menus?: SidebarMenuItemType[]
+    siteTitle?: string
+    siteLogo?: string
+    showSearch?: boolean
+    showMessages?: boolean
+    showTheme?: boolean
+    showLanguage?: boolean
+    showSettings?: boolean
+    /** Render the framework tab strip through the named `tabs` slot. */
+    showTabs?: boolean
+    /** Hide the shell chrome while the active tab is maximized. */
+    maximized?: boolean
+    sidebarVariant?: 'sidebar' | 'inset' | 'floating'
+    collapsible?: 'offcanvas' | 'icon' | 'none'
+    onLogout?: () => void | Promise<void>
+}>(), {
+    menus: () => [] as SidebarMenuItemType[],
+    siteTitle: 'Framework',
+    siteLogo: '',
+    showSearch: true,
+    showMessages: true,
+    showTheme: true,
+    showLanguage: true,
+    showTabs: true,
+    maximized: false,
+})
+
+const preferences = usePreferencesStore()
+const layout = computed(() => preferences.preferences.layout)
+const effectiveVariant = computed(() => props.sidebarVariant ?? layout.value.sidebarVariant)
+const effectiveCollapsible = computed(() => props.collapsible ?? layout.value.sidebarCollapsible)
+// The preference manager writes --content-max-width so apps can override the
+// centered rail without replacing the layout component.
+const contentClass = computed(() => layout.value.contentLayout === 'centered'
+    ? 'mx-auto w-full max-w-[var(--content-max-width,1280px)]'
+    : 'w-full')
+// Keep the framework settings entry available by default. Apps can still
+// explicitly hide it with `show-settings="false"`.
+const showSettings = computed(() => props.showSettings ?? true)
+const contentScroll = ref<HTMLElement | null>(null)
+useTabScroll(contentScroll)
 </script>
 
 <template>
-    <div class="h-svh overflow-hidden [--header-height:calc(--spacing(14))]">
-        <SidebarProvider class="flex h-full flex-col">
-            <BasicHeader :title="siteTitle" :logo="siteLogo" :menus="menus" :show-search="showSearch"
-                :show-messages="showMessages" :show-theme="showTheme" :show-language="showLanguage" />
-            <div class="flex flex-1 min-h-0 bg-sidebar">
-                <BasicSidebar :menus="menus" collapsible="icon" />
-                <SidebarInset class="bg-background">
-                    <main class="flex min-h-0 flex-1 flex-col">
-                        <!-- <div class="shrink-0 pt-3 pb-2.5 px-3 sm:pt-5 sm:pb-3 border-border sm:border-b">
-                            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4">
-                                <div class="min-w-0 flex-1">
-                                    <h2 class="truncate text-base font-bold tracking-tight sm:text-lg">
-                                        <slot name="pageTitle">概览</slot>
-                                    </h2>
-                                </div>
-                                <slot name="pageActions" />
+    <div data-layout-shell class="h-svh overflow-hidden bg-sidebar [--app-header-height:3rem] [--header-height:3rem]">
+        <SidebarProvider
+            class="flex h-full flex-col"
+            :style="{ '--sidebar-width': '13rem', '--sidebar-width-icon': '2.75rem' }"
+        >
+            <slot v-if="!props.maximized" name="header" :title="siteTitle" :menus="menus">
+                <BasicHeader
+                    :title="siteTitle"
+                    :logo="siteLogo"
+                    :menus="menus"
+                    :show-search="showSearch"
+                    :show-messages="showMessages"
+                    :show-theme="showTheme"
+                    :show-language="showLanguage"
+                    :show-settings="showSettings"
+                    :on-logout="onLogout"
+                >
+                    <template v-if="$slots['header-left']" #left><slot name="header-left" /></template>
+                    <template v-if="$slots.business" #business>
+                        <slot name="business" />
+                    </template>
+                    <template v-if="$slots['header-tools']" #tools><slot name="header-tools" /></template>
+                    <template v-if="$slots['header-right']" #right><slot name="header-right" /></template>
+                </BasicHeader>
+            </slot>
+            <div class="flex min-h-0 w-full flex-1">
+                <slot v-if="!props.maximized" name="sidebar" :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible">
+                    <BasicSidebar :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible" />
+                </slot>
+                <SidebarInset
+                    class="@container/content relative min-h-0 min-w-0 overflow-hidden"
+                    :class="props.maximized
+                        ? 'md:h-svh'
+                        : 'md:h-[calc(100svh-var(--app-header-height,0px))] md:peer-data-[variant=inset]:h-[calc(100svh-var(--app-header-height,0px)-(var(--spacing)*4))]'"
+                >
+                    <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                        <slot v-if="props.showTabs" name="tabs" />
+                        <div ref="contentScroll" data-slot="layout-content-scroll" class="hover-scrollbar min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+                            <div :class="contentClass">
+                                <slot name="content">
+                                    <slot />
+                                </slot>
                             </div>
-                        </div> -->
-
-                        <ScrollArea class="flex-1 min-w-0 min-h-0 overflow-x-hidden sm:p-5 p-0">
-                            <slot />
-                        </ScrollArea>
+                        </div>
+                        <slot name="footer" />
                     </main>
                 </SidebarInset>
             </div>
         </SidebarProvider>
     </div>
 </template>
+
+<style src="./theme.css"></style>

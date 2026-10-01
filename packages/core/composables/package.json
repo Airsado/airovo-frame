@@ -1,0 +1,29 @@
+{
+    "name": "@airovo/composables",
+    "version": "0.0.0",
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint \"**/*.ts\"",
+        "test": "vitest run --config vitest.config.ts"
+    },
+    "dependencies": {
+        "@airovo/forms": "workspace:*",
+        "@airovo/shared": "workspace:*",
+        "@airovo/uikit-shadcnui": "workspace:*",
+        "vue": "catalog:",
+        "vue-sonner": "^2.0.9"
+    },
+    "devDependencies": {
+        "@airovo/typescript-config": "workspace:*",
+        "@vitejs/plugin-vue": "catalog:",
+        "@vue/test-utils": "^2.4.0",
+        "happy-dom": "^15.0.0",
+        "typescript": "catalog:",
+        "vite": "catalog:",
+        "vitest": "catalog:"
+    }
+}
