@@ -53,6 +53,7 @@ describe('preferences manager and store', () => {
         setActivePinia(createPinia())
         localStorage.clear()
         document.documentElement.className = ''
+        document.documentElement.removeAttribute('data-theme-custom-primary')
         document.documentElement.removeAttribute('data-theme-content-layout')
         document.documentElement.style.removeProperty('--content-max-width')
     })
@@ -169,5 +170,20 @@ describe('preferences manager and store', () => {
         expect(manager.getPreferences().app.title).toBe('Second app')
         expect(manager.getPreferences().locale.current).toBe('en-US')
         expect(manager.getPreferences().theme.mode).not.toBe('dark')
+    })
+
+    it('marks custom primary colors so shell interaction surfaces follow the hue', async () => {
+        const manager = new PreferenceManager()
+        await manager.initPreferences({
+            namespace: 'custom-primary-test',
+            overrides: { theme: { primaryColor: '#22c55e' } },
+        })
+
+        expect(document.documentElement.dataset.themeCustomPrimary).toBe('true')
+        expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#22c55e')
+
+        manager.updatePreferences({ theme: { primaryColor: '' } })
+        expect(document.documentElement.dataset.themeCustomPrimary).toBeUndefined()
+        expect(document.documentElement.style.getPropertyValue('--primary')).toBe('')
     })
 })

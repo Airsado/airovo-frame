@@ -119,6 +119,10 @@
     --sidebar-accent-foreground: oklch(0.579 0.196 255.909);
     --sidebar-border: oklch(0.93 0 0);
     --sidebar-ring: oklch(0.58 0.2 250);
+    /* Keep interaction surfaces tied to the primary hue, including bright
+     * custom colors that become nearly invisible when mixed with white. */
+    --app-interaction-hover: color-mix(in srgb, var(--primary) 12%, transparent);
+    --app-interaction-active: color-mix(in srgb, var(--primary) 20%, transparent);
     --skeleton-base: oklch(0.97 0 0);
     --skeleton-highlight: oklch(0.985 0 0);
     --table-row: var(--background);
@@ -218,6 +222,8 @@
     --sidebar-accent-foreground: oklch(0.9 0.05 250);
     --sidebar-border: oklch(1 0 0 / 11%);
     --sidebar-ring: oklch(0.7 0.17 250);
+    --app-interaction-hover: color-mix(in srgb, var(--primary) 16%, transparent);
+    --app-interaction-active: color-mix(in srgb, var(--primary) 26%, transparent);
     --skeleton-base: oklch(0.335 0 0);
     --skeleton-highlight: oklch(0.44 0 0);
     --table-row: var(--background);
@@ -280,6 +286,15 @@
   --sidebar-foreground: var(--foreground);
   --muted-foreground: oklch(0.78 0 0);
   --neutral-foreground: var(--foreground);
+}
+
+/* A custom primary also owns the accent surfaces used by outline and ghost
+ * controls. Preset accents remain unchanged until the user picks a primary. */
+:root[data-theme-custom-primary] {
+  --accent: var(--app-interaction-hover);
+  --accent-foreground: var(--foreground);
+  --sidebar-accent: var(--app-interaction-hover);
+  --sidebar-accent-foreground: var(--foreground);
 }
 
 :root[data-theme-radius='none'] { --radius: 0rem; }
@@ -401,7 +416,7 @@ body:has([data-layout-shell]) {
 
 [data-layout-shell] [data-sidebar='menu-button']:not([data-active='true']):hover,
 [data-layout-shell] [data-sidebar='menu-sub-button']:not([data-active='true']):hover {
-  background-color: var(--muted);
+  background-color: var(--app-interaction-hover);
   color: var(--sidebar-foreground);
 }
 
@@ -409,20 +424,18 @@ body:has([data-layout-shell]) {
  * primary/background tokens used by buttons and content so a preset cannot
  * leave the sidebar on a different accent family. */
 .app-sidebar-nav-item:not([data-app-sidebar-active='true']):hover {
-  background-color: var(--muted) !important;
+  background-color: var(--app-interaction-hover) !important;
   color: var(--sidebar-foreground) !important;
 }
 
 [data-app-sidebar-active='true'] {
-  background-color: var(--primary, oklch(0.692 0.141 243.716)) !important;
+  background-color: var(--app-interaction-active) !important;
   color: var(--foreground, oklch(0.145 0 0)) !important;
-  background-color: color-mix(in oklch, var(--primary, oklch(0.692 0.141 243.716)) 14%, var(--background, oklch(1 0 0))) !important;
 }
 
 [data-app-sidebar-active='true']:hover {
-  background-color: var(--primary, oklch(0.692 0.141 243.716)) !important;
+  background-color: var(--app-interaction-active) !important;
   color: var(--foreground, oklch(0.145 0 0)) !important;
-  background-color: color-mix(in oklch, var(--primary, oklch(0.692 0.141 243.716)) 14%, var(--background, oklch(1 0 0))) !important;
 }
 
 /* Keep icon and label descendants on the selected surface as well. */

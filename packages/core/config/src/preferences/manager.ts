@@ -412,6 +412,7 @@ export class PreferenceManager {
         ]
         if (primary) {
             const foreground = colorForeground(primary)
+            root.dataset.themeCustomPrimary = 'true'
             docStyle.setProperty('--primary', primary)
             docStyle.setProperty('--primary-foreground', foreground)
             docStyle.setProperty('--sidebar-primary', primary)
@@ -427,6 +428,7 @@ export class PreferenceManager {
             docStyle.removeProperty('--color-sidebar-accent')
             docStyle.removeProperty('--color-sidebar-accent-foreground')
         } else {
+            delete root.dataset.themeCustomPrimary
             customPrimaryTokens.forEach((token) => docStyle.removeProperty(token))
         }
 
