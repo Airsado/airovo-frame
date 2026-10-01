@@ -1,9 +1,10 @@
 
-import type { UserConfig } from 'vite';
+import type { Plugin, UserConfig } from 'vite';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
+import { loadEnv } from 'vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -25,6 +26,50 @@ export interface ViteConfig extends UserConfig {
         /** `rollup-plugin-visualizer` to emit a `stats.html` bundle map. */
         visualizer?: boolean | { template?: 'treemap' | 'sunburst' | 'network' }
     };
+}
+
+const APP_CONFIG_GLOBAL = '_AIROVO_APP_CONF_'
+
+/**
+ * Mirrors vben-admin's extra-app-config plugin.
+ *
+ * `VITE_GLOB_*` values are build-time values in development and are emitted
+ * into a small `_app.config.js` asset for production. This lets a deployed
+ * bundle change its API endpoint without rebuilding the application.
+ */
+function appConfigPlugin(): Plugin {
+    let configBase = '/'
+    let source = `${APP_CONFIG_GLOBAL}={};`
+
+    return {
+        name: 'airovo:extra-app-config',
+        apply: 'build',
+        configResolved(config) {
+            configBase = config.base.endsWith('/') ? config.base : `${config.base}/`
+            const env = loadEnv(config.mode, config.root, '')
+            const values = Object.fromEntries(
+                Object.entries(env).filter(([key]) => key.startsWith('VITE_GLOB_')),
+            )
+            const variable = `window.${APP_CONFIG_GLOBAL}`
+            source = `${variable}=${JSON.stringify(values)};Object.freeze(${variable});Object.defineProperty(window,"${APP_CONFIG_GLOBAL}",{configurable:false,writable:false});`
+        },
+        generateBundle() {
+            this.emitFile({
+                fileName: '_app.config.js',
+                source,
+                type: 'asset',
+            })
+        },
+        transformIndexHtml(html) {
+            return {
+                html,
+                tags: [{
+                    attrs: { src: `${configBase}_app.config.js` },
+                    tag: 'script',
+                }],
+            }
+        },
+    }
 }
 
 /**
@@ -52,6 +97,7 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
         vitePlugins,
         plugins: appPlugins = [],
         resolve: appResolve,
+        optimizeDeps: appOptimizeDeps,
         ...restConfig
     } = config;
 
@@ -92,12 +138,67 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
         frameworkPlugins.push(visualizer({ template, filename: 'stats.html', gzipSize: true }))
     }
 
+    const frameworkOptimizeDepsInclude = [
+        '@iconify/vue',
+        '@internationalized/date',
+        '@lucide/vue',
+        '@radix-icons/vue',
+        '@vee-validate/zod',
+        '@vueuse/core',
+        'axios',
+        'chart.js',
+        'class-variance-authority',
+        'clsx',
+        'pinia',
+        'pinia-plugin-persistedstate',
+        'radix-ui',
+        'reka-ui',
+        'tailwind-merge',
+        'vee-validate',
+        'vue-chartjs',
+        'vue-input-otp',
+        'vue-i18n',
+        'vue-router',
+        'vue-sonner',
+        'zod',
+    ]
+    const frameworkOptimizeDepsExclude = [
+        '@airovo/config',
+        '@airovo/layouts',
+        '@airovo/components',
+        '@airovo/router',
+        '@airovo/stores',
+        '@airovo/uikit-shadcnui',
+        '@airovo/forms',
+        '@airovo/views',
+        '@airovo/app',
+        '@airovo/app-ui',
+        '@airovo/composables',
+        '@airovo/request',
+        '@airovo/request/internal',
+        '@airovo/permission',
+        '@airovo/tabs',
+        '@airovo/shared',
+        '@airovo/router/internal',
+    ]
 
     return {
         resolve: {
             alias: {
                 '#': resolve(process.cwd(), 'src'),
                 '@': resolve(__dirname, '../../../packages/ui-kit/shadcn-vue/src'),
+                // `@airovo/shared` exposes subpath-only exports (icons/utils).
+                // Pin it to the workspace source so Vite can resolve those
+                // subpaths even when a pnpm symlink has not been prebundled.
+                '@airovo/shared/icons': resolve(__dirname, '../../../packages/shared/src/icons/index.ts'),
+                '@airovo/shared/utils': resolve(__dirname, '../../../packages/shared/src/utils/index.ts'),
+                '@airovo/shared': resolve(__dirname, '../../../packages/shared/src'),
+                // Framework internals are imported by @airovo/app itself.
+                // Resolve them to workspace source explicitly so a stale or
+                // partially linked pnpm workspace cannot leave a dev server
+                // with a 500 while resolving the subpath exports.
+                '@airovo/router/internal': resolve(__dirname, '../../../packages/core/router/src/internal.ts'),
+                '@airovo/request/internal': resolve(__dirname, '../../../packages/core/request/src/internal.ts'),
                 ...(appResolve?.alias as Record<string, string>),
             },
             ...appResolve,
@@ -108,29 +209,20 @@ export const defineViteConfig = (config: ViteConfig = {}): UserConfig => {
         // a tsconfig adjacent to each `src/index.ts`, which would fail
         // for packages that only have a package-root `tsconfig.json`.
         optimizeDeps: {
-            exclude: [
-                '@airovo/config',
-                '@airovo/layouts',
-                '@airovo/router',
-                '@airovo/stores',
-                '@airovo/uikit-shadcnui',
-                // New workspace packages (consumed source-direct, no build step).
-                '@airovo/forms',
-                '@airovo/views',
-                '@airovo/app',
-                '@airovo/design',
-                '@airovo/effects',
-                '@airovo/app-ui',
-                // Reserved for the new P1 packages (no-ops until they're added).
-                '@airovo/request',
-                '@airovo/permission',
-                '@airovo/tabs',
-                // @airovo/forms removed — apps bring their own form library.
-            ],
+            ...appOptimizeDeps,
+            include: Array.from(new Set([
+                ...frameworkOptimizeDepsInclude,
+                ...(appOptimizeDeps?.include ?? []),
+            ])),
+            exclude: Array.from(new Set([
+                ...frameworkOptimizeDepsExclude,
+                ...(appOptimizeDeps?.exclude ?? []),
+            ])),
         },
         plugins: [
             vue(),
             tailwindcss(),
+            appConfigPlugin(),
             ...frameworkPlugins,
             ...appPlugins,
         ],

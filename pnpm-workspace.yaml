@@ -5,7 +5,6 @@ packages:
   - "packages/ui-kit/*"
   - "internal/*"
   - "app-ui"
-  - "packages/design"
 
 catalog:
   # Vue 生态
@@ -43,10 +42,6 @@ catalog:
   vitest: ^2.1.0
   "@vitest/ui": ^2.1.0
   happy-dom: ^15.0.0
-
-  # 表格
-  vxe-table: ^4.13.10
-  vxe-pc-ui: ^4.13.10
 
   # 图表
   chart.js: ^4.4.6

@@ -1,12 +1,19 @@
 {
   "private": true,
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0",
+    "pnpm": "9.15.4"
+  },
   "scripts": {
+    "preinstall": "node scripts/check-pnpm-version.mjs",
+    "create:app": "pnpm --filter @airovo/create-app build && node internal/create-app/dist/index.js",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
+    "anymatch": "^3.1.3",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "turbo": "^2.9.14"

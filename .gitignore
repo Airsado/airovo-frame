@@ -4,8 +4,16 @@ node_modules
 *.log
 dist
 dist-ssr
+.output
 *.local
-.env
+.env.local
+.env.*.local
+
+# Local browser, test-runner, and Nitro runtime artifacts
+.codex-chrome-profile*/
+.nitro/
+.tmp/
+.tmp-*/
 .cache
 server/dist
 public/dist
