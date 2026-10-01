@@ -1,6 +1,4 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { FrameworkForbidden, FrameworkServerError, FrameworkNetworkError } from '@airovo/views'
-
 /**
  * Error-page routes. Registered at the top level (outside the
  * dashboard layout) so they render in the chrome-less
@@ -14,31 +12,51 @@ const errors: RouteRecordRaw[] = [
     {
         path: '/403',
         name: 'Forbidden',
-        component: FrameworkForbidden,
+        component: () => import('../../../views/_core/Forbidden.vue'),
         meta: {
             public: true,
             ignoreLayout: true,
+            hideInMenu: true,
             title: '403',
         },
     },
     {
         path: '/500',
         name: 'ServerError',
-        component: FrameworkServerError,
+        component: () => import('../../../views/_core/ServerError.vue'),
         meta: {
             public: true,
             ignoreLayout: true,
+            hideInMenu: true,
             title: '500',
         },
     },
     {
         path: '/network-error',
         name: 'NetworkError',
-        component: FrameworkNetworkError,
+        component: () => import('../../../views/_core/NetworkError.vue'),
         meta: {
             public: true,
             ignoreLayout: true,
+            hideInMenu: true,
             title: '网络错误',
+        },
+    },
+    {
+        path: '/404',
+        name: 'NotFound',
+        component: () => import('../../../views/_core/NotFound.vue'),
+        meta: { public: true, ignoreLayout: true, hideInMenu: true, title: '页面不存在' },
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFoundFallback',
+        component: () => import('../../../views/_core/NotFound.vue'),
+        meta: {
+            public: true,
+            ignoreLayout: true,
+            hideInMenu: true,
+            title: '页面不存在',
         },
     },
 ]

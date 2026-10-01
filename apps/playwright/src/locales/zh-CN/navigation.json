@@ -1,0 +1,23 @@
+{
+  "dashboard": "仪表盘",
+  "workbench": "工作台",
+  "interface": "组件与表单",
+  "navigationAndLayout": "导航与布局",
+  "system": "系统能力",
+  "overview": "概览",
+  "auth": "认证与令牌",
+  "analytics": "分析",
+  "components": "框架组件",
+  "form": "表单系统",
+  "navigationExamples": "导航示例",
+  "defaultLayout": "默认布局",
+  "permissions": "权限与角色",
+  "adminRoute": "管理员路由",
+  "reportsRoute": "报表权限路由",
+  "mockApi": "Mock 服务",
+  "mockHealth": "服务状态",
+  "preferences": "偏好设置",
+  "navigation": "父子导航",
+  "mix": "Mix 布局",
+  "full": "全屏布局"
+}
