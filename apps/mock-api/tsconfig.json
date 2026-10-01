@@ -1,0 +1,8 @@
+{
+    "extends": "@airovo/typescript-config/base.json",
+    "compilerOptions": {
+        "types": ["node"],
+        "noEmit": true
+    },
+    "include": ["nitro.config.ts", "server/**/*.ts"]
+}
