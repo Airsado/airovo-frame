@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "exports": {
     ".": "./src/index.ts",
+    "./components/ui/*": "./src/components/ui/*/index.ts",
     "./*": "./src/*",
     "./styles": "./src/styles/globals.css",
     "./style.css": "./src/styles/globals.css"
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@airovo/shared": "workspace:*",
+    "@internationalized/date": "^3.12.1",
     "@iconify/vue": "catalog:",
     "@lucide/vue": "^1.17.0",
     "@radix-icons/vue": "^1.0.0",

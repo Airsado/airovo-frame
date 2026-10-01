@@ -29,5 +29,5 @@ export * from './components/ui/native-select'
 export * from './components/ui/skeleton'
 export * from './components/ui/stepper'
 export * from './components/ui/input-group'
-
+export * from './components/ui/select'
 
