@@ -121,8 +121,8 @@
     --sidebar-ring: oklch(0.58 0.2 250);
     /* Keep interaction surfaces tied to the primary hue, including bright
      * custom colors that become nearly invisible when mixed with white. */
-    --app-interaction-hover: color-mix(in srgb, var(--primary) 12%, transparent);
-    --app-interaction-active: color-mix(in srgb, var(--primary) 20%, transparent);
+    --app-interaction-hover: color-mix(in oklch, var(--primary) 14%, var(--background));
+    --app-interaction-active: color-mix(in oklch, var(--primary) 22%, var(--background));
     --skeleton-base: oklch(0.97 0 0);
     --skeleton-highlight: oklch(0.985 0 0);
     --table-row: var(--background);
@@ -222,8 +222,8 @@
     --sidebar-accent-foreground: oklch(0.9 0.05 250);
     --sidebar-border: oklch(1 0 0 / 11%);
     --sidebar-ring: oklch(0.7 0.17 250);
-    --app-interaction-hover: color-mix(in srgb, var(--primary) 16%, transparent);
-    --app-interaction-active: color-mix(in srgb, var(--primary) 26%, transparent);
+    --app-interaction-hover: color-mix(in oklch, var(--primary) 18%, var(--background));
+    --app-interaction-active: color-mix(in oklch, var(--primary) 30%, var(--background));
     --skeleton-base: oklch(0.335 0 0);
     --skeleton-highlight: oklch(0.44 0 0);
     --table-row: var(--background);
@@ -426,6 +426,22 @@ body:has([data-layout-shell]) {
 .app-sidebar-nav-item:not([data-app-sidebar-active='true']):hover {
   background-color: var(--app-interaction-hover) !important;
   color: var(--sidebar-foreground) !important;
+}
+
+/* Outline and ghost buttons from shadcn use the generic accent token. Keep
+ * those interactions on the framework theme surface so form controls and
+ * header tools do not fall back to a neutral preset when the primary color
+ * changes. The upstream button component remains untouched. */
+[data-layout-shell] button[class~='hover:bg-accent']:hover,
+[data-layout-shell] button[class~='hover:bg-accent']:focus-visible {
+  background-color: var(--app-interaction-hover) !important;
+  color: var(--foreground) !important;
+}
+
+[data-layout-shell] button[class~='hover:bg-accent']:hover kbd,
+[data-layout-shell] button[class~='hover:bg-accent']:focus-visible kbd {
+  background-color: var(--app-interaction-hover) !important;
+  color: var(--foreground) !important;
 }
 
 [data-app-sidebar-active='true'] {
