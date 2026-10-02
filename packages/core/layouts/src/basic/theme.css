@@ -121,8 +121,11 @@
     --sidebar-ring: oklch(0.58 0.2 250);
     /* Keep interaction surfaces tied to the primary hue, including bright
      * custom colors that become nearly invisible when mixed with white. */
-    --app-interaction-hover: color-mix(in oklch, var(--primary) 14%, var(--background));
-    --app-interaction-active: color-mix(in oklch, var(--primary) 22%, var(--background));
+    /* Keep a visible tint for bright primary colors. Mixing into a white
+     * background makes light custom colors collapse back to the default
+     * neutral surface; a translucent primary preserves the hue instead. */
+    --app-interaction-hover: color-mix(in srgb, var(--primary) 12%, transparent);
+    --app-interaction-active: color-mix(in srgb, var(--primary) 20%, transparent);
     --skeleton-base: oklch(0.97 0 0);
     --skeleton-highlight: oklch(0.985 0 0);
     --table-row: var(--background);
@@ -222,8 +225,8 @@
     --sidebar-accent-foreground: oklch(0.9 0.05 250);
     --sidebar-border: oklch(1 0 0 / 11%);
     --sidebar-ring: oklch(0.7 0.17 250);
-    --app-interaction-hover: color-mix(in oklch, var(--primary) 18%, var(--background));
-    --app-interaction-active: color-mix(in oklch, var(--primary) 30%, var(--background));
+    --app-interaction-hover: color-mix(in srgb, var(--primary) 16%, transparent);
+    --app-interaction-active: color-mix(in srgb, var(--primary) 26%, transparent);
     --skeleton-base: oklch(0.335 0 0);
     --skeleton-highlight: oklch(0.44 0 0);
     --table-row: var(--background);
