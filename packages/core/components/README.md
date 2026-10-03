@@ -7,7 +7,9 @@ unchanged in `packages/ui-kit/shadcn-vue`.
 
 `DataTable` is the presentation layer. It supports stable row keys, controlled
 selection, current-page select-all/indeterminate state, hidden columns,
-formatters, loading, empty, error/retry and optional pagination. The default
+formatters, loading, empty, error/retry and optional `DataTablePagination`.
+The table viewport accepts CSS `height` and `maxHeight` values and keeps
+horizontal scrolling available for narrow screens. The default
 `rowKey` is `id`; every row must provide a non-empty string or finite number
 through that field or through a `rowKey` function. Missing or duplicate keys
 throw an error instead of silently falling back to the row index, which keeps

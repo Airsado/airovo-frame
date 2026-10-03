@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Skeleton } from '@airovo/uikit-shadcnui'
 import type { DataTableColumn, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
+import DataTablePagination from './DataTablePagination.vue'
 
 defineOptions({ name: 'DataTable' })
 
@@ -28,6 +29,10 @@ const props = withDefaults(defineProps<{
     pageSize?: number
     total?: number
     pageSizeOptions?: number[]
+    /** Fixed table viewport height, expressed as CSS text or pixels. */
+    height?: string | number
+    /** Maximum table viewport height, expressed as CSS text or pixels. */
+    maxHeight?: string | number
 }>(), {
     rowKey: 'id',
     loading: false,
@@ -60,6 +65,13 @@ const visibleColumns = computed(() => props.columns.filter((column) => !column.h
 const currentSort = computed(() => props.sort ?? internalSort.value)
 const hasToolbar = computed(() => Boolean(slots.toolbar))
 const hasActions = computed(() => Boolean(slots.actions || slots.action))
+const tableViewportStyle = computed(() => ({
+    height: toCssSize(props.height),
+    maxHeight: toCssSize(props.maxHeight),
+}))
+const tableViewportClass = computed(() => props.height !== undefined || props.maxHeight !== undefined
+    ? 'overflow-y-auto'
+    : 'overflow-y-hidden')
 const selected = computed(() => {
     const keys = props.selectedKeys ?? internalSelectedKeys.value
     if (props.selectionScope === 'persistent') return keys
@@ -76,7 +88,6 @@ const visibleRows = computed(() => {
     ))
 })
 const totalRows = computed(() => props.total ?? props.data.length)
-const totalPages = computed(() => Math.max(1, Math.ceil(totalRows.value / Math.max(props.pageSize, 1))))
 const visibleRowKeys = computed(() => {
     const keys = visibleRows.value.map((row) => rowKeyOf(row))
     const duplicates = new Set<DataTableRowKey>()
@@ -168,23 +179,18 @@ function clearSort(): void {
     emit('sort-change', undefined)
 }
 
-function setPage(value: number): void {
-    const page = Math.min(Math.max(1, Math.floor(value)), totalPages.value)
-    if (page !== props.page) emit('update:page', page)
-}
-
-function setPageSize(value: number): void {
-    const pageSize = Math.max(1, Math.floor(value))
-    emit('update:pageSize', pageSize)
-}
-
 function retry(): void {
     emit('retry')
+}
+
+function toCssSize(value: string | number | undefined): string | undefined {
+    if (value === undefined) return undefined
+    return typeof value === 'number' ? `${value}px` : value
 }
 </script>
 
 <template>
-    <div class="relative w-full overflow-x-auto overflow-y-hidden">
+    <div class="relative w-full overflow-x-auto" :class="tableViewportClass" :style="tableViewportStyle">
         <div v-if="hasToolbar" class="mb-3 flex flex-wrap items-center gap-2">
             <slot
                 name="toolbar"
@@ -283,19 +289,15 @@ function retry(): void {
                 </template>
             </tbody>
         </table>
-        <div v-if="pagination" class="flex flex-wrap items-center justify-between gap-3 border-t px-3 py-3 text-xs text-muted-foreground">
-            <span>共 {{ totalRows }} 条，第 {{ props.page }} / {{ totalPages }} 页</span>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center gap-1">
-                    每页
-                    <select :value="props.pageSize" class="h-8 rounded-md border bg-background px-2" @change="setPageSize(Number(($event.target as HTMLSelectElement).value))">
-                        <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
-                    </select>
-                </label>
-                <button type="button" class="rounded-md border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50" :disabled="props.page <= 1" @click="setPage(props.page - 1)">上一页</button>
-                <button type="button" class="rounded-md border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50" :disabled="props.page >= totalPages" @click="setPage(props.page + 1)">下一页</button>
-            </div>
-        </div>
+        <DataTablePagination
+            v-if="pagination"
+            :page="page"
+            :page-size="pageSize"
+            :total="totalRows"
+            :page-size-options="pageSizeOptions"
+            @update:page="(value) => emit('update:page', value)"
+            @update:page-size="(value) => emit('update:pageSize', value)"
+        />
         <button v-if="currentSort" type="button" class="sr-only" @click="clearSort">清除排序</button>
     </div>
 </template>
