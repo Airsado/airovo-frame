@@ -52,6 +52,7 @@ pnpm --filter playwright dev
 | `GET` | `/auth/me` | 使用 Bearer token 获取当前用户 |
 | `GET` | `/demo/protected/:resource` | 用于触发 401/单飞刷新验收 |
 | `GET` | `/menus` | 使用 Bearer token 返回 `/views/...` 页面路径的动态菜单示例 |
+| `GET` | `/demo/events` | SSE 进度、消息、心跳、完成/失败和 `lastEventId` 重放演示（演示端点不要求认证） |
 
 认证失败仍使用 HTTP 错误状态，并在 Nitro 错误体的 `data` 中返回稳定的业务码，方便前端按业务码做 i18n 映射：
 
