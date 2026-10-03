@@ -17,6 +17,8 @@
 - 基于 vben-admin 思路的 preferences、路由、i18n、权限和请求边界。
 - 框架级组件位于 `packages/core`；`app-ui` 只承载应用业务组合和 DIY 扩展。
 - `AForm`、`useAForm`、`useForm` 和 `FormApi` 共用一套表单契约，支持校验、动态字段、必填标记和 Modal 联动。
+- 框架 `DataTable` 与 `useDataTable` 分离展示和请求状态，支持服务端分页、筛选、排序、当前页选择、取消旧请求和错误重试。
+- 框架 SSE transport/session 支持 Last-Event-ID、退避重连、心跳监测、终态、暂停恢复和有界去重缓冲。
 - Nitro mock API 提供登录、注册、refresh token、动态菜单、权限和错误处理演示。
 - `create-app` 脚手架生成可直接连接 mock API 的业务应用模板。
 - shadcn-vue 基础组件源码保留在 ui-kit 中，由框架组件进行组合。
@@ -167,6 +169,7 @@ internal/
 - [新应用接入指南](docs/architecture/starter-integration.md)
 - [路由、请求和认证迁移说明](docs/architecture/api-migration.md)
 - [表单与路由架构](docs/architecture/routing-and-forms.md)
+- [Issue 能力边界](docs/architecture/issue-capabilities.md)
 - [UI 参考源码映射](docs/ui-source-map.md)
 - [UI 视觉验收记录](docs/ui-visual-verification.md)
 - [app-ui 使用边界](app-ui/README.md)

@@ -2,6 +2,8 @@
   "navigation": {
     "overview": "Overview",
     "developer": "Developer integration",
+    "components": "Framework components",
+    "form": "Form system",
     "dynamic": "Dynamic demo",
     "mockApi": "Mock API",
     "mockHealth": "Health"

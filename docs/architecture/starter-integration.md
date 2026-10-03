@@ -83,4 +83,7 @@ pnpm --filter @airovo/app test
 ```
 
 模板默认可演示登录、注册错误、401 refresh、硬刷新恢复、动态菜单、权限过滤、403、
-404、主题、语言、tabs 和会话过期重认证。
+404、主题、语言、tabs、会话过期重认证，以及 DataTable 服务端查询、Modal/Drawer
+嵌套表单、SSE 实时日志和 follow-tail。模板中的业务 API、响应 envelope 和认证
+handlers 仍属于应用层，接入真实后端时替换 `src/api/core/*` 与
+`src/auth/handlers.ts` 即可。

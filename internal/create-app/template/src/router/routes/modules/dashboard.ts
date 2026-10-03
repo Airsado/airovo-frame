@@ -32,6 +32,28 @@ const dashboard: RouteRecordRaw = {
                 keepAlive: true,
             },
         },
+        {
+            path: 'components',
+            name: 'DashboardComponents',
+            component: () => import('../../../views/ComponentsDemo.vue'),
+            meta: {
+                title: '框架组件',
+                titleKey: 'navigation.components',
+                icon: 'lucide:layout-grid',
+                keepAlive: true,
+            },
+        },
+        {
+            path: 'my-form',
+            name: 'DashboardMyForm',
+            component: () => import('../../../views/MyFormDemo.vue'),
+            meta: {
+                title: '表单系统',
+                titleKey: 'navigation.form',
+                icon: 'lucide:form-input',
+                keepAlive: true,
+            },
+        },
     ],
 }
 

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import {
     DataPanel,
     DataTable,
+    useDataTable,
     DatePicker,
     DateTimePicker,
     Drawer,
@@ -15,6 +16,7 @@ import {
     EmptyState,
     FacetedFilter,
     FilterBar,
+    LiveLog,
     MetricStrip,
     PageContainer,
     ResultPage,
@@ -23,6 +25,7 @@ import {
     StatusBadge,
     UserCard,
     type DataTableColumn,
+    type DataTableFetcher,
 } from '@airovo/components'
 import { PermissionButton } from '@airovo/permission'
 import {
@@ -39,8 +42,10 @@ import {
     NativeSelectOption,
 } from '@airovo/uikit-shadcnui'
 import { SelectBox, SearchSelect } from '@airovo/components'
-import { useModal } from '@airovo/composables'
+import { useDrawer, useModal } from '@airovo/composables'
+import { useEventSourceSession } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
+import { getDemoEventsUrl } from '../api/core/events'
 
 function onAdd() {
     globalThis.alert('新增')
@@ -86,6 +91,43 @@ const [DemoModal, demoModalApi] = useModal({
         await new Promise((resolve) => setTimeout(resolve, 350))
     },
 })
+interface DemoDrawerData {
+    channelId: number
+    name: string
+}
+
+interface DemoDrawerResult {
+    saved: boolean
+    channelId: number
+    name: string
+}
+
+const typedDrawerName = ref('')
+const typedDrawerResult = ref('尚未提交 typed Drawer 结果')
+const [DemoDrawer, demoDrawerApi] = useDrawer<DemoDrawerData, DemoDrawerResult>({
+    title: '编辑渠道（typed Drawer）',
+    description: 'DrawerApi 和 ModalApi 共享 payload/result/close reason 契约。',
+    onConfirm: async (data, api) => {
+        const name = typedDrawerName.value.trim()
+        if (!name) {
+            api.setState({ error: '请输入渠道名称后再确认。' })
+            return false
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        return { saved: true, channelId: data?.channelId ?? 0, name }
+    },
+})
+
+function openTypedDrawer(): void {
+    typedDrawerName.value = '演示渠道'
+    typedDrawerResult.value = '等待确认或取消…'
+    demoDrawerApi.open({ channelId: 42, name: typedDrawerName.value })
+    void demoDrawerApi.waitForResult().then((outcome) => {
+        typedDrawerResult.value = outcome.accepted && outcome.result
+            ? `确认回传：${outcome.result.name} (#${outcome.result.channelId})`
+            : `关闭原因：${outcome.reason}`
+    })
+}
 const demoMetrics = [
     {
         key: 'requests',
@@ -129,6 +171,90 @@ const coreTableColumns: DataTableColumn[] = [
     { key: 'category', title: '类别', sortable: true },
     { key: 'purpose', title: '用途' },
 ]
+const serverTableRows = Array.from({ length: 37 }, (_, index) => ({
+    id: index + 1,
+    name: `演示渠道 ${String(index + 1).padStart(2, '0')}`,
+    type: index % 3 === 0 ? 'OpenAI' : index % 3 === 1 ? 'Claude' : '自定义',
+    status: index % 5 === 0 ? '已停用' : '运行中',
+}))
+const serverTableColumns: DataTableColumn[] = [
+    { key: 'name', title: '渠道名称', sortable: true },
+    { key: 'type', title: '类型', sortable: true },
+    { key: 'status', title: '状态', sortable: true },
+    { key: 'id', title: '内部 ID', hidden: true },
+]
+const serverTableFailNext = ref(false)
+const serverTableFetcher: DataTableFetcher = async (query, { signal }) => {
+    await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(resolve, 180)
+        signal.addEventListener('abort', () => {
+            clearTimeout(timer)
+            reject(new DOMException('Request aborted', 'AbortError'))
+        }, { once: true })
+    })
+    if (serverTableFailNext.value) {
+        serverTableFailNext.value = false
+        throw new Error('演示请求失败，请点击表格中的重试')
+    }
+    const search = String(query.filters?.search ?? '').trim().toLowerCase()
+    let filtered = serverTableRows.filter((row) => !search || `${row.name} ${row.type}`.toLowerCase().includes(search))
+    if (query.sort) {
+        const direction = query.sort.direction === 'asc' ? 1 : -1
+        const key = query.sort.key as keyof typeof serverTableRows[number]
+        filtered = [...filtered].sort((left, right) => String(left[key]).localeCompare(String(right[key])) * direction)
+    }
+    const start = (query.page - 1) * query.pageSize
+    return { data: filtered.slice(start, start + query.pageSize), total: filtered.length }
+}
+const serverTable = useDataTable({ fetcher: serverTableFetcher, filters: { search: '' } })
+const serverTableSearch = ref('')
+const serverSelectedKeys = ref<(string | number)[]>([])
+const batchActionResult = ref('尚未执行批量操作')
+async function applyServerTableSearch(): Promise<void> {
+    await serverTable.setFilters({ search: serverTableSearch.value })
+}
+function runBatchAction(): void {
+    batchActionResult.value = `批量操作收到稳定 keys：${serverSelectedKeys.value.join(', ') || '无'}`
+}
+function clearServerSelection(): void {
+    serverSelectedKeys.value = []
+}
+const sseDemo = useEventSourceSession<{ message?: string; progress?: number; heartbeat?: boolean }>({
+    url: getDemoEventsUrl(),
+    maxItems: 40,
+    maxBytes: 32_000,
+    reconnectDelay: 250,
+    maxReconnectAttempts: 3,
+    heartbeatTimeout: 2_000,
+})
+const sseFailureDemo = useEventSourceSession<{ message?: string }>({
+    url: `${getDemoEventsUrl()}?fail=true`,
+    autoConnect: false,
+    reconnect: false,
+    maxItems: 10,
+})
+function restartSseDemo(): void {
+    sseDemo.clear()
+    sseDemo.retry()
+}
+function simulateSseFailure(): void {
+    sseFailureDemo.clear()
+    sseFailureDemo.retry()
+}
+function simulateServerTableError(): void {
+    serverTableFailNext.value = true
+    void serverTable.reload()
+}
+function sseItemEvent(item: unknown): string {
+    return item && typeof item === 'object' && typeof (item as { event?: unknown }).event === 'string'
+        ? (item as { event: string }).event
+        : 'message'
+}
+function sseItemData(item: unknown): unknown {
+    return item && typeof item === 'object' && 'data' in item
+        ? (item as { data?: unknown }).data
+        : item
+}
 </script>
 
 <template>
@@ -346,6 +472,7 @@ const coreTableColumns: DataTableColumn[] = [
                             </p>
                         </div>
                         <Button class="w-fit" @click="showDrawer = true">打开 Drawer</Button>
+                        <Button class="w-fit" variant="outline" @click="openTypedDrawer">打开 typed Drawer</Button>
                         <Drawer v-model:open="showDrawer">
                             <DrawerContent>
                                 <DrawerHeader>
@@ -362,6 +489,18 @@ const coreTableColumns: DataTableColumn[] = [
                                 </DrawerFooter>
                             </DrawerContent>
                         </Drawer>
+                        <p class="text-xs text-muted-foreground">{{ typedDrawerResult }}</p>
+                        <DemoDrawer>
+                            <template #default="{ data }">
+                                <div class="space-y-3">
+                                    <p class="text-xs text-muted-foreground">payload：渠道 #{{ data?.channelId ?? '—' }}</p>
+                                    <label class="grid gap-1.5 text-sm">
+                                        <span class="text-xs font-medium text-muted-foreground">渠道名称</span>
+                                        <Input v-model="typedDrawerName" />
+                                    </label>
+                                </div>
+                            </template>
+                        </DemoDrawer>
                     </div>
                     <div
                         class="flex flex-col gap-3 rounded-lg border bg-card p-4"
@@ -546,6 +685,55 @@ const coreTableColumns: DataTableColumn[] = [
             </section>
 
             <section class="space-y-4">
+                <div>
+                    <h2 class="text-lg font-semibold">DataTable 服务端查询演示</h2>
+                    <p class="text-sm text-muted-foreground">
+                        useDataTable 只管理查询状态，fetcher 由应用提供；演示分页、筛选、排序、选中、取消旧请求和错误重试。
+                    </p>
+                </div>
+                <DataPanel>
+                    <template #toolbar>
+                        <div class="flex flex-wrap items-center gap-2 p-4">
+                            <Input v-model="serverTableSearch" class="w-full sm:w-64" placeholder="搜索渠道名称或类型" @keyup.enter="applyServerTableSearch" />
+                            <Button size="sm" @click="applyServerTableSearch">查询</Button>
+                            <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
+                            <Button size="sm" variant="secondary" :disabled="serverSelectedKeys.length === 0" @click="runBatchAction">
+                                批量处理 {{ serverSelectedKeys.length }} 项
+                            </Button>
+                            <Button size="sm" variant="outline" :disabled="serverSelectedKeys.length === 0" @click="clearServerSelection">
+                                清除 {{ serverSelectedKeys.length }} 项选择
+                            </Button>
+                            <span v-if="serverTable.error.value" class="text-xs text-destructive">请求失败，可点击表格中的重试</span>
+                        </div>
+                    </template>
+                    <DataTable
+                        v-model:selected-keys="serverSelectedKeys"
+                        :columns="serverTableColumns"
+                        :data="serverTable.rows.value"
+                        :loading="serverTable.loading.value"
+                        :error="serverTable.error.value"
+                        selectable
+                        pagination
+                        manual-sort
+                        :sort="serverTable.sort.value"
+                        :page="serverTable.page.value"
+                        :page-size="serverTable.pageSize.value"
+                        :total="serverTable.total.value"
+                        @sort-change="serverTable.setSort"
+                        @update:page="serverTable.setPage"
+                        @update:page-size="serverTable.setPageSize"
+                        @retry="serverTable.retry"
+                    >
+                        <template #cell-status="{ value }">
+                            <StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" />
+                        </template>
+                    </DataTable>
+                    <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。</p>
+                    <p class="px-4 pb-3 text-xs text-muted-foreground">{{ batchActionResult }}</p>
+                </DataPanel>
+            </section>
+
+            <section class="space-y-4">
                 <h2 class="text-lg font-semibold">StatusBadge 状态徽章</h2>
                 <div class="flex flex-wrap gap-2">
                     <StatusBadge status="success" />
@@ -558,6 +746,34 @@ const coreTableColumns: DataTableColumn[] = [
                     <StatusBadge status="neutral" />
                     <StatusBadge status="warning" text="需注意" />
                 </div>
+            </section>
+
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-lg font-semibold">SSE 实时日志</h2>
+                    <p class="text-sm text-muted-foreground">
+                        useEventSourceSession 演示 Last-Event-ID、心跳、终态、重连和有界日志缓冲；传输层不依赖 DOM。
+                    </p>
+                </div>
+                <DataPanel>
+                    <div class="flex flex-wrap items-center gap-2 border-b p-4">
+                        <StatusBadge :status="sseDemo.status.value === 'running' ? 'success' : sseDemo.status.value === 'failed' ? 'error' : 'pending'" :text="sseDemo.status.value" />
+                        <span class="text-xs text-muted-foreground">Last-Event-ID: {{ sseDemo.lastEventId.value ?? '—' }}</span>
+                        <Button size="sm" variant="outline" @click="sseDemo.pause">暂停</Button>
+                        <Button size="sm" variant="outline" @click="sseDemo.resume">继续</Button>
+                        <Button size="sm" @click="restartSseDemo">重连并清空</Button>
+                        <Button size="sm" variant="outline" @click="simulateSseFailure">模拟失败</Button>
+                        <Button size="sm" variant="ghost" @click="sseDemo.clear">清空日志</Button>
+                    </div>
+                    <LiveLog :items="sseDemo.items.value" empty-text="等待实时事件…">
+                        <template #default="{ item }">
+                            <p class="rounded border px-2 py-1">
+                                <span class="mr-2 text-muted-foreground">{{ sseItemEvent(item) }}</span>{{ JSON.stringify(sseItemData(item)) }}
+                            </p>
+                        </template>
+                    </LiveLog>
+                    <p v-if="sseFailureDemo.status.value === 'failed'" class="border-t px-4 py-2 text-xs text-destructive">失败演示：{{ String(sseFailureDemo.error.value ?? '任务失败') }}</p>
+                </DataPanel>
             </section>
 
             <section class="space-y-4">

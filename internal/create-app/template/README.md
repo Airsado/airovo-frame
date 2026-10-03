@@ -27,6 +27,19 @@ the framework Vite config emits it to `_app.config.js`, so a deployed bundle
 can point at another API without being rebuilt. Keep secrets out of `VITE_*`
 variables because Vite embeds them in the browser bundle.
 
+The starter includes framework capability demonstrations:
+
+- `dashboard/components`: DataTable, server-side query state, Drawer, Modal,
+  selectors, status components and bounded SSE LiveLog;
+- `dashboard/my-form`: `useForm`, `AForm`, `FormApi`, dynamic fields,
+  dependencies and nested Modal/Dialog form results;
+- `dashboard/developer`: app-ui composition, permissions, request refresh and
+  the controller-style form API.
+
+The template's API modules and auth handlers remain application-owned. Replace
+`src/api/core/*` and `src/auth/handlers.ts` when connecting a real backend;
+framework packages should not be edited for business endpoint changes.
+
 ```bash
 pnpm --filter mock-api dev
 pnpm --filter __APP_NAME__ dev

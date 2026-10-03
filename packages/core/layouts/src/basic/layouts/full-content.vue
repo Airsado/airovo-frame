@@ -8,5 +8,8 @@
 defineOptions({ name: 'BasicLayoutFullContent' })
 </script>
 <template>
-    <slot />
+    <!-- LayoutHost/AppShell provide route content through this named slot. -->
+    <slot name="content">
+        <slot />
+    </slot>
 </template>

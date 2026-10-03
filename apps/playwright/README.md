@@ -26,3 +26,14 @@ The application entry in `src/main.ts` imports three self-registering modules be
 Application endpoints live in `src/api/core`, and login, registration, restore, reauthentication, and logout orchestration live in `src/auth/handlers.ts`. The files in `src/views/_core` wrap default framework views so an application can replace their presentation without editing a package. `src/preferences.ts` overrides only the framework defaults needed by this demo.
 
 The Nitro `/menus` response uses `/views/...` component paths. The framework resolves those paths only through the application's static `views` glob. Framework components live in `packages/core`; `app-ui` is reserved for application-level compositions.
+
+The component routes also provide the issue-level integration examples:
+
+- `/dashboard/components` covers DataTable presentation and server query state,
+  typed Modal/Drawer usage, selectors, and the bounded SSE LiveLog session;
+- `/dashboard/my-form` covers FormApi actions, dynamic dependencies, required
+  field rendering, and nested Modal/Dialog form results.
+
+The package name `playwright` identifies this demo app. It does not currently
+contain a `@playwright/test` suite; browser acceptance must be reported only
+after a real running `5174` instance has been interacted with.

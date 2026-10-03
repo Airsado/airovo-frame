@@ -2,6 +2,8 @@
   "navigation": {
     "overview": "概览",
     "developer": "开发者接入",
+    "components": "框架组件",
+    "form": "表单系统",
     "dynamic": "动态演示",
     "mockApi": "Mock API",
     "mockHealth": "健康检查"
