@@ -18,7 +18,8 @@
         "./date-picker": "./src/date-picker/index.ts",
         "./drawer": "./src/drawer/index.ts",
         "./faceted-filter": "./src/faceted-filter/index.ts",
-        "./toast": "./src/toast/index.ts"
+        "./toast": "./src/toast/index.ts",
+        "./live-log": "./src/live-log/index.ts"
     },
     "license": "MIT",
     "scripts": {
