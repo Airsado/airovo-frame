@@ -54,6 +54,12 @@ pnpm --filter playwright dev
 | `GET` | `/menus` | 使用 Bearer token 返回 `/views/...` 页面路径的动态菜单示例 |
 | `GET` | `/demo/events` | SSE 进度、消息、心跳、完成/失败和 `lastEventId` 重放演示（演示端点不要求认证） |
 
+`/demo/events` deliberately has no authentication requirement. This keeps the
+native `EventSource` showcase independent from an Authorization header, which
+the browser API cannot set. A real application must keep its authentication
+choice in `src/api` (cookie, an explicitly allowed query token, or an injected
+fetch/stream factory); this mock endpoint is not a production security model.
+
 认证失败仍使用 HTTP 错误状态，并在 Nitro 错误体的 `data` 中返回稳定的业务码，方便前端按业务码做 i18n 映射：
 
 | 场景 | HTTP | `data.code` |

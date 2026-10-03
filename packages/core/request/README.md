@@ -46,17 +46,24 @@ Realtime helpers are also exported as `useWebSocket` and `useEventSource`.
 `eventName`, and callback options while adding injectable transport factories,
 last-event-id recovery, exponential reconnect backoff, heartbeat watchdogs,
 terminal `complete`/`error` events, and explicit `pause()`/`resume()`/`retry()`
-controls. Native `EventSource` cannot set arbitrary request headers, so its
-last event id is sent as the configurable `lastEventIdParam` query parameter;
-custom factories receive the id directly and may send it as a header. The
-demo `/demo/events` endpoint is intentionally public so the component
-showcase can connect with native `EventSource`; an authenticated application
-must choose a cookie, a query token, or an injected fetch/stream factory and
-keep that policy in the application layer.
+controls. The exported `EventSourceProtocolEventPayload<T>` union describes
+the `message`, `progress`, `heartbeat`, `complete`, and `error` payloads,
+including their optional `id`, `data`, `progress`, `heartbeat`, `message`, and
+`error` fields. Native `EventSource` cannot set arbitrary request headers, so
+its last event id is sent as the configurable `lastEventIdParam` query
+parameter; custom factories receive the id directly and may send it as a
+header. The demo `/demo/events` endpoint is intentionally public so the
+component showcase can connect with native `EventSource`; the framework does
+not choose an authentication strategy. An authenticated application must
+choose a cookie, an explicitly permitted query token, or an injected
+fetch/stream factory and keep that policy in the application layer.
 
 Use `useEventSourceSession` when a bounded, deduplicated event buffer is
 needed. It exposes `items`, `status`, `totalBytes`, and `clear()` while the
 transport remains independent from any DOM scrolling or rendering code. Its
 default buffer policy keeps the newest 1000 items and drops the oldest items
 when `maxItems` or `maxBytes` is exceeded; set `dropOldest: false` to discard
-the newest item instead. Items with the same SSE id are ignored by default.
+the newest item instead. In that mode, discarded items are not passed to
+`onItem`. Items with the same SSE id are ignored by default. When
+`heartbeatTimeout` is enabled, only heartbeat events refresh the watchdog;
+ordinary messages and progress events do not count as a heartbeat.

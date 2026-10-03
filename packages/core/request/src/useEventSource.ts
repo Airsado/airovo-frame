@@ -30,6 +30,60 @@ export type EventSourceProtocolEvent =
     | 'complete'
     | 'error'
 
+/**
+ * The id type accepted by the SSE protocol and by the Last-Event-ID bridge.
+ * Native EventSource exposes ids as strings, while local mock and fetch
+ * transports often keep numeric ids until they cross the wire.
+ */
+export type EventSourceEventId = string | number
+
+/**
+ * Common application payload envelope for the framework's protocol events.
+ * The fields are optional because native SSE payloads are not required to
+ * use a nested `data` member: the Nitro demo sends `id`, `event`, and its
+ * event-specific fields in one JSON object. Applications can provide a
+ * concrete `TData` when they use a nested data payload.
+ */
+export interface EventSourceProtocolPayload<TData = unknown> {
+    id?: EventSourceEventId
+    event: EventSourceProtocolEvent
+    data?: TData
+    progress?: number
+    heartbeat?: boolean
+    message?: string
+    error?: unknown
+}
+
+export type EventSourceMessagePayload<TData = unknown> = EventSourceProtocolPayload<TData> & {
+    event: 'message'
+}
+
+export type EventSourceProgressPayload<TData = unknown> = EventSourceProtocolPayload<TData> & {
+    event: 'progress'
+    progress?: number
+}
+
+export type EventSourceHeartbeatPayload<TData = unknown> = EventSourceProtocolPayload<TData> & {
+    event: 'heartbeat'
+    heartbeat?: boolean
+}
+
+export type EventSourceCompletePayload<TData = unknown> = EventSourceProtocolPayload<TData> & {
+    event: 'complete'
+}
+
+export type EventSourceErrorPayload<TData = unknown> = EventSourceProtocolPayload<TData> & {
+    event: 'error'
+}
+
+/** Discriminated event payload union used by typed application adapters. */
+export type EventSourceProtocolEventPayload<TData = unknown> =
+    | EventSourceMessagePayload<TData>
+    | EventSourceProgressPayload<TData>
+    | EventSourceHeartbeatPayload<TData>
+    | EventSourceCompletePayload<TData>
+    | EventSourceErrorPayload<TData>
+
 export interface EventSourceLike {
     addEventListener(type: string, listener: EventListenerOrEventListenerObject): void
     removeEventListener?(type: string, listener: EventListenerOrEventListenerObject): void
@@ -276,10 +330,13 @@ export function useEventSource(options: UseEventSourceOptions): UseEventSourceRe
         const event = rawEvent as MessageEvent
         const data = parseMessageData(event.data)
         updateLastEventId(data, event)
-        resetHeartbeatWatchdog()
+        const kind = getProtocolEvent(data, event)
+        // A heartbeat watchdog measures heartbeat traffic specifically. Normal
+        // progress/message events must not hide a dead connection whose
+        // heartbeat has stopped arriving.
+        if (kind === 'heartbeat') resetHeartbeatWatchdog()
         options.onMessage?.(data, event)
 
-        const kind = getProtocolEvent(data, event)
         options.onEvent?.(kind, data, event)
         if (kind === 'complete') {
             complete(event)
@@ -501,16 +558,26 @@ export function useEventSourceSession<T = unknown>(options: UseEventSourceSessio
             bytes: bytesOf(data),
             receivedAt: Date.now(),
         }
-        items.value.push(item)
-        totalBytes.value += item.bytes
         const maxItems = Math.max(0, options.maxItems ?? 1000)
         const maxBytes = Math.max(0, options.maxBytes ?? Number.POSITIVE_INFINITY)
+
+        // In drop-newest mode, reject the incoming item before publishing it
+        // to consumers. `onItem` describes items retained by this bounded
+        // session, so callers never process an item that the buffer discarded.
+        if (options.dropOldest === false && (
+            items.value.length >= maxItems
+            || item.bytes > maxBytes
+            || totalBytes.value + item.bytes > maxBytes
+        )) return
+
+        items.value.push(item)
+        totalBytes.value += item.bytes
         while (items.value.length > maxItems || totalBytes.value > maxBytes) {
             const removed = options.dropOldest === false ? items.value.pop() : items.value.shift()
             if (!removed) break
             totalBytes.value -= removed.bytes
         }
-        options.onItem?.(item)
+        if (items.value.includes(item)) options.onItem?.(item)
     }
 
     const transport = useEventSource({
