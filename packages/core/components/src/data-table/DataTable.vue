@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Skeleton } from '@airovo/uikit-shadcnui'
@@ -51,13 +51,15 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n({ useScope: 'global' })
+const slots = useSlots()
 const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 const visibleColumns = computed(() => props.columns.filter((column) => !column.hidden))
 const currentSort = computed(() => props.sort ?? internalSort.value)
-const visibleKeySet = computed(() => new Set(props.data.map(rowKeyOf)))
+const hasToolbar = computed(() => Boolean(slots.toolbar))
+const hasActions = computed(() => Boolean(slots.actions || slots.action))
 const selected = computed(() => {
     const keys = props.selectedKeys ?? internalSelectedKeys.value
     if (props.selectionScope === 'persistent') return keys
@@ -75,18 +77,33 @@ const visibleRows = computed(() => {
 })
 const totalRows = computed(() => props.total ?? props.data.length)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalRows.value / Math.max(props.pageSize, 1))))
+const visibleRowKeys = computed(() => {
+    const keys = visibleRows.value.map((row) => rowKeyOf(row))
+    const duplicates = new Set<DataTableRowKey>()
+    const seen = new Set<DataTableRowKey>()
+    for (const key of keys) {
+        if (seen.has(key)) duplicates.add(key)
+        seen.add(key)
+    }
+    if (duplicates.size > 0) {
+        throw new Error(`DataTable row keys must be unique: ${[...duplicates].join(', ')}`)
+    }
+    return keys
+})
+const visibleKeySet = computed(() => new Set(visibleRowKeys.value))
 const allVisibleSelected = computed(() => {
     if (!props.selectable || visibleRows.value.length === 0) return false
-    return visibleRows.value.every((row, index) => selected.value.includes(rowKeyOf(row, index)))
+    return visibleRowKeys.value.every((key) => selected.value.includes(key))
 })
 const someVisibleSelected = computed(() => {
     if (!props.selectable || visibleRows.value.length === 0) return false
-    return visibleRows.value.some((row, index) => selected.value.includes(rowKeyOf(row, index)))
+    return visibleRowKeys.value.some((key) => selected.value.includes(key))
 })
 
-function rowKeyOf(row: DataTableRow, index: number): DataTableRowKey {
+function rowKeyOf(row: DataTableRow): DataTableRowKey {
     const key = typeof props.rowKey === 'function' ? props.rowKey(row) : row[props.rowKey]
-    return typeof key === 'string' || typeof key === 'number' ? key : index
+    if ((typeof key === 'string' && key.length > 0) || (typeof key === 'number' && Number.isFinite(key))) return key
+    throw new Error('DataTable requires a stable row key. Provide rowKey or a rowKey function for every row.')
 }
 
 function cellValue(row: DataTableRow, column: DataTableColumn): unknown {
@@ -119,8 +136,8 @@ watch(visibleKeySet, () => {
     emit('selection-change', next)
 }, { flush: 'post' })
 
-function toggleRow(row: DataTableRow, index: number): void {
-    const key = rowKeyOf(row, index)
+function toggleRow(row: DataTableRow): void {
+    const key = rowKeyOf(row)
     const keys = selected.value.includes(key)
         ? selected.value.filter((item) => item !== key)
         : [...selected.value, key]
@@ -128,7 +145,7 @@ function toggleRow(row: DataTableRow, index: number): void {
 }
 
 function toggleAll(): void {
-    const visibleKeys = visibleRows.value.map(rowKeyOf)
+    const visibleKeys = visibleRowKeys.value
     const next = allVisibleSelected.value
         ? selected.value.filter((key) => !visibleKeys.includes(key))
         : [...selected.value, ...visibleKeys]
@@ -168,6 +185,18 @@ function retry(): void {
 
 <template>
     <div class="relative w-full overflow-x-auto overflow-y-hidden">
+        <div v-if="hasToolbar" class="mb-3 flex flex-wrap items-center gap-2">
+            <slot
+                name="toolbar"
+                :selected-keys="selected"
+                :loading="loading"
+                :error="error"
+                :retry="retry"
+                :sort="currentSort"
+                :page="page"
+                :page-size="pageSize"
+            />
+        </div>
         <table class="w-full caption-bottom text-sm tabular-nums">
             <caption v-if="caption" class="sr-only">{{ caption }}</caption>
             <thead>
@@ -201,6 +230,7 @@ function retry(): void {
                         </button>
                         <template v-else>{{ column.title }}</template>
                     </th>
+                    <th v-if="hasActions" scope="col" class="h-10 whitespace-nowrap px-3 text-right align-middle font-medium text-foreground">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -208,10 +238,11 @@ function retry(): void {
                     <tr v-for="index in 3" :key="index" class="border-b last:border-0">
                         <td v-if="selectable" class="p-3"><Skeleton class="h-4 w-4" /></td>
                         <td v-for="column in visibleColumns" :key="column.key" class="p-3"><Skeleton class="h-5 w-full" /></td>
+                        <td v-if="hasActions" class="p-3"><Skeleton class="ml-auto h-5 w-16" /></td>
                     </tr>
                 </template>
                 <tr v-else-if="error">
-                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
+                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
                         <slot name="error" :error="error" :retry="retry">
                             <p>{{ errorText ?? '加载失败' }}</p>
                             <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-muted" @click="retry">重试</button>
@@ -219,18 +250,18 @@ function retry(): void {
                     </td>
                 </tr>
                 <tr v-else-if="visibleRows.length === 0">
-                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
+                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
                         <slot name="empty">{{ emptyText ?? t('common.noData') }}</slot>
                     </td>
                 </tr>
                 <template v-else>
-                    <tr v-for="(row, index) in visibleRows" :key="String(rowKeyOf(row, index))" class="border-b transition-colors last:border-0 hover:bg-muted/50">
+                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="border-b transition-colors last:border-0 hover:bg-muted/50">
                         <td v-if="selectable" class="w-10 p-3 align-middle">
                             <input
                                 type="checkbox"
-                                :checked="selected.includes(rowKeyOf(row, index))"
+                                :checked="selected.includes(visibleRowKeys[index])"
                                 :aria-label="`选择第 ${index + 1} 行`"
-                                @change="toggleRow(row, index)"
+                                @change="toggleRow(row)"
                             />
                         </td>
                         <td
@@ -241,6 +272,11 @@ function retry(): void {
                         >
                             <slot :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column)" :index="index">
                                 {{ displayValue(row, column, index) ?? '—' }}
+                            </slot>
+                        </td>
+                        <td v-if="hasActions" class="whitespace-nowrap p-3 text-right align-middle">
+                            <slot name="actions" :row="row" :value="row" :index="index" :row-key="visibleRowKeys[index]">
+                                <slot name="action" :row="row" :value="row" :index="index" :row-key="visibleRowKeys[index]" />
                             </slot>
                         </td>
                     </tr>

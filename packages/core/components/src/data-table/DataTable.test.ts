@@ -53,4 +53,74 @@ describe('DataTable', () => {
         await wrapper.setProps({ data: [{ id: 3, name: 'three', kind: 'c' }], page: 2 })
         expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[]])
     })
+
+    it('renders toolbar and row actions only when their slots are provided', () => {
+        const wrapper = mountTable({}, {
+            toolbar: '表格工具栏',
+            actions: ({ row, rowKey }: { row: Record<string, unknown>; rowKey: string | number }) => `编辑 ${String(row.id)} (${String(rowKey)})`,
+        })
+
+        expect(wrapper.text()).toContain('表格工具栏')
+        expect(wrapper.text()).toContain('编辑 1 (1)')
+        expect(wrapper.findAll('thead th')).toHaveLength(2)
+        expect(wrapper.findAll('tbody td')).toHaveLength(4)
+
+        const withoutActions = mountTable()
+        expect(withoutActions.findAll('thead th')).toHaveLength(1)
+    })
+
+    it('uses the configured stable row key for selection and DOM identity', async () => {
+        const wrapper = mountTable({
+            selectable: true,
+            rowKey: (row: Record<string, unknown>) => String(row.uuid),
+            data: [{ uuid: 'a', name: 'A' }, { uuid: 'b', name: 'B' }],
+        })
+
+        await wrapper.find('tbody input[type="checkbox"]').trigger('change')
+        expect(wrapper.emitted('selection-change')?.at(-1)).toEqual([['a']])
+
+        await wrapper.setProps({ data: [{ uuid: 'b', name: 'B' }, { uuid: 'a', name: 'A' }] })
+        const rowCheckboxes = wrapper.findAll('tbody input[type="checkbox"]')
+        expect((rowCheckboxes[0]?.element as HTMLInputElement).checked).toBe(false)
+        expect((rowCheckboxes[1]?.element as HTMLInputElement).checked).toBe(true)
+    })
+
+    it('fails fast when a row does not expose a stable key', () => {
+        expect(() => mountTable({ data: [{ name: 'missing id' }] })).toThrow(/stable row key/i)
+        expect(() => mountTable({ data: [{ id: 1, name: 'one' }, { id: 1, name: 'duplicate' }] })).toThrow(/unique/i)
+    })
+
+    it('supports formatter, manual sort, pagination and retry actions', async () => {
+        const wrapper = mountTable({
+            columns: [{ key: 'name', title: '名称', sortable: true, formatter: (value: unknown) => `格式化:${String(value)}` }],
+            data: [{ id: 2, name: 'two' }, { id: 1, name: 'one' }],
+            manualSort: true,
+            pagination: true,
+            page: 1,
+            pageSize: 1,
+            total: 2,
+        })
+
+        expect(wrapper.text()).toContain('格式化:two')
+        await wrapper.find('th button').trigger('click')
+        expect(wrapper.emitted('sort-change')?.at(-1)).toEqual([{ key: 'name', direction: 'asc' }])
+        expect(wrapper.find('tbody tr').text()).toContain('格式化:two')
+
+        const nextPage = wrapper.findAll('button').find((button) => button.text() === '下一页')
+        await nextPage?.trigger('click')
+        expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
+
+        const errorWrapper = mountTable({ error: new Error('failed') })
+        await errorWrapper.find('tbody button').trigger('click')
+        expect(errorWrapper.emitted('retry')).toHaveLength(1)
+    })
+
+    it('keeps persistent selection keys across page data changes', async () => {
+        const wrapper = mountTable({ selectable: true, selectionScope: 'persistent', selectedKeys: [1], data: [{ id: 2, name: 'two' }] })
+        await wrapper.find('tbody input[type="checkbox"]').setValue(true)
+        expect(wrapper.emitted('selection-change')?.at(-1)).toEqual([[1, 2]])
+
+        await wrapper.setProps({ data: [{ id: 3, name: 'three' }] })
+        expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[1, 2]])
+    })
 })

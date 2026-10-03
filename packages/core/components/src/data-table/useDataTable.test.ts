@@ -45,7 +45,9 @@ describe('useDataTable', () => {
 
     it('ignores a late response from an older request', async () => {
         const deferred: Array<(result: { data: Row[]; total: number }) => void> = []
-        const fetcher = vi.fn(() => new Promise<{ data: Row[]; total: number }>((resolve) => {
+        const signals: AbortSignal[] = []
+        const fetcher = vi.fn((_query, context: { signal: AbortSignal }) => new Promise<{ data: Row[]; total: number }>((resolve) => {
+            signals.push(context.signal)
             deferred.push(resolve)
         }))
         const scope = effectScope()
@@ -53,6 +55,7 @@ describe('useDataTable', () => {
 
         const oldRequest = api.reload()
         const newRequest = api.setFilters({ search: 'latest' })
+        expect(signals[0]?.aborted).toBe(true)
         deferred[1]?.({ data: [{ id: 2, name: 'new' }], total: 1 })
         await newRequest
         deferred[0]?.({ data: [{ id: 1, name: 'old' }], total: 1 })

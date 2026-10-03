@@ -7,7 +7,18 @@ unchanged in `packages/ui-kit/shadcn-vue`.
 
 `DataTable` is the presentation layer. It supports stable row keys, controlled
 selection, current-page select-all/indeterminate state, hidden columns,
-formatters, slots, loading, empty, error/retry and optional pagination.
+formatters, loading, empty, error/retry and optional pagination. The default
+`rowKey` is `id`; every row must provide a non-empty string or finite number
+through that field or through a `rowKey` function. Missing or duplicate keys
+throw an error instead of silently falling back to the row index, which keeps
+selection and Vue DOM identity stable when sorting or replacing data.
+
+Use the optional `toolbar` slot for controls above the table and the `actions`
+slot for a per-row action column. The toolbar exposes `selectedKeys`, `loading`,
+`error`, `retry`, `sort`, `page` and `pageSize`; row actions expose `row`,
+`index` and `rowKey`; the singular `action` slot name is accepted as an alias.
+The action column and its loading/empty/error colspan are omitted when no
+action slot is supplied.
 
 `useDataTable` owns application-provided server query state. Its `fetcher`
 receives `{ page, pageSize, sort, filters }` and an `AbortSignal`; it does not
