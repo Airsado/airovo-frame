@@ -10,7 +10,7 @@
  * - confirm patches the parent field, while cancel/close leaves it untouched;
  * - dependencies demonstrate fields that appear only when a switch is enabled.
  */
-import { computed, defineComponent, h, nextTick, ref, type PropType } from 'vue'
+import { computed, defineComponent, h, ref, type PropType } from 'vue'
 import { z } from 'zod'
 import { useForm, type FormFieldSchema } from '@airovo/forms'
 import { SectionPage } from '@airovo/components'
@@ -18,12 +18,6 @@ import { useModal } from '@airovo/composables'
 import {
     Badge,
     Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
 
@@ -406,10 +400,7 @@ const [AdvancedModal, advancedModalApi] = useModal({
             actionState.value = 'invalid'
             return false
         }
-        const config = normalizeConfig(values)
-        formApi.setFieldValue('advancedConfig[0].value', config)
-        actionState.value = 'confirmed'
-        return true
+        return normalizeConfig(values)
     },
     onCancel: () => {
         actionState.value = 'cancelled'
@@ -421,7 +412,19 @@ const [AdvancedModal, advancedModalApi] = useModal({
     },
 })
 
-const showDialog = ref(false)
+const [TagDialog, tagDialogApi] = useModal<undefined, { label: string; color: string }>({
+    title: 'Dialog 子表单',
+    description: '独立的 useForm 实例，只有确认成功才会把结果回传到页面状态。',
+    confirmText: '确认并回传',
+    onConfirm: async () => {
+        const values = await dialogFormApi.validateAndSubmit()
+        if (!values) return false
+        return {
+            label: String(getRowValue(values.label) ?? ''),
+            color: String(getRowValue(values.color) ?? ''),
+        }
+    },
+})
 
 const errorCount = computed(() => Object.keys(formApi.errors.value).length)
 const schemaCount = computed(() => formApi.schema.length)
@@ -450,6 +453,12 @@ function openAdvancedConfig() {
     advancedFormApi.clearValid()
     actionState.value = 'idle'
     advancedModalApi.open(config)
+    void advancedModalApi.waitForResult().then((outcome) => {
+        if (!outcome.accepted || !outcome.result) return
+        formApi.setFieldValue('advancedConfig[0].value', outcome.result)
+        actionState.value = 'confirmed'
+        setAction('Modal 子表单：确认后通过 typed result 回填主表单')
+    })
 }
 
 function setAction(message: string): void {
@@ -573,16 +582,12 @@ async function openTagDialog(): Promise<void> {
         label: [{ value: '重点渠道' }],
         color: [{ value: 'blue' }],
     })
-    showDialog.value = true
-    await nextTick()
-}
-
-async function saveTagDialog(): Promise<void> {
-    const values = await dialogFormApi.validateAndSubmit()
-    if (!values) return
-    selectedDialogResult.value = JSON.stringify(values)
-    showDialog.value = false
-    setAction('Dialog 子表单：确认后将结果回传到页面状态')
+    tagDialogApi.open()
+    void tagDialogApi.waitForResult().then((outcome) => {
+        if (!outcome.accepted || !outcome.result) return
+        selectedDialogResult.value = JSON.stringify(outcome.result)
+        setAction('Dialog 子表单：确认后通过 typed result 回传到页面状态')
+    })
 }
 </script>
 
@@ -756,18 +761,8 @@ async function saveTagDialog(): Promise<void> {
             </section>
         </div>
 
-        <Dialog v-model:open="showDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Dialog 子表单</DialogTitle>
-                    <DialogDescription>独立的 useForm 实例，保存后把结果回传到父页面状态。</DialogDescription>
-                </DialogHeader>
-                <DialogForm v-if="showDialog" />
-                <DialogFooter>
-                    <Button variant="outline" @click="showDialog = false">取消</Button>
-                    <Button @click="saveTagDialog">确认并回传</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <TagDialog>
+            <DialogForm />
+        </TagDialog>
     </SectionPage>
 </template>

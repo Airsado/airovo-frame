@@ -200,7 +200,9 @@ function handleInput(item: FormFieldSchema, onInput: (value: unknown) => void, v
 }
 
 function isRendered(item: FormFieldSchema): boolean {
-    return dependencyValue(item, 'if', true) && resolve(item.show, true)
+    return dependencyValue(item, 'if', true)
+        && dependencyValue(item, 'show', true)
+        && resolve(item.show, true)
 }
 
 function isVisible(item: FormFieldSchema): boolean {

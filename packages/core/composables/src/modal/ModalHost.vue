@@ -3,21 +3,35 @@ import { onBeforeUnmount, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
 import {
     Button,
-    Dialog,
-    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@airovo/uikit-shadcnui'
+import {
+    DialogContent,
+    DialogOverlay,
+    DialogPortal,
+    DialogRoot,
+} from 'reka-ui'
+import { overlayStack, type OverlayHandle } from '../overlay/overlay-stack'
 import type { ModalApi } from './modal-api'
 import type { ModalCloseReason } from './types'
 
-const props = defineProps<{ api: ModalApi<any> }>()
+const props = defineProps<{ api: ModalApi<any, any> }>()
 
 let transitionTimer: ReturnType<typeof setTimeout> | undefined
 let pendingPhase: 'opened' | 'closed' | undefined
 let observedInitialState = false
+let stackHandle: OverlayHandle | undefined
+
+function syncStack(open: boolean) {
+    if (open && !stackHandle) stackHandle = overlayStack.acquire()
+    if (!open && stackHandle) {
+        stackHandle.release()
+        stackHandle = undefined
+    }
+}
 
 function finishTransition(event?: AnimationEvent) {
     if (event && event.target !== event.currentTarget) return
@@ -30,6 +44,7 @@ function finishTransition(event?: AnimationEvent) {
 }
 
 watch(() => props.api.state.open, (open) => {
+    syncStack(open)
     if (!observedInitialState) {
         observedInitialState = true
         if (!open) return
@@ -43,6 +58,8 @@ watch(() => props.api.state.open, (open) => {
 
 onBeforeUnmount(() => {
     if (transitionTimer) clearTimeout(transitionTimer)
+    stackHandle?.release()
+    stackHandle = undefined
 })
 
 function requestClose(reason: ModalCloseReason) {
@@ -51,17 +68,21 @@ function requestClose(reason: ModalCloseReason) {
 
 function onUpdateOpen(open: boolean) {
     if (open) props.api.open()
-    else requestClose('api')
+    else if (!stackHandle || stackHandle.isTop()) requestClose('api')
 }
 
 function onEscape(event: Event) {
-    event.preventDefault()
-    if (props.api.state.closeOnEscape && !props.api.state.loading) requestClose('escape')
+    if (stackHandle?.isTop() && props.api.state.closeOnEscape && !props.api.state.loading) {
+        event.preventDefault()
+        requestClose('escape')
+    }
 }
 
 function onOutside(event: Event) {
-    event.preventDefault()
-    if (props.api.state.closeOnOutside && !props.api.state.loading) requestClose('outside')
+    if (stackHandle?.isTop() && props.api.state.closeOnOutside && !props.api.state.loading) {
+        event.preventDefault()
+        requestClose('outside')
+    }
 }
 
 async function confirm() {
@@ -82,17 +103,22 @@ async function cancel() {
 </script>
 
 <template>
-    <Dialog :open="api.state.open" @update:open="onUpdateOpen">
-        <DialogContent
-            :show-close-button="false"
-            :class="[
-                'flex max-h-[min(85vh,42rem)] min-h-0 w-full flex-col gap-0 overflow-hidden rounded-xl p-0 sm:max-w-xl',
-                api.state.contentClass,
-            ]"
-            @escape-key-down="onEscape"
-            @pointer-down-outside="onOutside"
-            @animation-end="finishTransition"
-        >
+    <DialogRoot :open="api.state.open" @update:open="onUpdateOpen">
+        <DialogPortal>
+            <DialogOverlay
+                class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+                :style="stackHandle ? { zIndex: stackHandle.overlayZIndex.value } : undefined"
+            />
+            <DialogContent
+                :class="[
+                    'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 fixed top-[50%] left-[50%] z-50 flex max-h-[min(85vh,42rem)] min-h-0 w-full translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-hidden rounded-xl border p-0 shadow-lg duration-200 sm:max-w-xl',
+                    api.state.contentClass,
+                ]"
+                :style="stackHandle ? { zIndex: stackHandle.zIndex.value } : undefined"
+                @escape-key-down="onEscape"
+                @pointer-down-outside="onOutside"
+                @animation-end="finishTransition"
+            >
             <div class="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3 sm:px-5">
                 <DialogHeader class="min-w-0 flex-1 text-left">
                     <DialogTitle v-if="api.state.title" class="text-sm font-semibold sm:text-base">{{ api.state.title }}</DialogTitle>
@@ -130,8 +156,9 @@ async function cancel() {
                     </Button>
                 </slot>
             </DialogFooter>
-        </DialogContent>
-    </Dialog>
+            </DialogContent>
+        </DialogPortal>
+    </DialogRoot>
 </template>
 
 <style scoped>

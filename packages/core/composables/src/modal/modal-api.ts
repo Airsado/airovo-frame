@@ -1,5 +1,5 @@
 import { reactive, shallowRef } from 'vue'
-import type { ModalCloseReason, ModalOptions, ModalState } from './types'
+import type { ModalCloseReason, ModalOptions, ModalOutcome, ModalState } from './types'
 
 const DEFAULT_STATE: ModalState = {
     open: false,
@@ -20,27 +20,42 @@ const DEFAULT_STATE: ModalState = {
     confirmText: '确认',
 }
 
-export class ModalApi<TData = unknown> {
+export class ModalApi<TData = unknown, TResult = unknown> {
     readonly state: ModalState
     private readonly data = shallowRef<TData | undefined>(undefined)
-    private readonly options: ModalOptions<TData>
+    private readonly resultValue = shallowRef<TResult | undefined>(undefined)
+    private readonly options: ModalOptions<TData, TResult>
     private generation = 0
     private pendingClose: Promise<boolean> | undefined
     private pendingConfirm: Promise<boolean> | undefined
     private pendingCancel: Promise<boolean> | undefined
+    private resultPromise: Promise<ModalOutcome<TResult>> | undefined
+    private resolveResult: ((outcome: ModalOutcome<TResult>) => void) | undefined
+    private settledResult: ModalOutcome<TResult> | undefined
 
-    constructor(options: ModalOptions<TData> = {}) {
+    constructor(options: ModalOptions<TData, TResult> = {}) {
         const { onBeforeClose, onCancel, onConfirm, onOpenChange, onOpened, onClosed, ...initialState } = options
         this.options = { onBeforeClose, onCancel, onConfirm, onOpenChange, onOpened, onClosed }
         this.state = reactive({ ...DEFAULT_STATE, ...initialState })
     }
 
     open(data?: TData): this {
+        if (this.state.open && !this.settledResult) {
+            // Re-opening the same controller starts a new cycle. Resolve the
+            // previous waiter as an external close instead of leaving it
+            // pending forever.
+            this.settleResult({ accepted: false, reason: 'api' })
+        }
         if (arguments.length > 0) this.setData(data as TData)
         this.generation += 1
         this.pendingClose = undefined
         this.pendingConfirm = undefined
         this.pendingCancel = undefined
+        this.resultValue.value = undefined
+        this.settledResult = undefined
+        this.resultPromise = new Promise<ModalOutcome<TResult>>((resolve) => {
+            this.resolveResult = resolve
+        })
         this.setState({ open: true, loading: false, error: undefined })
         return this
     }
@@ -60,6 +75,12 @@ export class ModalApi<TData = unknown> {
             }
             if (generation !== this.generation || !this.state.open) return false
             this.setState({ open: false, loading: false })
+            const accepted = reason === 'confirm'
+            const outcome: ModalOutcome<TResult> = { accepted, reason }
+            // A cancelled or externally closed child must never leak a stale
+            // result back into its parent form.
+            if (accepted) outcome.result = this.resultValue.value as TResult | undefined
+            this.settleResult(outcome)
             return true
         })()
         this.pendingClose = operation
@@ -71,16 +92,21 @@ export class ModalApi<TData = unknown> {
         return operation
     }
 
-    confirm(): Promise<boolean> {
+    confirm(result?: TResult): Promise<boolean> {
         if (!this.state.open || this.state.confirmDisabled) return Promise.resolve(false)
         if (this.pendingConfirm) return this.pendingConfirm
         if (this.state.loading) return Promise.resolve(false)
 
         const generation = this.generation
+        if (arguments.length > 0) this.resultValue.value = result
         this.setState({ loading: true, error: undefined })
         const operation = (async () => {
             try {
-                if (await this.options.onConfirm?.(this.getData(), this) === false) return false
+                const callbackResult = await this.options.onConfirm?.(this.getData(), this)
+                if (callbackResult === false) return false
+                if (callbackResult !== undefined && typeof callbackResult !== 'boolean') {
+                    this.resultValue.value = callbackResult as TResult
+                }
                 if (generation !== this.generation || !this.state.open) return false
                 return this.state.closeOnConfirm ? this.close('confirm') : true
             } catch (error) {
@@ -149,6 +175,23 @@ export class ModalApi<TData = unknown> {
         return this.data.value
     }
 
+    /** Return the typed result recorded by `confirm(result)` or `resolve(result)`. */
+    getResult(): TResult | undefined {
+        return this.resultValue.value as TResult | undefined
+    }
+
+    /** Alias useful when a child form wants to express an explicit result. */
+    resolve(result: TResult): Promise<boolean> {
+        return this.confirm(result)
+    }
+
+    /** Promise settled once the current open cycle closes. */
+    waitForResult(): Promise<ModalOutcome<TResult>> {
+        if (this.settledResult) return Promise.resolve(this.settledResult)
+        if (this.resultPromise) return this.resultPromise as Promise<ModalOutcome<TResult>>
+        return Promise.resolve({ accepted: false, reason: 'api' as const })
+    }
+
     lock(value = true): this {
         this.state.loading = value
         return this
@@ -164,6 +207,13 @@ export class ModalApi<TData = unknown> {
 
     notifyClosed(): void {
         if (!this.state.open) this.options.onClosed?.(this)
+    }
+
+    private settleResult(outcome: ModalOutcome<TResult>): void {
+        if (this.settledResult) return
+        this.settledResult = outcome
+        this.resolveResult?.(outcome)
+        this.resolveResult = undefined
     }
 
     private setError(error: unknown): void {

@@ -3,8 +3,8 @@ import ModalHost from './ModalHost.vue'
 import { ModalApi } from './modal-api'
 import type { ModalOptions } from './types'
 
-export function useModal<TData = unknown>(options: ModalOptions<TData> = {}): readonly [Component, ModalApi<TData>] {
-    const api = new ModalApi(options)
+export function useModal<TData = unknown, TResult = unknown>(options: ModalOptions<TData, TResult> = {}): readonly [Component, ModalApi<TData, TResult>] {
+    const api = new ModalApi<TData, TResult>(options)
     const Modal = markRaw(defineComponent({
         name: 'FrameworkModal',
         inheritAttrs: false,
