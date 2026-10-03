@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { getRequestErrorDetails, RequestError } from '../src'
+import { getRequestErrorDetails, getResponseEnvelopeDetails, RequestError } from '../src'
 import { installRequest } from '../src/internal'
 import type { RequestOptions } from '../src/types'
 
@@ -25,6 +25,94 @@ describe('@airovo/request', () => {
             },
         })
         expect(details).toMatchObject({ httpStatus: 400, code: 'USERNAME_EXISTS', message: 'username already exists' })
+    })
+
+    it('normalizes message aliases and keeps the backend data available', () => {
+        expect(getRequestErrorDetails({
+            response: {
+                status: 400,
+                data: { data: { code: 'INVALID', msg: 'invalid request' } },
+            },
+        })).toMatchObject({
+            httpStatus: 400,
+            code: 'INVALID',
+            message: 'invalid request',
+        })
+    })
+
+    it('normalizes numeric business codes to the string error-code contract', () => {
+        expect(getRequestErrorDetails({
+            response: {
+                status: 400,
+                data: { code: 1001, msg: 'invalid request' },
+            },
+        })).toMatchObject({
+            httpStatus: 400,
+            code: '1001',
+            message: 'invalid request',
+        })
+    })
+
+    it('reads status, code and msg from a nested error payload', () => {
+        expect(getRequestErrorDetails({
+            data: {
+                error: { status: 422, errorCode: 1002, msg: 'validation failed' },
+            },
+        })).toMatchObject({
+            httpStatus: 422,
+            code: '1002',
+            message: 'validation failed',
+        })
+    })
+
+    it('supports an application-configured string success code and msg alias', () => {
+        const details = getResponseEnvelopeDetails({
+            code: '0',
+            msg: 'ok',
+            data: { id: 'demo' },
+        }, {
+            successCodes: ['0'],
+            messageKeys: ['message', 'msg'],
+        })
+
+        expect(details).toMatchObject({
+            isEnvelope: true,
+            success: true,
+            code: '0',
+            message: 'ok',
+            data: { id: 'demo' },
+        })
+    })
+
+    it('unwraps an application envelope nested inside a Nitro data wrapper', () => {
+        const details = getResponseEnvelopeDetails({
+            statusCode: 200,
+            statusMessage: 'OK',
+            data: { code: '0', data: { id: 'nested-demo' }, msg: 'ok' },
+        }, { successCodes: ['0'] })
+
+        expect(details).toMatchObject({
+            isEnvelope: true,
+            success: true,
+            code: '0',
+            message: 'ok',
+            data: { id: 'nested-demo' },
+        })
+    })
+
+    it('marks a configured business error without treating it as an HTTP error', () => {
+        const details = getResponseEnvelopeDetails({
+            code: 'INVALID_CREDENTIALS',
+            msg: 'invalid credentials',
+            data: null,
+        }, { successCodes: ['0'] })
+
+        expect(details).toMatchObject({
+            isEnvelope: true,
+            success: false,
+            code: 'INVALID_CREDENTIALS',
+            message: 'invalid credentials',
+        })
     })
 
     it('injects the current access token and exposes it to app interceptors', async () => {

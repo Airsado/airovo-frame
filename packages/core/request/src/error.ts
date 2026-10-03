@@ -47,6 +47,14 @@ function asRecord(value: unknown): Record<string, unknown> {
     return value && typeof value === 'object' ? value as Record<string, unknown> : {}
 }
 
+function normalizeCode(value: unknown): string | undefined {
+    if (typeof value === 'string') {
+        return value.length > 0 ? value : undefined
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+    return undefined
+}
+
 /**
  * Extract the useful part of an Axios/Nitro error without coupling callers to
  * Axios' error shape. Nitro includes `message`, `statusMessage` and `data` in
@@ -68,6 +76,8 @@ export function getRequestErrorDetails(error: unknown): RequestErrorDetails {
         ?? record.statusCode
         ?? payload.statusCode
         ?? nestedData.statusCode
+        ?? nestedError.statusCode
+        ?? nestedError.status
     const httpStatus = typeof statusValue === 'number'
         ? statusValue
         : typeof statusValue === 'string' && /^\d+$/.test(statusValue) ? Number(statusValue) : undefined
@@ -76,17 +86,22 @@ export function getRequestErrorDetails(error: unknown): RequestErrorDetails {
         ?? nestedData.code
         ?? nestedData.errorCode
         ?? nestedError.code
-    const code = typeof codeValue === 'string' && codeValue
-        ? codeValue
-        : typeof record.code === 'string' && !record.code.startsWith('ERR_') ? record.code : undefined
+        ?? nestedError.errorCode
+    const code = normalizeCode(codeValue)
+        ?? (typeof record.code === 'string' && !record.code.startsWith('ERR_') ? record.code : undefined)
+        ?? normalizeCode(typeof record.code === 'number' ? record.code : undefined)
     const message = [
         payload.message,
+        payload.msg,
         nestedData.message,
+        nestedData.msg,
         payload.statusMessage,
         nestedData.statusMessage,
         nestedError.message,
+        nestedError.msg,
         record.statusMessage,
         record.message,
+        record.msg,
     ].find((value): value is string => typeof value === 'string' && value.trim().length > 0)
         ?? (httpStatus ? `Request failed with status ${httpStatus}` : 'Request failed')
 

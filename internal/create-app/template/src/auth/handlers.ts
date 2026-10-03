@@ -1,15 +1,19 @@
 import { getAppRouter } from '@airovo/app'
 import { toast } from '@airovo/composables'
+import { reactive } from 'vue'
 import { useAuthStore } from '@airovo/stores/auth'
 import { useI18nStore } from '@airovo/stores/i18n'
 import { usePreferencesStore } from '@airovo/stores/preferences'
 import { login, refresh, register, revoke } from '../api/core/auth'
 import { getCurrentUser } from '../api/core/user'
+import { normalizeAuthError, type LoginParams, type RegisterParams } from './contract'
 import zh from '../locales/zh-CN/auth.json'
 import en from '../locales/en-US/auth.json'
-import { normalizeAuthError, type LoginParams, type RegisterParams } from './contract'
 
 type MessageKey = keyof typeof zh.errors
+
+/** Local diagnostics for the auth showcase; every call means one HTTP refresh attempt. */
+export const authRefreshDiagnostics = reactive({ attempts: 0, successes: 0 })
 
 function message(key: MessageKey): string {
     return (useI18nStore().locale === 'en-US' ? en : zh).errors[key]
@@ -86,10 +90,12 @@ export async function restoreSession(): Promise<void> {
 }
 
 export async function refreshSession(expectedRefreshToken: string): Promise<string | null> {
+    authRefreshDiagnostics.attempts += 1
     const tokens = await refresh(expectedRefreshToken)
     const auth = useAuthStore()
     if (auth.refreshToken !== expectedRefreshToken) return null
     auth.setTokens(tokens)
+    authRefreshDiagnostics.successes += 1
     return tokens.accessToken
 }
 
@@ -103,15 +109,15 @@ export async function logout(options: { navigate?: boolean } = {}): Promise<void
 }
 
 export async function handleReauthenticate(values: LoginParams): Promise<void> {
+    const redirect = useAuthStore().sessionExpiredRedirect
     try {
         const session = await login(values)
-        const redirect = useAuthStore().sessionExpiredRedirect
         useAuthStore().setSession(session)
         toast.success((useI18nStore().locale === 'en-US' ? en : zh).login.success)
-        if (redirect) await getAppRouter().replace(redirect)
     } catch (error) {
         const text = authErrorMessage(error, 'login')
         toast.error(text)
         throw new Error(text, { cause: error })
     }
+    if (redirect) await getAppRouter().replace(redirect)
 }

@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build --configLoader native",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@airovo/app": "workspace:*",
@@ -40,6 +41,7 @@
     "@airovo/vite-config": "workspace:*",
     "@types/node": "catalog:",
     "vite": "catalog:",
+    "vitest": "catalog:",
     "vue-tsc": "catalog:"
   }
 }

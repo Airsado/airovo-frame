@@ -34,4 +34,29 @@ flight refresh and refresh-failure navigation. `registerSessionRestore()` is
 used for the hard-refresh flow. API modules call `getRequestClient()` and do
 not create another Axios instance.
 
+`@airovo/request` does not assume a universal business success code. Apps can
+use `getResponseEnvelopeDetails()` with their own `successCodes`, data keys and
+message aliases. The parser supports nested Nitro `data` wrappers and the
+common `message`/`msg` aliases; the Playwright demo keeps its `code: '0'`
+protocol in `apps/playwright/src/api/envelope.ts`.
+
 Realtime helpers are also exported as `useWebSocket` and `useEventSource`.
+
+`useEventSource` keeps the original `url`, `reconnect`, `reconnectDelay`,
+`eventName`, and callback options while adding injectable transport factories,
+last-event-id recovery, exponential reconnect backoff, heartbeat watchdogs,
+terminal `complete`/`error` events, and explicit `pause()`/`resume()`/`retry()`
+controls. Native `EventSource` cannot set arbitrary request headers, so its
+last event id is sent as the configurable `lastEventIdParam` query parameter;
+custom factories receive the id directly and may send it as a header. The
+demo `/demo/events` endpoint is intentionally public so the component
+showcase can connect with native `EventSource`; an authenticated application
+must choose a cookie, a query token, or an injected fetch/stream factory and
+keep that policy in the application layer.
+
+Use `useEventSourceSession` when a bounded, deduplicated event buffer is
+needed. It exposes `items`, `status`, `totalBytes`, and `clear()` while the
+transport remains independent from any DOM scrolling or rendering code. Its
+default buffer policy keeps the newest 1000 items and drops the oldest items
+when `maxItems` or `maxBytes` is exceeded; set `dropOldest: false` to discard
+the newest item instead. Items with the same SSE id are ignored by default.

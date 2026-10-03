@@ -3,19 +3,17 @@ import { toast } from '@airovo/composables'
 import { useAuthStore } from '@airovo/stores/auth'
 import { useI18nStore } from '@airovo/stores/i18n'
 import { usePreferencesStore } from '@airovo/stores/preferences'
-import type { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosInstance } from 'axios'
 import { refreshSession, restoreSession } from '../auth/handlers'
 import zh from '../locales/zh-CN/auth.json'
 import en from '../locales/en-US/auth.json'
 import { appEnv } from '../config/env'
+import { createAuthRetryHandler, type AppRetryConfig } from './auth-retry'
+import { unwrapAppResponse } from './envelope'
 
 export type AppRequestClient = ReturnType<typeof import('@airovo/app').getRequestClient>
 
-interface RetriableConfig extends InternalAxiosRequestConfig {
-    __skipAuth?: boolean
-    __retried?: boolean
-    __authToken?: string | null
-}
+type RetriableConfig = AppRetryConfig
 
 interface RequestFailure extends Error {
     httpStatus?: number
@@ -34,15 +32,6 @@ function requestErrorMessage(status?: number): string {
     return copy.request
 }
 
-function unwrapResponse(response: AxiosResponse): AxiosResponse {
-    const payload = response.data
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return response
-    const record = payload as Record<string, unknown>
-    const hasEnvelope = 'data' in record && ('code' in record || 'success' in record || 'status' in record)
-    if (hasEnvelope) response.data = record.data
-    return response
-}
-
 async function expireSession(): Promise<void> {
     const auth = useAuthStore()
     auth.clearSession()
@@ -55,51 +44,28 @@ async function expireSession(): Promise<void> {
 }
 
 function installAppInterceptors(client: AxiosInstance): void {
-    let refreshing: Promise<string | null> | null = null
-
     client.interceptors.request.use((config) => {
         config.headers.set('X-Request-Source', appEnv.appName)
         config.headers.set('Accept-Language', document.documentElement.lang || 'zh-CN')
         return config
     })
 
-    client.interceptors.response.use(undefined, async (error: RequestFailure) => {
-        const config = error.config ?? error.cause?.config as RetriableConfig | undefined
-        const status = error.httpStatus ?? error.cause?.response?.status
-        if (status !== 401 || !config || config.__skipAuth) throw error
-        if (config.__retried) {
-            if (useAuthStore().refreshToken) await expireSession()
-            throw error
-        }
-
-        config.__retried = true
-        const auth = useAuthStore()
-        if (auth.accessToken && auth.accessToken !== config.__authToken) return client(config)
-        if (!auth.refreshToken) {
-            if (auth.accessToken) await expireSession()
-            throw error
-        }
-
-        // All requests failing with the same access token share one refresh.
-        if (!refreshing) {
-            const priorRefreshToken = auth.refreshToken
-            refreshing = refreshSession(priorRefreshToken)
-                .catch(async () => {
-                    if (auth.refreshToken === priorRefreshToken) await expireSession()
-                    return null
-                })
-                .finally(() => { refreshing = null })
-        }
-        const token = await refreshing
-        if (!token) throw error
-        return client(config)
+    const retry401 = createAuthRetryHandler({
+        getSession: () => {
+            const auth = useAuthStore()
+            return { accessToken: auth.accessToken, refreshToken: auth.refreshToken }
+        },
+        refresh: refreshSession,
+        expireSession,
+        retry: (config) => client(config),
     })
+    client.interceptors.response.use(undefined, (error: RequestFailure) => retry401(error))
 }
 
 registerRequestSetup({
     baseURL,
     hooks: {
-        onResponse: unwrapResponse,
+        onResponse: unwrapAppResponse,
         onError(context) {
             const config = context.config as RetriableConfig | undefined
             // Auth views own their messages; 401 may still be recovered by the app interceptor.

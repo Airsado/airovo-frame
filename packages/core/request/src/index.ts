@@ -12,6 +12,13 @@ import { REQUEST_KEY } from './types'
 
 export { getRequestErrorDetails, RequestError } from './error'
 export type { RequestErrorDetails } from './error'
+export {
+    getResponseEnvelopeDetails,
+    unwrapResponseEnvelope,
+    type ResponseEnvelopeCode,
+    type ResponseEnvelopeDetails,
+    type ResponseEnvelopeOptions,
+} from './envelope'
 export type {
     RequestErrorContext,
     RequestErrorHandler,
@@ -29,7 +36,22 @@ export {
 // `import { useWebSocket, useEventSource } from '@airovo/request'`
 // without reaching into deep paths.
 export { useWebSocket, type UseWebSocketOptions, type WebSocketState } from './useWebSocket'
-export { useEventSource, type UseEventSourceOptions, type EventSourceState } from './useEventSource'
+export {
+    useEventSource,
+    useEventSourceSession,
+    type EventSourceFactory,
+    type EventSourceFactoryOptions,
+    type EventSourceErrorHandler,
+    type EventSourceLike,
+    type EventSourceProtocolEvent,
+    type EventSourceSessionItem,
+    type EventSourceSessionStatus,
+    type EventSourceState,
+    type EventSourceTerminalState,
+    type UseEventSourceOptions,
+    type UseEventSourceReturn,
+    type UseEventSourceSessionOptions,
+} from './useEventSource'
 
 /** Convenience: pull the axios instance from a component context. */
 export function useRequest(): AxiosInstance {
