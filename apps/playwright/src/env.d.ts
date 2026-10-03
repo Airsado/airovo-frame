@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 interface ImportMetaEnv {
     readonly VITE_APP_TITLE?: string
     readonly VITE_APP_NAMESPACE?: string
@@ -8,6 +10,7 @@ interface ImportMetaEnv {
     readonly VITE_DEVTOOLS?: string
     readonly VITE_INJECT_APP_LOADING?: string
     readonly VITE_ROUTER_HISTORY?: string
+    readonly [key: string]: string | boolean | undefined
 }
 
 interface ImportMeta {

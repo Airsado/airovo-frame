@@ -43,7 +43,7 @@ import {
 } from '@airovo/uikit-shadcnui'
 import { SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
-import { useEventSourceSession } from '@airovo/request'
+import { useEventSourceSession, type EventSourceProtocolEventPayload } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
 import { getDemoEventsUrl } from '../api/core/events'
 
@@ -219,7 +219,9 @@ function runBatchAction(): void {
 function clearServerSelection(): void {
     serverSelectedKeys.value = []
 }
-const sseDemo = useEventSourceSession<{ message?: string; progress?: number; heartbeat?: boolean }>({
+type DemoSsePayload = EventSourceProtocolEventPayload<{ message?: string; progress?: number; heartbeat?: boolean }>
+
+const sseDemo = useEventSourceSession<DemoSsePayload>({
     url: getDemoEventsUrl(),
     maxItems: 40,
     maxBytes: 32_000,
@@ -227,7 +229,7 @@ const sseDemo = useEventSourceSession<{ message?: string; progress?: number; hea
     maxReconnectAttempts: 3,
     heartbeatTimeout: 2_000,
 })
-const sseFailureDemo = useEventSourceSession<{ message?: string }>({
+const sseFailureDemo = useEventSourceSession<DemoSsePayload>({
     url: `${getDemoEventsUrl()}?fail=true`,
     autoConnect: false,
     reconnect: false,
@@ -692,20 +694,6 @@ function sseItemData(item: unknown): unknown {
                     </p>
                 </div>
                 <DataPanel>
-                    <template #toolbar>
-                        <div class="flex flex-wrap items-center gap-2 p-4">
-                            <Input v-model="serverTableSearch" class="w-full sm:w-64" placeholder="搜索渠道名称或类型" @keyup.enter="applyServerTableSearch" />
-                            <Button size="sm" @click="applyServerTableSearch">查询</Button>
-                            <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
-                            <Button size="sm" variant="secondary" :disabled="serverSelectedKeys.length === 0" @click="runBatchAction">
-                                批量处理 {{ serverSelectedKeys.length }} 项
-                            </Button>
-                            <Button size="sm" variant="outline" :disabled="serverSelectedKeys.length === 0" @click="clearServerSelection">
-                                清除 {{ serverSelectedKeys.length }} 项选择
-                            </Button>
-                            <span v-if="serverTable.error.value" class="text-xs text-destructive">请求失败，可点击表格中的重试</span>
-                        </div>
-                    </template>
                     <DataTable
                         v-model:selected-keys="serverSelectedKeys"
                         :columns="serverTableColumns"
@@ -724,8 +712,25 @@ function sseItemData(item: unknown): unknown {
                         @update:page-size="serverTable.setPageSize"
                         @retry="serverTable.retry"
                     >
+                        <template #toolbar>
+                        <div class="flex flex-wrap items-center gap-2 p-4">
+                            <Input v-model="serverTableSearch" class="w-full sm:w-64" placeholder="搜索渠道名称或类型" @keyup.enter="applyServerTableSearch" />
+                            <Button size="sm" @click="applyServerTableSearch">查询</Button>
+                            <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
+                            <Button size="sm" variant="secondary" :disabled="serverSelectedKeys.length === 0" @click="runBatchAction">
+                                批量处理 {{ serverSelectedKeys.length }} 项
+                            </Button>
+                            <Button size="sm" variant="outline" :disabled="serverSelectedKeys.length === 0" @click="clearServerSelection">
+                                清除 {{ serverSelectedKeys.length }} 项选择
+                            </Button>
+                            <span v-if="serverTable.error.value" class="text-xs text-destructive">请求失败，可点击表格中的重试</span>
+                        </div>
+                        </template>
                         <template #cell-status="{ value }">
                             <StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" />
+                        </template>
+                        <template #actions="{ rowKey }">
+                            <Button size="sm" variant="ghost" @click="batchActionResult = `打开记录 ${String(rowKey)}`">查看</Button>
                         </template>
                     </DataTable>
                     <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。</p>
