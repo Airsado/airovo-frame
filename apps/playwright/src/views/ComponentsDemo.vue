@@ -707,6 +707,7 @@ function sseItemData(item: unknown): unknown {
                         :page="serverTable.page.value"
                         :page-size="serverTable.pageSize.value"
                         :total="serverTable.total.value"
+                        :max-height="420"
                         @sort-change="serverTable.setSort"
                         @update:page="serverTable.setPage"
                         @update:page-size="serverTable.setPageSize"
