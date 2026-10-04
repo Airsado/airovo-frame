@@ -1,0 +1,23 @@
+{
+  "dashboard": "Dashboard",
+  "workbench": "Workbench",
+  "interface": "Components & Forms",
+  "navigationAndLayout": "Navigation & Layout",
+  "system": "System",
+  "overview": "Overview",
+  "auth": "Authentication",
+  "analytics": "Analytics",
+  "components": "Framework Components",
+  "form": "Form System",
+  "navigationExamples": "Navigation Examples",
+  "defaultLayout": "Default Layout",
+  "permissions": "Roles & Permissions",
+  "adminRoute": "Admin Route",
+  "reportsRoute": "Report Permission Route",
+  "mockApi": "Mock Service",
+  "mockHealth": "Service Health",
+  "preferences": "Preferences",
+  "navigation": "Nested Navigation",
+  "mix": "Mix Layout",
+  "full": "Full Content"
+}
