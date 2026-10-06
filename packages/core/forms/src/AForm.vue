@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue'
+import { getFormContexts, FormContextKey, PublicFormContextKey } from './form-context'
 import FormFieldRender from './FormFieldRender.vue'
 import type { FormApi } from './form-api'
 
@@ -15,6 +16,11 @@ const emit = defineEmits<{
 }>()
 
 provide('formApi', props.api)
+const contexts = getFormContexts(props.api)
+if (contexts) {
+    provide(FormContextKey, contexts.private)
+    provide(PublicFormContextKey, contexts.public)
+}
 
 const isSubmitting = computed(() => props.api.isSubmitting)
 const isLoading = computed(() => props.api.loading)

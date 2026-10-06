@@ -27,6 +27,8 @@ function reset() {
 
 The older `useAForm` object return remains available for existing apps and uses the same `FormApi` controller. `AForm` is the internal renderer and reads schema, errors, values and runtime props from its `api` prop.
 
+Several `useForm`/`useAForm` calls can share one component setup, including forms rendered in separate or nested modals. Each renderer scopes validation, values, errors and field arrays to its own controller, including when rendering `<AForm :api="formApi" />` directly. Controllers belong to the calling component's lifecycle: `await formApi.setValues(values)` works before opening a modal, and temporarily unmounting its form renderer does not clear the controller. Reset explicitly with `resetForm()` when a new editing cycle should discard saved values.
+
 Every field value has the existing array shape: `{ name: [{ value: 'Ada' }] }`. Set `ArrayField` to change the row key and `array: true` to allow multiple rows. `initialValues` uses that same shape.
 
 The controller exposes `getValues`, `setValues`, `setFieldValue`, `resetForm`, `resetFields`, `validate`, `validateField`, `clearValid`, `submitForm`, `updateSchema`, `resetSchema`, `appendSchemaByField`, `removeSchemaByField`, `setProps` and `scrollToField`. `formApi.values` and `formApi.errors` are reactive refs. `setProps({ disabled, loading, showDefaultActions, layout, wrapperClass, handleSubmit })` updates the rendered form. The default layout is horizontal to preserve the existing framework presentation; pass `layout: 'vertical'` when stacked fields are preferred.
