@@ -6,6 +6,7 @@ import { FormApi } from './form-api'
 import type { FormFieldSchema, FormRuntimeProps } from './types'
 import { parseRules } from './rules'
 import AForm from './AForm.vue'
+import { registerFormContexts, unregisterFormContexts } from './form-context'
 
 export interface UseFormOptions extends FormRuntimeProps {
     schema?: FormFieldSchema[]
@@ -223,6 +224,7 @@ export function useAForm(
         validationSchema,
         keepValuesOnUnmount: true,
     })
+    registerFormContexts(api, form)
     api.mount(form)
 
     const isSubmitting = computed(() => api.isSubmitting)
@@ -239,7 +241,10 @@ export function useAForm(
         },
     })
 
-    onUnmounted(() => api.unmount())
+    onUnmounted(() => {
+        unregisterFormContexts(api)
+        api.unmount()
+    })
 
     return {
         api,
