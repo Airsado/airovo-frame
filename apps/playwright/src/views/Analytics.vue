@@ -266,7 +266,7 @@ const filteredRecords = computed(() =>
                             <tr
                                 v-for="record in filteredRecords"
                                 :key="record.name"
-                                class="transition-colors hover:bg-muted/25"
+                                class="transition-colors hover:bg-accent"
                             >
                                 <td class="px-4 py-3 font-medium sm:px-5">
                                     {{ record.name }}

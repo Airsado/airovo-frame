@@ -290,7 +290,7 @@ function refresh() {
                             ]"
                             :key="item.path"
                             :to="item.path"
-                            class="flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none sm:px-5"
+                            class="flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none sm:px-5"
                             ><Icon
                                 :icon="item.icon"
                                 class="size-4 shrink-0 text-muted-foreground" /><span
@@ -325,7 +325,7 @@ function refresh() {
                     <div
                         v-for="item in filteredActivities"
                         :key="item.id"
-                        class="flex min-w-0 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/25 sm:px-5"
+                        class="flex min-w-0 items-center gap-3 px-4 py-3 transition-colors hover:bg-accent sm:px-5"
                     >
                         <div
                             class="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"

@@ -54,7 +54,7 @@ function goToLogin() {
             <button
                 type="button"
                 :aria-label="t('user.accountMenu')"
-                class="cursor-pointer inline-flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-muted focus-visible:ring-ring/40 focus-visible:ring-2 outline-none"
+                class="cursor-pointer inline-flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-accent focus-visible:ring-ring/40 focus-visible:ring-2 outline-none"
             >
                 <Avatar class="size-7">
                     <AvatarImage :src="userAvatar" />

@@ -63,7 +63,7 @@ const menuTree = [
                 <div class="p-3 sm:p-4">
                     <Collapsible v-model:open="expanded">
                         <CollapsibleTrigger
-                            class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted/60"
+                            class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium transition-colors hover:bg-accent"
                             ><Icon
                                 icon="lucide:panel-left"
                                 class="size-4 text-muted-foreground" /><span
@@ -83,7 +83,7 @@ const menuTree = [
                                 v-for="item in menuTree"
                                 :key="item.path"
                                 :to="item.path"
-                                class="flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-muted/60"
+                                class="flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent"
                                 :class="
                                     currentPath === item.path &&
                                     'bg-primary/10 font-medium text-primary'
