@@ -3,7 +3,8 @@
     "version": "0.0.0",
     "exports": {
         "./utils": "./src/utils/index.ts",
-        "./icons": "./src/icons/index.ts"
+        "./icons": "./src/icons/index.ts",
+        "./overlay": "./src/overlay.ts"
     },
     "license": "MIT",
     "scripts": {
@@ -19,6 +20,7 @@
         "typescript": "~6.0.2"
     },
     "dependencies": {
-        "@iconify/vue": "catalog:"
+        "@iconify/vue": "catalog:",
+        "vue": "catalog:"
     }
 }

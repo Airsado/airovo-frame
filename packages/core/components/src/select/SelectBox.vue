@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
+import { useOverlayOwner } from '@airovo/shared/overlay'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@airovo/uikit-shadcnui/components/ui/select'
-import { useAttrs } from 'vue'
+import { computed, ref, useAttrs, watch } from 'vue'
 
 export interface SelectOption {
   label: string
@@ -31,6 +33,26 @@ const props = withDefaults(defineProps<{
 defineOptions({ inheritAttrs: false })
 
 const attrs = useAttrs()
+const owner = useOverlayOwner()
+const open = ref(false)
+const popupStyle = computed(() => owner?.popupZIndex.value === undefined
+  ? undefined
+  : { zIndex: owner.popupZIndex.value })
+
+// Watch the owning main layer rather than raising a popup above every overlay.
+// Reka remains responsible for focus scopes, Escape, outside and body locking.
+watch(() => owner?.active.value, (active) => {
+  if (active === false) open.value = false
+}, { flush: 'sync' })
+
+function updateOpen(value: boolean): void {
+  open.value = value && owner?.active.value !== false
+}
+
+function onCloseAutoFocus(event: Event): void {
+  // Owner closure/coverage must not refocus a hidden trigger over the new host.
+  if (owner?.active.value === false) event.preventDefault()
+}
 
 const modelValue = defineModel<string | undefined>()
 
@@ -42,7 +64,7 @@ function clear(event: MouseEvent): void {
 </script>
 
 <template>
-  <Select v-model="modelValue" :disabled="props.disabled">
+  <Select v-model="modelValue" :open="open" :disabled="props.disabled" @update:open="updateOpen">
     <div class="relative w-full">
       <SelectTrigger
         v-bind="attrs"
@@ -60,15 +82,17 @@ function clear(event: MouseEvent): void {
         <X class="size-3.5" />
       </button>
     </div>
-    <SelectContent>
-      <SelectItem
-        v-for="option in props.options"
-        :key="option.value"
-        :value="option.value"
-        :disabled="option.disabled"
-      >
-        {{ option.label }}
-      </SelectItem>
+    <SelectContent :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
+      <SelectGroup>
+        <SelectItem
+          v-for="option in props.options"
+          :key="option.value"
+          :value="option.value"
+          :disabled="option.disabled"
+        >
+          {{ option.label }}
+        </SelectItem>
+      </SelectGroup>
     </SelectContent>
   </Select>
 </template>
