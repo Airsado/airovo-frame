@@ -23,7 +23,9 @@ describe('OverlayStack', () => {
 
         expect(parent.overlayZIndex.value).toBe(1000)
         expect(parent.zIndex.value).toBe(1001)
+        expect(parent.popupZIndex.value).toBe(1002)
         expect(child.overlayZIndex.value).toBe(1010)
+        expect(parent.popupZIndex.value).toBeLessThan(child.overlayZIndex.value)
         expect(child.zIndex.value).toBe(1011)
         expect(dialog.overlayZIndex.value).toBe(1020)
         expect(dialog.zIndex.value).toBe(1021)
@@ -31,6 +33,23 @@ describe('OverlayStack', () => {
         expect(child.isTop()).toBe(false)
         expect(dialog.isTop()).toBe(true)
         expect(stack.size).toBe(3)
+    })
+
+    it('reactively deactivates covered or released owners and reactivates the parent', () => {
+        const parent = stack.acquire()
+        expect(parent.isActive.value).toBe(true)
+        const child = stack.acquire()
+        expect(parent.isActive.value).toBe(false)
+        expect(child.isActive.value).toBe(true)
+        child.release()
+        expect(child.isActive.value).toBe(false)
+        expect(parent.isActive.value).toBe(true)
+        parent.release()
+        expect(parent.isActive.value).toBe(false)
+    })
+
+    it('rejects a layer gap too small to reserve the owning popup', () => {
+        expect(() => new OverlayStack({ zIndexStep: 2 })).toThrow(RangeError)
     })
 
     it('dispatches Escape only to the topmost entry', () => {

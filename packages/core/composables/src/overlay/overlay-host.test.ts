@@ -43,7 +43,7 @@ describe('mounted overlay hosts', () => {
         await settle()
 
         expect(overlayStack.size).toBe(2)
-        expect(overlayStack.bodyLockCount).toBeGreaterThan(0)
+        expect(document.body.style.overflow).toBe('hidden')
 
         const result = modalApi.waitForResult()
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
@@ -54,7 +54,7 @@ describe('mounted overlay hosts', () => {
         expect(modalApi.state.open).toBe(false)
         expect(drawerApi.state.open).toBe(true)
         expect(overlayStack.size).toBe(1)
-        expect(overlayStack.bodyLockCount).toBe(1)
+        expect(document.body.style.overflow).toBe('hidden')
 
         await drawerApi.close('api')
         await nextTick()
@@ -64,6 +64,8 @@ describe('mounted overlay hosts', () => {
         await nextTick()
         await settle(250)
         expect(overlayStack.bodyLockCount).toBe(0)
+        expect(document.body.style.overflow).toBe('')
+        expect(document.body.style.pointerEvents).toBe('')
     })
 
     it('routes the close button through the typed outcome contract', async () => {

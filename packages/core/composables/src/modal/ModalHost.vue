@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
+import { provideOverlayOwner } from '@airovo/shared/overlay'
 import {
     Button,
     DialogDescription,
@@ -23,13 +24,20 @@ const props = defineProps<{ api: ModalApi<any, any> }>()
 let transitionTimer: ReturnType<typeof setTimeout> | undefined
 let pendingPhase: 'opened' | 'closed' | undefined
 let observedInitialState = false
-let stackHandle: OverlayHandle | undefined
+const stackHandle = shallowRef<OverlayHandle>()
+
+provideOverlayOwner({
+    active: computed(() => props.api.state.open && stackHandle.value?.isActive.value === true),
+    popupZIndex: computed(() => stackHandle.value?.popupZIndex.value),
+})
 
 function syncStack(open: boolean) {
-    if (open && !stackHandle) stackHandle = overlayStack.acquire()
-    if (!open && stackHandle) {
-        stackHandle.release()
-        stackHandle = undefined
+    // DialogOverlay and Select share Reka's scroll lock. A second framework
+    // lock would be captured as its prior overflow and restore "hidden" later.
+    if (open && !stackHandle.value) stackHandle.value = overlayStack.acquire({ lockBodyScroll: false })
+    if (!open && stackHandle.value) {
+        stackHandle.value.release()
+        stackHandle.value = undefined
     }
 }
 
@@ -58,8 +66,8 @@ watch(() => props.api.state.open, (open) => {
 
 onBeforeUnmount(() => {
     if (transitionTimer) clearTimeout(transitionTimer)
-    stackHandle?.release()
-    stackHandle = undefined
+    stackHandle.value?.release()
+    stackHandle.value = undefined
 })
 
 function requestClose(reason: ModalCloseReason) {
@@ -68,19 +76,25 @@ function requestClose(reason: ModalCloseReason) {
 
 function onUpdateOpen(open: boolean) {
     if (open) props.api.open()
-    else if (!stackHandle || stackHandle.isTop()) requestClose('api')
+    else if (!props.api.state.loading && stackHandle.value?.isTop()) requestClose('api')
 }
 
 function onEscape(event: Event) {
-    if (stackHandle?.isTop() && props.api.state.closeOnEscape && !props.api.state.loading) {
-        event.preventDefault()
+    // Always intercept Reka's implicit dismiss: otherwise a disabled Escape
+    // falls through update:open(false) and is misclassified as an API close.
+    const prevented = event.defaultPrevented
+    event.preventDefault()
+    if (!prevented && stackHandle.value?.isTop() && props.api.state.closeOnEscape && !props.api.state.loading) {
         requestClose('escape')
     }
 }
 
 function onOutside(event: Event) {
-    if (stackHandle?.isTop() && props.api.state.closeOnOutside && !props.api.state.loading) {
-        event.preventDefault()
+    const original = (event as CustomEvent<{ originalEvent: PointerEvent }>).detail?.originalEvent
+    const contextMenu = original?.button === 2 || (original?.button === 0 && original.ctrlKey)
+    const prevented = event.defaultPrevented
+    event.preventDefault()
+    if (!prevented && !contextMenu && stackHandle.value?.isTop() && props.api.state.closeOnOutside && !props.api.state.loading) {
         requestClose('outside')
     }
 }

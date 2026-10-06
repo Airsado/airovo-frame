@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
+import { provideOverlayOwner } from '@airovo/shared/overlay'
 import { Button, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@airovo/uikit-shadcnui'
 import { DialogContent, DialogOverlay, DialogPortal, DialogRoot } from 'reka-ui'
 import { overlayStack, type OverlayHandle } from '../overlay/overlay-stack'
@@ -12,13 +13,20 @@ const props = defineProps<{ api: DrawerApi<any, any> }>()
 let transitionTimer: ReturnType<typeof setTimeout> | undefined
 let pendingPhase: 'opened' | 'closed' | undefined
 let observedInitialState = false
-let stackHandle: OverlayHandle | undefined
+const stackHandle = shallowRef<OverlayHandle>()
+
+provideOverlayOwner({
+    active: computed(() => props.api.state.open && stackHandle.value?.isActive.value === true),
+    popupZIndex: computed(() => stackHandle.value?.popupZIndex.value),
+})
 
 function syncStack(open: boolean) {
-    if (open && !stackHandle) stackHandle = overlayStack.acquire()
-    if (!open && stackHandle) {
-        stackHandle.release()
-        stackHandle = undefined
+    // Reka owns the DOM lock for this host and its Select popups; keep the
+    // framework stack responsible for ordering and opener restoration.
+    if (open && !stackHandle.value) stackHandle.value = overlayStack.acquire({ lockBodyScroll: false })
+    if (!open && stackHandle.value) {
+        stackHandle.value.release()
+        stackHandle.value = undefined
     }
 }
 
@@ -47,8 +55,8 @@ watch(() => props.api.state.open, (open) => {
 
 onBeforeUnmount(() => {
     if (transitionTimer) clearTimeout(transitionTimer)
-    stackHandle?.release()
-    stackHandle = undefined
+    stackHandle.value?.release()
+    stackHandle.value = undefined
 })
 
 function requestClose(reason: DrawerCloseReason) {
@@ -57,19 +65,24 @@ function requestClose(reason: DrawerCloseReason) {
 
 function onUpdateOpen(open: boolean) {
     if (open) props.api.open()
-    else if (!stackHandle || stackHandle.isTop()) requestClose('api')
+    else if (!props.api.state.loading && stackHandle.value?.isTop()) requestClose('api')
 }
 
 function onEscape(event: Event) {
-    if (stackHandle?.isTop() && props.api.state.closeOnEscape && !props.api.state.loading) {
-        event.preventDefault()
+    // Keep native dismissal from bypassing disabled/loading controller state.
+    const prevented = event.defaultPrevented
+    event.preventDefault()
+    if (!prevented && stackHandle.value?.isTop() && props.api.state.closeOnEscape && !props.api.state.loading) {
         requestClose('escape')
     }
 }
 
 function onOutside(event: Event) {
-    if (stackHandle?.isTop() && props.api.state.closeOnOutside && !props.api.state.loading) {
-        event.preventDefault()
+    const original = (event as CustomEvent<{ originalEvent: PointerEvent }>).detail?.originalEvent
+    const contextMenu = original?.button === 2 || (original?.button === 0 && original.ctrlKey)
+    const prevented = event.defaultPrevented
+    event.preventDefault()
+    if (!prevented && !contextMenu && stackHandle.value?.isTop() && props.api.state.closeOnOutside && !props.api.state.loading) {
         requestClose('outside')
     }
 }
