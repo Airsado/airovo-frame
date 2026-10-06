@@ -268,7 +268,7 @@ const contentOptions: { value: ContentLayout; label: string; kind: 'content-full
                 </div>
             </div>
             <SheetFooter class="mt-0 shrink-0 grid grid-cols-1 gap-2 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6 sm:py-4">
-                <Button variant="outline" class="w-full border-destructive/50 text-destructive hover:bg-destructive/10" aria-label="恢复全部默认设置" @click="resetAll"><Icon icon="lucide:rotate-ccw" class="size-4" />恢复全部默认</Button>
+                <Button variant="outline" class="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/10" aria-label="恢复全部默认设置" @click="resetAll"><Icon icon="lucide:rotate-ccw" class="size-4" />恢复全部默认</Button>
             </SheetFooter>
         </SheetContent>
     </Sheet>

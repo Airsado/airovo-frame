@@ -56,7 +56,7 @@ const normalizedRoles = computed(() => {
 
 <template>
     <div
-        class="group/user-card flex min-w-0 items-center gap-3 overflow-hidden rounded-xl bg-card px-4 py-4 text-card-foreground ring-1 ring-foreground/10 transition-colors hover:bg-muted/20"
+        class="group/user-card flex min-w-0 items-center gap-3 overflow-hidden rounded-xl bg-card px-4 py-4 text-card-foreground ring-1 ring-foreground/10 transition-colors hover:bg-accent"
         :class="props.class"
     >
         <Avatar :class="avatarSize">

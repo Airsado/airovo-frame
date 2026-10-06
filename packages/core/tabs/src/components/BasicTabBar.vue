@@ -225,7 +225,7 @@ watch(
                         'group relative flex shrink-0 items-center gap-1.5 h-8 px-3 rounded-md text-sm cursor-pointer select-none border border-transparent',
                         isActive(t.id)
                             ? 'bg-secondary text-secondary-foreground font-medium'
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                            : 'text-muted-foreground hover:bg-accent hover:text-foreground',
                     ]"
                     :ref="(element) => setTabElement(t.id, element)"
                     :data-tab-id="t.id"
@@ -246,7 +246,7 @@ watch(
                     <button
                         v-if="t.closable"
                         type="button"
-                        class="ml-1 size-4 rounded-sm inline-flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-foreground/10"
+                        class="ml-1 size-4 rounded-sm inline-flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-accent"
                         @click.stop="closeTabAndNavigate(t.id)"
                     >
                         <Icon icon="lucide:x" class="size-3" />
@@ -258,7 +258,7 @@ watch(
             v-if="canScrollRight"
             data-slot="tabs-scroll-next"
             type="button"
-            class="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             title="显示更多标签"
             aria-label="显示更多标签"
             @click.stop="scrollTabsRight"
@@ -268,7 +268,7 @@ watch(
         <div class="flex items-center gap-1 px-2 border-l border-border">
             <button
                 type="button"
-                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground"
                 title="刷新当前"
                 @click="tabs.refreshTab(tabs.activeTabId ?? '')"
             >
@@ -276,7 +276,7 @@ watch(
             </button>
             <button
                 type="button"
-                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground"
                 title="关闭其他"
                 @click="closeOthersAndNavigate(tabs.activeTabId ?? '')"
             >
@@ -284,7 +284,7 @@ watch(
             </button>
             <button
                 type="button"
-                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground"
                 :title="tabs.maximizedTabId === tabs.activeTabId ? '退出最大化' : '最大化'"
                 @click="tabs.maximizeTab(tabs.maximizedTabId === tabs.activeTabId ? null : tabs.activeTabId)"
             >
@@ -302,21 +302,21 @@ watch(
             >
                 <button
                     type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted/60 inline-flex items-center gap-2"
+                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
                     @click="refreshFromContext"
                 >
                     <Icon icon="lucide:rotate-ccw" class="size-3.5" />刷新
                 </button>
                 <button
                     type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted/60 inline-flex items-center gap-2"
+                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
                     @click="pinFromContext"
                 >
                     <Icon icon="lucide:pin" class="size-3.5" />钉住
                 </button>
                 <button
                     type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted/60 inline-flex items-center gap-2"
+                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
                     @click="maximizeFromContext"
                 >
                     <Icon icon="lucide:maximize-2" class="size-3.5" />最大化
@@ -324,21 +324,21 @@ watch(
                 <div class="my-1 h-px bg-border" />
                 <button
                     type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted/60 inline-flex items-center gap-2"
+                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
                     @click="closeFromContext"
                 >
                     <Icon icon="lucide:x" class="size-3.5" />关闭
                 </button>
                 <button
                     type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted/60 inline-flex items-center gap-2"
+                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
                     @click="closeOtherFromContext"
                 >
                     关闭其他
                 </button>
                 <button
                     type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted/60 inline-flex items-center gap-2"
+                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
                     @click="closeAllFromContext"
                 >
                     关闭全部

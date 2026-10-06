@@ -130,7 +130,7 @@ async function cancel() {
                     type="button"
                     size="icon"
                     variant="ghost"
-                    class="size-7 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+                    class="size-7 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
                     title="关闭对话框"
                     aria-label="关闭对话框"
                     :disabled="api.state.loading"

@@ -120,7 +120,7 @@ async function cancel() {
                         type="button"
                         size="icon"
                         variant="ghost"
-                        class="size-7 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        class="size-7 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
                         title="关闭抽屉"
                         aria-label="关闭抽屉"
                         :disabled="api.state.loading"

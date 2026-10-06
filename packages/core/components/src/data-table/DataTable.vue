@@ -251,7 +251,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
                         <slot name="error" :error="error" :retry="retry">
                             <p>{{ errorText ?? '加载失败' }}</p>
-                            <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-muted" @click="retry">重试</button>
+                            <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="retry">重试</button>
                         </slot>
                     </td>
                 </tr>
@@ -261,7 +261,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </td>
                 </tr>
                 <template v-else>
-                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="border-b transition-colors last:border-0 hover:bg-muted/50">
+                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="border-b transition-colors last:border-0 hover:bg-accent">
                         <td v-if="selectable" class="w-10 p-3 align-middle">
                             <input
                                 type="checkbox"
