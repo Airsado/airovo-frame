@@ -170,6 +170,7 @@ internal/
 - [路由、请求和认证迁移说明](docs/architecture/api-migration.md)
 - [表单与路由架构](docs/architecture/routing-and-forms.md)
 - [Issue 能力边界](docs/architecture/issue-capabilities.md)
+- [贡献与修复流程](CONTRIBUTING.md)
 - [UI 参考源码映射](docs/ui-source-map.md)
 - [UI 视觉验收记录](docs/ui-visual-verification.md)
 - [app-ui 使用边界](app-ui/README.md)
@@ -189,7 +190,7 @@ internal/
 
 当前版本仍在 `dev` 分支迭代。后续会在 API、主题、布局、表单、认证、路由和脚手架稳定后，再合并到主分支并发布正式版本。欢迎通过 Issue 或 Pull Request 提交问题、建议和改进；涉及大范围架构调整时，请先说明使用场景和兼容性影响。
 
-正式开源发布前还需要补充根目录许可证、贡献指南和版本发布流程；当前包内的 `MIT` 声明仅表示包级别的预期许可证信息。
+正式开源发布前还需要补充根目录许可证和版本发布流程；当前包内的 `MIT` 声明仅表示包级别的预期许可证信息。贡献和 Issue 修复流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 参考项目与资料
 
