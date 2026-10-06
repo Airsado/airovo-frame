@@ -884,6 +884,9 @@ importers:
       '@iconify/vue':
         specifier: 'catalog:'
         version: 4.3.0(vue@3.5.35(typescript@6.0.3))
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.35(typescript@6.0.3)
     devDependencies:
       '@airovo/typescript-config':
         specifier: workspace:*

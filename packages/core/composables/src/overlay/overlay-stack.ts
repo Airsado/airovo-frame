@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 
 /**
  * Options for an entry in the framework overlay stack.
@@ -17,7 +17,7 @@ export interface OverlayEntryOptions {
 export interface OverlayStackOptions {
     /** The first overlay layer's backdrop z-index. */
     baseZIndex?: number
-    /** The gap reserved for each subsequent overlay layer. */
+    /** Gap reserved for each subsequent main layer; at least three for backdrop, content and popup. */
     zIndexStep?: number
     /** Whether entries lock body scrolling by default. */
     lockBodyScroll?: boolean
@@ -27,6 +27,9 @@ export interface OverlayHandle {
     readonly id: number
     readonly zIndex: Readonly<Ref<number>>
     readonly overlayZIndex: Readonly<Ref<number>>
+    readonly popupZIndex: Readonly<Ref<number>>
+    /** Reactive ownership state for controls rendered in this layer. */
+    readonly isActive: Readonly<Ref<boolean>>
     readonly isReleased: Readonly<Ref<boolean>>
     /** Whether this entry is currently the topmost live overlay. */
     isTop(): boolean
@@ -64,6 +67,7 @@ export class OverlayStack {
     private readonly zIndexStep: number
     private readonly defaultLockBodyScroll: boolean
     private readonly entries = new Map<number, OverlayEntry>()
+    private readonly topId = ref<number>()
     private nextId = 0
     private bodyLockCountValue = 0
     private previousBodyOverflow: string | undefined
@@ -71,6 +75,9 @@ export class OverlayStack {
     constructor(options: OverlayStackOptions = {}) {
         this.baseZIndex = options.baseZIndex ?? DEFAULT_BASE_Z_INDEX
         this.zIndexStep = options.zIndexStep ?? DEFAULT_Z_INDEX_STEP
+        if (!Number.isFinite(this.zIndexStep) || this.zIndexStep < 3) {
+            throw new RangeError('Overlay zIndexStep must reserve at least three layers')
+        }
         this.defaultLockBodyScroll = options.lockBodyScroll ?? true
     }
 
@@ -100,16 +107,19 @@ export class OverlayStack {
             released: false,
         }
         this.entries.set(id, entry)
+        this.topId.value = id
         if (entry.lockBodyScroll) this.lockBody()
 
         const zIndex = ref(entry.zIndex)
         const overlayLayer = ref(entry.overlayZIndex)
+        const popupLayer = ref(entry.zIndex + 1)
         const isReleased = ref(false)
         const release = () => {
             if (entry.released) return
             entry.released = true
             isReleased.value = true
             this.entries.delete(entry.id)
+            this.topId.value = this.getTopEntry()?.id
             if (entry.lockBodyScroll) this.unlockBody()
             if (entry.restoreFocus) this.restoreFocus(entry.opener)
         }
@@ -119,6 +129,8 @@ export class OverlayStack {
             id,
             zIndex,
             overlayZIndex: overlayLayer,
+            popupZIndex: popupLayer,
+            isActive: computed(() => !isReleased.value && this.topId.value === id),
             isReleased,
             isTop: () => this.isTop(entry.id),
             tryEscape: (event) => this.isTop(entry.id) && this.dispatchEscape(event),
