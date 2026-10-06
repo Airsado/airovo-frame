@@ -32,7 +32,8 @@ The starter includes framework capability demonstrations:
 - `dashboard/components`: DataTable, server-side query state, Drawer, Modal,
   selectors, status components and bounded SSE LiveLog;
 - `dashboard/my-form`: `useForm`, `AForm`, `FormApi`, dynamic fields,
-  dependencies and nested Modal/Dialog form results;
+  dependencies, nested Modal/Dialog form results, and independent forms with
+  async prefill and Drawer → Modal → Select interactions;
 - `dashboard/developer`: app-ui composition, permissions, request refresh and
   the controller-style form API.
 

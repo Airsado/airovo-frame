@@ -20,6 +20,7 @@ import {
     Button,
 } from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
+import OverlayFormExample from './_examples/OverlayFormExample.vue'
 
 defineOptions({ name: 'MyFormDemo' })
 
@@ -759,6 +760,7 @@ async function openTagDialog(): Promise<void> {
                     </div>
                 </div>
             </section>
+            <OverlayFormExample />
         </div>
 
         <TagDialog>
