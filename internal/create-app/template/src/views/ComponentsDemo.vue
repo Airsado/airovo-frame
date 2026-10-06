@@ -45,6 +45,7 @@ import { SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
 import { useEventSourceSession, type EventSourceProtocolEventPayload } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
+import OverlaySelectExample from './_examples/OverlaySelectExample.vue'
 import { getDemoEventsUrl } from '../api/core/events'
 
 function onAdd() {
@@ -518,6 +519,8 @@ function sseItemData(item: unknown): unknown {
                     </div>
                 </div>
             </section>
+
+            <OverlaySelectExample />
 
             <section class="space-y-4">
                 <div>
