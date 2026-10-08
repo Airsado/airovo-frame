@@ -171,6 +171,8 @@ internal/
 - [表单与路由架构](docs/architecture/routing-and-forms.md)
 - [Issue 能力边界](docs/architecture/issue-capabilities.md)
 - [贡献与修复流程](CONTRIBUTING.md)
+- [Issue 模板、标签与 agent 操作规范](docs/issue-management.md)
+- [Agent 仓库入口](AGENTS.md)
 - [UI 参考源码映射](docs/ui-source-map.md)
 - [UI 视觉验收记录](docs/ui-visual-verification.md)
 - [app-ui 使用边界](app-ui/README.md)

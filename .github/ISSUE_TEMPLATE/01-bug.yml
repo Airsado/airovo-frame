@@ -1,0 +1,88 @@
+name: Bug 报告
+description: 报告可复现的框架问题，提供版本、证据和验收条件。
+title: "[Bug] "
+labels: [bug, "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        一个 Issue 描述一个独立问题。请区分已观察到的现象与猜测；仅贴通用最小复现，不贴 token、凭据或业务资料。
+        下拉选择不会自动添加 area 标签；维护者或 agent 评估后补充。详细规则见 CONTRIBUTING.md 和 docs/issue-management.md。
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影响模块
+      options:
+        - "app / createApp / AppShell"
+        - "forms / 表单系统"
+        - "overlays / Modal / Drawer / Portal"
+        - "components / 内置组件"
+        - "theme / 主题与布局外观"
+        - "routing / 路由、菜单与权限"
+        - "request / 请求与 SSE"
+        - "auth / 认证与会话"
+        - "i18n / 国际化"
+        - "tooling / 依赖、测试、构建与脚手架"
+        - "docs / 文档"
+        - "unknown / 待定位"
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: 版本与环境
+      description: 请给出分支和完整 commit，以及有关的 Node/pnpm、浏览器或操作系统版本。未知项请明确写未知。
+      placeholder: |
+        - 分支 / commit：
+        - 包或公开 API：
+        - Node / pnpm：
+        - 浏览器 / 系统：
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 最小复现
+      description: 提供可重复的步骤、通用代码或仓库内示例路径；包含必要的初始状态和操作顺序。
+      placeholder: |
+        1. ...
+        2. ...
+        最小代码或命令：...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为与证据
+      description: 说明实际看到了什么；贴必要日志、断言或截图。尚未复现时说明证据限制，不把猜测写成结论。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+      description: 指出期望行为及其依据，例如公开契约、文档或相同 API 的正常行为。
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: 影响与边界
+      description: 哪些场景受影响？是否有替代路径？哪些内容明确不属于本 Issue？不要仅凭主观紧急程度指定优先级。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收条件
+      description: 列出可判断通过或失败的条件，包括必要的回归。涉及 UI 时描述真实鼠标、键盘或焦点验证。
+      placeholder: |
+        - [ ] 最小复现不再失败
+        - [ ] 正常路径与相关回归通过
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 相关源码与关联项
+      description: 可选。列出文件、文档、Issue/PR 链接和建议方向；明确哪些建议还未经验证。
