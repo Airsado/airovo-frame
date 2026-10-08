@@ -4,6 +4,16 @@
 
 每个修复 PR 只对应一个 Issue，独立问题分别提交。存在实现依赖时在 PR 中说明，通用协作文档单独提交，不混入修复 PR。
 
+## 提交与分类 Issue
+
+新 Issue 使用 [Bug、功能建议或维护任务模板](.github/ISSUE_TEMPLATE)。模板统一收集源码依据、范围和验收条件。只讨论一个独立问题，区分已验证事实和猜测。
+
+类型标签沿用 `bug`、`enhancement`、`documentation`、`question`，维护任务使用 `maintenance`；`area:*` 表示影响模块，`priority:P0` 至 `priority:P3` 表示评估后的优先级。尚未评估不强制填写优先级。
+
+处理中只保留一个 `status:*`：待评估、待补充、实施中、待合并。PR 提交后不提前关闭 Issue；关闭状态由 GitHub 表示，不追加完成标签。标签定义见 [.github/labels.json](.github/labels.json)，详细规则和 API 创建示例见 [Issue 与 agent 操作规范](docs/issue-management.md)。
+
+Agent 先阅读 [AGENTS.md](AGENTS.md) 与 CLAUDE.md。通过 API 创建 Issue 时同样填写对应模板的字段；GitHub Issue Forms 不会自动校验 API 的 Markdown 内容，也不会把 area 下拉选项自动转换为标签。
+
 ## 修复 Issue
 
 1. 在 Issue 中说明通用复现步骤、影响范围和预期行为。

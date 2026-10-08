@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 提问与 agent 操作说明
+    url: https://github.com/Airsado/airovo-frame/blob/dev/docs/issue-management.md
+    about: 查看模板、标签、API 创建 Issue 和 PR 流程；非缺陷问题可按说明使用 question 标签。

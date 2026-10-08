@@ -1,0 +1,62 @@
+name: 维护任务
+description: 依赖、工具、测试、文档或仓库规范任务。
+title: "[Maintenance] "
+labels: [maintenance, "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        记录一个可验收的维护任务。若已有行为不符合契约，请使用 Bug 报告。
+        area 下拉不会自动变成标签；维护者或 agent 评估后补充。
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影响模块
+      options:
+        - "tooling / 依赖、测试、构建与脚手架"
+        - "docs / 文档与仓库规范"
+        - "app / 框架启动"
+        - "forms / 表单系统"
+        - "overlays / 弹层系统"
+        - "components / 内置组件"
+        - "theme / 主题与布局外观"
+        - "routing / 路由、菜单与权限"
+        - "request / 请求与 SSE"
+        - "auth / 认证与会话"
+        - "i18n / 国际化"
+        - "unknown / 待定位"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 背景与依据
+      description: 说明现状、相关版本或 commit、源码或文档依据，以及为什么需要此任务。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 目标与边界
+      description: 列出本次改动范围和非目标，避免把独立修复混在一起。
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 实施方向
+      description: 描述具体可执行的步骤；尚未决定的部分写清楚，不要求完整代码设计。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收条件
+      description: 提供明确停止点；文档/仓库配置任务应检查格式、链接和实际平台状态，无需无关全量测试。
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 相关源码与关联项
+      description: 可选。补充相关文件、资料和 Issue/PR 依赖。

@@ -1,0 +1,76 @@
+name: 功能建议
+description: 提出通用框架能力，明确使用场景、最小交付与边界。
+title: "[Feature] "
+labels: [enhancement, "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        一个 Issue 聚焦一个独立能力。请先说明问题和通用使用场景，再说明希望提供的服务。
+        area 下拉不会自动变成标签；维护者或 agent 评估后补充。不要把业务页面或第三方适配要求混入框架能力。
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影响模块
+      options:
+        - "app / createApp / AppShell"
+        - "forms / 表单系统"
+        - "overlays / Modal / Drawer / Portal"
+        - "components / 内置组件"
+        - "theme / 主题与布局外观"
+        - "routing / 路由、菜单与权限"
+        - "request / 请求与 SSE"
+        - "auth / 认证与会话"
+        - "i18n / 国际化"
+        - "tooling / 依赖、测试、构建与脚手架"
+        - "docs / 文档"
+        - "unknown / 待定位"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 问题与使用场景
+      description: 当前框架无法满足什么通用场景？请说明使用的版本或 commit，以及已有 API 的限制。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望能力
+      description: 描述输入、输出和可演示的行为；API 示例可选，不需要预先设计完整实现。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 现有方案与依据
+      description: 已读过哪些源码或文档？现有组件组合能否满足？尚未验证的判断请标明。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 最小交付与非目标
+      description: 本次必须完成哪些内容？明确框架和应用边界，以及以后再考虑的内容。
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: 兼容性影响
+      description: 是否改变现有 API、默认行为、持久化或依赖？没有影响或尚未知晓也请说明。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收条件
+      description: 给出可判断完成的行为、测试、Demo 或模板同步要求，作为停止点。
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 相关源码与关联项
+      description: 可选。列出源码、参考资料及有关 Issue/PR，注明实现依赖。
