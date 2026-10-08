@@ -18,6 +18,9 @@ import { watchEffect } from 'vue'
 import type { FormFieldSchema } from './types'
 import { isRequiredRule, parseRules } from './rules'
 import FormRequiredMark from './FormRequiredMark.vue'
+import { useFieldId } from './form-dom'
+
+const fieldId = useFieldId()
 
 const props = defineProps<{
     schema: FormFieldSchema[]
@@ -244,7 +247,7 @@ watchEffect(() => {
             :name="fieldPath(item)"
         >
             <FieldSet v-show="isVisible(item)">
-                <FieldLegend variant="label">
+                <FieldLegend :id="`${fieldId(fieldPath(item))}-label`" variant="label">
                     {{ item.label || item.fieldName }}
                     <FormRequiredMark :required="!item.children?.length && isRequired(item)" />
                 </FieldLegend>
@@ -273,12 +276,13 @@ watchEffect(() => {
                                 </FieldDescription>
                                 <component
                                     :is="getComponent(item.component)"
-                                    :id="`AForm-${fieldPath(item)}-${index}`"
+                                    :id="fieldId(`${fieldPath(item)}[${index}].${getArrayField(item)}`)"
                                     :name="`${fieldPath(item)}[${index}].${getArrayField(item)}`"
                                     :model-value="field.value"
                                     v-bind="getExtraProps(item)"
                                     :disabled="props.api.disabled || props.api.loading || isDisabled(item)"
                                     :aria-invalid="!!getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) || !!errors.length"
+                                    :aria-labelledby="`${fieldId(fieldPath(item))}-label`"
                                     :aria-required="isRequired(item) || undefined"
                                     @update:model-value="handleInput(item, field.onInput, $event)"
                                     @blur="handleBlur"
@@ -338,7 +342,7 @@ watchEffect(() => {
                 :data-invalid="!!getError(fieldPath(item), item) || !!errors.length"
             >
                 <FieldContent>
-                    <FieldLabel :for="`AForm-${fieldPath(item)}`">
+                    <FieldLabel :for="fieldId(fieldPath(item))">
                         {{ item.label || item.fieldName }}
                         <FormRequiredMark :required="isRequired(item)" />
                     </FieldLabel>
@@ -347,7 +351,7 @@ watchEffect(() => {
                     </FieldDescription>
                     <component
                         :is="getComponent(item.component)"
-                        :id="`AForm-${fieldPath(item)}`"
+                        :id="fieldId(fieldPath(item))"
                         :name="fieldPath(item)"
                         :model-value="field.value"
                         v-bind="getExtraProps(item)"

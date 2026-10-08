@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, provide } from 'vue'
+import { computed, onBeforeUnmount, onMounted, provide, ref, useId } from 'vue'
 import { getFormContexts, FormContextKey, PublicFormContextKey } from './form-context'
 import FormFieldRender from './FormFieldRender.vue'
 import type { FormApi } from './form-api'
+import { FormDomKey, registerFormDom } from './form-dom'
 
 defineOptions({ inheritAttrs: false })
 
@@ -16,6 +17,12 @@ const emit = defineEmits<{
 }>()
 
 provide('formApi', props.api)
+const formElement = ref<HTMLFormElement | null>(null)
+const dom = { id: useId(), element: formElement }
+provide(FormDomKey, dom)
+let unregisterDom: (() => void) | undefined
+onMounted(() => { unregisterDom = registerFormDom(props.api, dom) })
+onBeforeUnmount(() => { unregisterDom?.() })
 const contexts = getFormContexts(props.api)
 if (contexts) {
     provide(FormContextKey, contexts.private)
@@ -39,7 +46,7 @@ function onReset() {
 </script>
 
 <template>
-    <form v-bind="$attrs" :class="['space-y-4', props.api.props.wrapperClass]" @submit.prevent="onSubmit">
+    <form ref="formElement" v-bind="$attrs" :class="['space-y-4', props.api.props.wrapperClass]" @submit.prevent="onSubmit">
         <fieldset :disabled="isDisabled || isLoading" class="min-w-0 space-y-4">
             <FormFieldRender :schema="props.api.schema" :api="props.api" />
 
