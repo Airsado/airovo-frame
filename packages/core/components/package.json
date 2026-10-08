@@ -41,6 +41,7 @@
         "@airovo/typescript-config": "workspace:*",
         "@types/node": "catalog:",
         "@vitejs/plugin-vue": "catalog:",
+        "@vue/test-utils": "^2.4.0",
         "happy-dom": "catalog:",
         "typescript": "catalog:",
         "vitest": "catalog:"

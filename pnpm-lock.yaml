@@ -490,6 +490,9 @@ importers:
         specifier: ^2.0.9
         version: 2.0.9
     devDependencies:
+      '@vue/test-utils':
+        specifier: ^2.4.0
+        version: 2.4.11(@vue/compiler-dom@3.5.35)(@vue/server-renderer@3.5.35(vue@3.5.35(typescript@6.0.3)))(vue@3.5.35(typescript@6.0.3))
       '@airovo/typescript-config':
         specifier: workspace:*
         version: link:../../../internal/typescript-config
