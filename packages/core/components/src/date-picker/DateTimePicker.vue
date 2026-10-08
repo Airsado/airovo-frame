@@ -32,7 +32,8 @@ function updateTime(event: Event): void {
 
 <template>
   <div :class="cn('flex items-center gap-2', props.class)">
-    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="props.placeholder" class="min-w-0 flex-1" @update:model-value="updateDate" />
+    <!-- Override DatePicker's standalone width so this row can shrink in forms. -->
+    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="props.placeholder" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
     <label class="relative flex h-8 shrink-0 items-center">
       <CalendarClock class="pointer-events-none absolute left-2 opacity-60" />
       <input type="time" :value="time" :disabled="props.disabled || !props.modelValue" class="h-8 w-[7.5rem] rounded-lg border border-input bg-background pl-8 pr-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50" @input="updateTime">
