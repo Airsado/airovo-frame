@@ -28,6 +28,10 @@ function updateTime(event: Event): void {
   time.value = value
   if (props.modelValue) updateDate(new Date(props.modelValue))
 }
+function clear(): void {
+  if (props.disabled) return
+  emit('update:modelValue', undefined)
+}
 </script>
 
 <template>
@@ -38,7 +42,7 @@ function updateTime(event: Event): void {
       <CalendarClock class="pointer-events-none absolute left-2 opacity-60" />
       <input type="time" :value="time" :disabled="props.disabled || !props.modelValue" class="h-8 w-[7.5rem] rounded-lg border border-input bg-background pl-8 pr-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50" @input="updateTime">
     </label>
-    <Button v-if="props.modelValue" type="button" variant="ghost" size="icon" aria-label="清除日期时间" @click="emit('update:modelValue', undefined)">
+    <Button v-if="props.modelValue" type="button" variant="ghost" size="icon" aria-label="清除日期时间" :disabled="props.disabled" @click="clear">
       <X />
     </Button>
   </div>
