@@ -59,6 +59,7 @@ const modelValue = defineModel<string | undefined>()
 function clear(event: MouseEvent): void {
   event.preventDefault()
   event.stopPropagation()
+  if (props.disabled) return
   modelValue.value = undefined
 }
 </script>
@@ -77,6 +78,7 @@ function clear(event: MouseEvent): void {
         type="button"
         class="absolute right-7 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm opacity-50 transition-opacity hover:opacity-100"
         aria-label="清除选择"
+        :disabled="props.disabled"
         @click="clear"
       >
         <X class="size-3.5" />
