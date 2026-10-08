@@ -1,6 +1,7 @@
-import { computed, ref, shallowReactive, shallowRef, watch, type Ref } from 'vue'
+import { computed, nextTick, ref, shallowReactive, shallowRef, watch, type Ref } from 'vue'
 import type { FormContext } from 'vee-validate'
 import type { ZodTypeAny } from 'zod'
+import { findFormField } from './form-dom'
 import type {
     FormApiLike,
     FormApiState,
@@ -383,6 +384,10 @@ export class FormApi implements FormApiLike {
             try {
                 const result = await this.validate()
                 if (!result.valid) {
+                    // The pending submit disables the fieldset. Restore its DOM
+                    // before focusing; native browsers cannot focus disabled fields.
+                    this.submitting.value = false
+                    await nextTick()
                     const firstError = Object.keys(result.errors)[0]
                     if (firstError) this.scrollToField(firstError)
                     return null
@@ -451,10 +456,7 @@ export class FormApi implements FormApiLike {
     }
 
     scrollToField(fieldName: string): void {
-        if (typeof document === 'undefined') return
-        const element = Array.from(document.querySelectorAll<HTMLElement>('[name]'))
-            .find((field) => field.getAttribute('name') === fieldName)
-            ?? document.getElementById(`AForm-${fieldName}-0`)
+        const element = findFormField(this, fieldName)
         element?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
         element?.focus?.()
     }

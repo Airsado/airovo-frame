@@ -68,4 +68,6 @@ Fields whose `rules` contain the `required` token, or whose Zod schema is not op
 
 Validation errors appear below the corresponding field, without a form-level summary banner. Invalid submissions still focus the first invalid control and emit `submit-fail` for application handling.
 
+Generated control IDs are scoped to each mounted renderer with Vue `useId`; do not rely on the old `AForm-<field>` IDs in application selectors. Labels and array legends reference their own renderer's controls. `scrollToField('name[0].value')` accepts the rendered field path and searches only the controller's mounted forms. Closing a renderer unregisters its DOM while preserving controller values for reopening.
+
 Run `pnpm --filter @airovo/forms test` for controller and rendered-form tests, then typecheck the consuming app with `vue-tsc`.

@@ -20,6 +20,9 @@ import type { FormFieldSchema } from './types'
 import { isRequiredRule, parseRules } from './rules'
 import FormFieldNodes from './FormFieldNodes.vue'
 import FormRequiredMark from './FormRequiredMark.vue'
+import { useFieldId } from './form-dom'
+
+const fieldId = useFieldId()
 
 const props = defineProps<{
     schema: FormFieldSchema[]
@@ -253,7 +256,7 @@ watchEffect(() => {
         <template v-for="(item, idx) in props.schema" :key="item.fieldName + ':' + idx">
             <VeeFieldArray v-if="isRendered(item)" v-slot="{ fields, push, remove }" :name="item.fieldName">
                 <FieldSet v-show="isVisible(item)">
-                    <FieldLegend v-if="item.array" variant="label">
+                    <FieldLegend v-if="item.array" :id="`${fieldId(item.fieldName)}-label`" variant="label">
                         {{ item.label || item.fieldName }}
                         <FormRequiredMark :required="!item.children?.length && isRequired(item)" />
                     </FieldLegend>
@@ -272,20 +275,21 @@ watchEffect(() => {
                             <Field :orientation="props.api.props.layout === 'horizontal' ? 'horizontal' : 'vertical'"
                                 :data-invalid="!!getError(item, index) || !!errors.length" class="flex-1">
                                 <FieldContent>
-                                    <FieldLabel :for="item.array ? `AForm-${item.fieldName}-${index}` : `AForm-${item.fieldName}`" v-if="!item.array">
+                                    <FieldLabel :for="fieldId(fieldPath(item, index))" v-if="!item.array">
                                         {{ item.label || item.fieldName }}
                                         <FormRequiredMark :required="isRequired(item)" />
                                     </FieldLabel>
                                     <FieldDescription v-if="item.description && index === 0">
                                         {{ item.description }}
                                     </FieldDescription>
-                                    <component :id="item.array ? `AForm-${item.fieldName}-${index}` : `AForm-${item.fieldName}`"
+                                    <component :id="fieldId(fieldPath(item, index))"
                                         :is="getComponent(item.component)"
                                         :name="fieldPath(item, index)"
                                         :modelValue="field.value" @update:modelValue="handleInput(item, field.onInput, $event)"
                                         v-bind="getExtraProps(item)"
                                         :disabled="props.api.disabled || props.api.loading || isDisabled(item)"
                                         :aria-invalid="!!getError(item, index) || !!errors.length"
+                                        :aria-labelledby="item.array ? `${fieldId(item.fieldName)}-label` : undefined"
                                         :aria-required="isRequired(item) || undefined"
                                         @blur="handleBlur" />
                                     <FieldError v-if="getError(item, index) || errors.length"

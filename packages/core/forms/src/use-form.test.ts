@@ -104,16 +104,16 @@ describe('useForm and AForm', () => {
         expect(isRequiredRule(z.string().email().optional())).toBe(false)
 
         const requiredLabel = wrapper.findAll('label').find(
-            (label) => label.attributes('for') === 'AForm-requiredName',
+            (label) => label.attributes('for') === wrapper.get('input[name="requiredName[0].value"]').attributes('id'),
         )
         const optionalLabel = wrapper.findAll('label').find(
-            (label) => label.attributes('for') === 'AForm-optionalNote',
+            (label) => label.attributes('for') === wrapper.get('textarea[name="optionalNote[0].value"]').attributes('id'),
         )
         const zodRequiredLabel = wrapper.findAll('label').find(
-            (label) => label.attributes('for') === 'AForm-zodEmail',
+            (label) => label.attributes('for') === wrapper.get('input[name="zodEmail[0].value"]').attributes('id'),
         )
         const zodOptionalLabel = wrapper.findAll('label').find(
-            (label) => label.attributes('for') === 'AForm-optionalEmail',
+            (label) => label.attributes('for') === wrapper.get('input[name="optionalEmail[0].value"]').attributes('id'),
         )
 
         expect(requiredLabel?.find('[data-slot="required-indicator"]').exists()).toBe(true)
@@ -341,7 +341,7 @@ describe('useForm and AForm', () => {
         expect((country.element as HTMLInputElement).value).toBe('CA')
 
         const cityLabel = wrapper.findAll('label').find(
-            (label) => label.attributes('for') === 'AForm-contacts[0].address.city',
+            (label) => label.attributes('for') === city.attributes('id'),
         )
         expect(cityLabel?.find('[data-slot="required-indicator"]').exists()).toBe(true)
 
