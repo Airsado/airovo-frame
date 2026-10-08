@@ -46,6 +46,7 @@ import { useDrawer, useModal } from '@airovo/composables'
 import { useEventSourceSession, type EventSourceProtocolEventPayload } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
 import OverlaySelectExample from './_examples/OverlaySelectExample.vue'
+import OverlayDatePickerExample from './_examples/OverlayDatePickerExample.vue'
 import { getDemoEventsUrl } from '../api/core/events'
 
 function onAdd() {
@@ -521,6 +522,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <OverlaySelectExample />
+            <OverlayDatePickerExample />
 
             <section class="space-y-4">
                 <div>
