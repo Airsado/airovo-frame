@@ -213,7 +213,16 @@ function isVisible(item: FormFieldSchema): boolean {
 }
 
 function isDisabled(item: FormFieldSchema): boolean {
-    return dependencyValue(item, 'disabled', false) || resolve(item.disabled, false)
+    return props.api.disabled || props.api.loading
+        || dependencyValue(item, 'disabled', false) || resolve(item.disabled, false)
+}
+
+function addRow(item: FormFieldSchema, length: number, push: (value: unknown) => void): void {
+    if (!isDisabled(item) && !isAtMax(item, length)) push(createRow(item))
+}
+
+function removeRow(item: FormFieldSchema, index: number, remove: (index: number) => void): void {
+    if (!isDisabled(item)) remove(index)
 }
 
 function getError(item: FormFieldSchema, index: number): string | undefined {
@@ -255,7 +264,7 @@ watchEffect(() => {
     <FieldGroup>
         <template v-for="(item, idx) in props.schema" :key="item.fieldName + ':' + idx">
             <VeeFieldArray v-if="isRendered(item)" v-slot="{ fields, push, remove }" :name="item.fieldName">
-                <FieldSet v-show="isVisible(item)">
+                <FieldSet v-show="isVisible(item)" :disabled="isDisabled(item)">
                     <FieldLegend v-if="item.array" :id="`${fieldId(item.fieldName)}-label`" variant="label">
                         {{ item.label || item.fieldName }}
                         <FormRequiredMark :required="!item.children?.length && isRequired(item)" />
@@ -266,6 +275,7 @@ watchEffect(() => {
                             <FormFieldNodes
                                 :schema="item.children"
                                 :api="props.api"
+                                :disabled="isDisabled(item)"
                                 :base-path="`${item.fieldName}[${index}]`"
                             />
                         </div>
@@ -287,7 +297,7 @@ watchEffect(() => {
                                         :name="fieldPath(item, index)"
                                         :modelValue="field.value" @update:modelValue="handleInput(item, field.onInput, $event)"
                                         v-bind="getExtraProps(item)"
-                                        :disabled="props.api.disabled || props.api.loading || isDisabled(item)"
+                                        :disabled="isDisabled(item)"
                                         :aria-invalid="!!getError(item, index) || !!errors.length"
                                         :aria-labelledby="item.array ? `${fieldId(item.fieldName)}-label` : undefined"
                                         :aria-required="isRequired(item) || undefined"
@@ -305,7 +315,7 @@ watchEffect(() => {
                                 :fields="fields" />
                             <slot name="array-remove-prefix" :item="item" :index="index" :fields="fields" />
                             <Button type="button" variant="ghost" size="sm" class="text-muted-foreground"
-                                @click="remove(index)">
+                                :disabled="isDisabled(item)" @click="removeRow(item, index, remove)">
                                 {{ getRemoveLabel(item) }}
                             </Button>
                             <slot name="array-remove-suffix" :item="item" :index="index" :fields="fields" />
@@ -318,8 +328,8 @@ watchEffect(() => {
                     <div v-if="item.array" class="flex items-center gap-1 self-start">
                         <slot :name="`array-add-prefix-${item.fieldName}`" :item="item" :fields="fields" />
                         <slot name="array-add-prefix" :item="item" :fields="fields" />
-                        <Button type="button" variant="outline" size="sm" :disabled="isAtMax(item, fields.length)"
-                            @click="push(createRow(item))">
+                        <Button type="button" variant="outline" size="sm" :disabled="isDisabled(item) || isAtMax(item, fields.length)"
+                            @click="addRow(item, fields.length, push)">
                             {{ getAddLabel(item) }}
                             <span v-if="item.maxItems" class="ml-1 text-xs text-muted-foreground">
                                 ({{ fields.length }}/{{ item.maxItems }})

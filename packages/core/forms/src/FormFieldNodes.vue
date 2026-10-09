@@ -27,6 +27,8 @@ const props = defineProps<{
     api: import('./form-api').FormApi
     /** Path of the object/array row that owns this schema. */
     basePath?: string
+    /** Disabled state inherited from the owning object/array field. */
+    disabled?: boolean
 }>()
 
 const componentMap: Record<string, any> = {
@@ -159,7 +161,17 @@ function isVisible(item: FormFieldSchema): boolean {
 }
 
 function isDisabled(item: FormFieldSchema): boolean {
-    return dependencyValue(item, 'disabled', false) || resolve(item.disabled, false)
+    return Boolean(props.disabled) || props.api.disabled || props.api.loading
+        || dependencyValue(item, 'disabled', false) || resolve(item.disabled, false)
+}
+
+function addRow(item: FormFieldSchema, length: number, push: (value: unknown) => void): void {
+    if (isDisabled(item) || (typeof item.maxItems === 'number' && length >= item.maxItems)) return
+    push(createRow(item))
+}
+
+function removeRow(item: FormFieldSchema, index: number, remove: (index: number) => void): void {
+    if (!isDisabled(item)) remove(index)
 }
 
 function getError(path: string, item: FormFieldSchema): string | undefined {
@@ -246,7 +258,7 @@ watchEffect(() => {
             v-slot="{ fields, push, remove }"
             :name="fieldPath(item)"
         >
-            <FieldSet v-show="isVisible(item)">
+            <FieldSet v-show="isVisible(item)" :disabled="isDisabled(item)">
                 <FieldLegend :id="`${fieldId(fieldPath(item))}-label`" variant="label">
                     {{ item.label || item.fieldName }}
                     <FormRequiredMark :required="!item.children?.length && isRequired(item)" />
@@ -256,6 +268,7 @@ watchEffect(() => {
                         <FormFieldNodes
                             :schema="item.children"
                             :api="props.api"
+                            :disabled="isDisabled(item)"
                             :base-path="`${fieldPath(item)}[${index}]`"
                         />
                     </div>
@@ -280,7 +293,7 @@ watchEffect(() => {
                                     :name="`${fieldPath(item)}[${index}].${getArrayField(item)}`"
                                     :model-value="field.value"
                                     v-bind="getExtraProps(item)"
-                                    :disabled="props.api.disabled || props.api.loading || isDisabled(item)"
+                                    :disabled="isDisabled(item)"
                                     :aria-invalid="!!getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) || !!errors.length"
                                     :aria-labelledby="`${fieldId(fieldPath(item))}-label`"
                                     :aria-required="isRequired(item) || undefined"
@@ -300,7 +313,8 @@ watchEffect(() => {
                         variant="ghost"
                         size="sm"
                         class="text-muted-foreground"
-                        @click="remove(index)"
+                        :disabled="isDisabled(item)"
+                        @click="removeRow(item, index, remove)"
                     >
                         {{ removeLabel(item) }}
                     </Button>
@@ -309,8 +323,8 @@ watchEffect(() => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    :disabled="typeof item.maxItems === 'number' && fields.length >= item.maxItems"
-                    @click="push(createRow(item))"
+                    :disabled="isDisabled(item) || (typeof item.maxItems === 'number' && fields.length >= item.maxItems)"
+                    @click="addRow(item, fields.length, push)"
                 >
                     {{ addLabel(item) }}
                     <span v-if="item.maxItems" class="ml-1 text-xs text-muted-foreground">
@@ -320,13 +334,14 @@ watchEffect(() => {
             </FieldSet>
         </VeeFieldArray>
 
-        <FieldSet v-else-if="item.children?.length && isRendered(item)" v-show="isVisible(item)">
+        <FieldSet v-else-if="item.children?.length && isRendered(item)" v-show="isVisible(item)" :disabled="isDisabled(item)">
             <FieldLegend v-if="item.label" variant="label">
                 {{ item.label }}
             </FieldLegend>
             <FormFieldNodes
                 :schema="item.children"
                 :api="props.api"
+                :disabled="isDisabled(item)"
                 :base-path="fieldPath(item)"
             />
         </FieldSet>
@@ -355,7 +370,7 @@ watchEffect(() => {
                         :name="fieldPath(item)"
                         :model-value="field.value"
                         v-bind="getExtraProps(item)"
-                        :disabled="props.api.disabled || props.api.loading || isDisabled(item)"
+                        :disabled="isDisabled(item)"
                         :aria-invalid="!!getError(fieldPath(item), item) || !!errors.length"
                         :aria-required="isRequired(item) || undefined"
                         @update:model-value="handleInput(item, field.onInput, $event)"
