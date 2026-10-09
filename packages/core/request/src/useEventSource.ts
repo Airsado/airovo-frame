@@ -518,6 +518,7 @@ export interface UseEventSourceSessionOptions<T = unknown> extends UseEventSourc
     includeHeartbeat?: boolean
     /** Drop oldest items when a bound is reached. Default: true. */
     dropOldest?: boolean
+    /** Deduplicate IDs in the retained buffer only. Evicted IDs can be replayed. Default: true. */
     dedupe?: boolean
     onItem?: (item: EventSourceSessionItem<T>) => void
 }
@@ -550,7 +551,6 @@ export function useEventSourceSession<T = unknown>(options: UseEventSourceSessio
         if (kind === 'heartbeat' && options.includeHeartbeat !== true) return
         const id = event.lastEventId || getRecordId(data)
         if (options.dedupe !== false && id && seenIds.has(id)) return
-        if (id) seenIds.add(id)
         const item: EventSourceSessionItem<T> = {
             id,
             event: kind,
@@ -571,11 +571,15 @@ export function useEventSourceSession<T = unknown>(options: UseEventSourceSessio
         )) return
 
         items.value.push(item)
+        // Index only accepted items. The index shares the buffer's lifetime
+        // and bounds; Last-Event-ID belongs to the independent transport.
+        if (options.dedupe !== false && id) seenIds.add(id)
         totalBytes.value += item.bytes
         while (items.value.length > maxItems || totalBytes.value > maxBytes) {
             const removed = options.dropOldest === false ? items.value.pop() : items.value.shift()
             if (!removed) break
             totalBytes.value -= removed.bytes
+            if (removed.id) seenIds.delete(removed.id)
         }
         if (items.value.includes(item)) options.onItem?.(item)
     }

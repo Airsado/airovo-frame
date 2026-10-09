@@ -64,6 +64,11 @@ transport remains independent from any DOM scrolling or rendering code. Its
 default buffer policy keeps the newest 1000 items and drops the oldest items
 when `maxItems` or `maxBytes` is exceeded; set `dropOldest: false` to discard
 the newest item instead. In that mode, discarded items are not passed to
-`onItem`. Items with the same SSE id are ignored by default. When
+`onItem`. Items with the same SSE id are ignored while that ID remains in the
+retained buffer. Eviction also removes its deduplication entry, so a replay of
+an evicted ID can be accepted again. The ID index has at most one entry per
+retained item; rejected items are not indexed, and `dedupe: false` does not
+accumulate IDs. `clear()` resets both the buffer and the index but preserves
+the transport's Last-Event-ID for reconnection. When
 `heartbeatTimeout` is enabled, only heartbeat events refresh the watchdog;
 ordinary messages and progress events do not count as a heartbeat.

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { createApp, defineComponent, h } from 'vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
     useEventSource,
     useEventSourceSession,
@@ -272,6 +272,7 @@ describe('useEventSource', () => {
 })
 
 describe('useEventSourceSession', () => {
+    afterEach(() => { vi.restoreAllMocks() })
     beforeEach(() => {
         FakeEventSource.instances = []
     })
@@ -332,5 +333,100 @@ describe('useEventSourceSession', () => {
 
         expect(session.items.value.map((item) => item.id)).toEqual(['1', '2'])
         expect(retained).toEqual(['1', '2'])
+    })
+
+    it.each([
+        { dedupe: true, maxItems: 1, maxBytes: undefined },
+        { dedupe: false, maxItems: 1, maxBytes: undefined },
+        { dedupe: true, maxItems: undefined, maxBytes: 26 },
+        { dedupe: false, maxItems: undefined, maxBytes: 26 },
+    ])('bounds the ID index across 10,000 events (dedupe=$dedupe, maxItems=$maxItems, maxBytes=$maxBytes)', ({ dedupe, maxItems, maxBytes }) => {
+        // Observe the private collection without exposing a test-only runtime API.
+        const indexes = new Set<Set<string>>()
+        const originalAdd = Set.prototype.add
+        vi.spyOn(Set.prototype, 'add').mockImplementation(function (this: Set<unknown>, value: unknown) {
+            if (typeof value === 'string' && value.startsWith('bounded-')) originalAdd.call(indexes, this)
+            return originalAdd.call(this, value)
+        })
+        const session = useEventSourceSession({ url: '/logs', eventSourceFactory: factory(), reconnect: false, maxItems, maxBytes, dedupe })
+        const source = FakeEventSource.instances.at(-1)!
+        for (let id = 0; id < 10_000; id++) source.emit('message', JSON.stringify({ id: `bounded-${id}` }), `bounded-${id}`)
+        expect(session.items.value).toHaveLength(1)
+        if (dedupe) {
+            expect(indexes.size).toBe(1)
+            expect([...indexes][0].size).toBe(1)
+        } else expect(indexes.size).toBe(0)
+        session.clear()
+        for (const index of indexes) expect(index.size).toBe(0)
+    })
+
+    it('allows replay only after an ID leaves the retained byte window', () => {
+        const data = { id: '1', message: 'one' }
+        const session = useEventSourceSession({ url: '/logs', eventSourceFactory: factory(), reconnect: false, maxBytes: new TextEncoder().encode(JSON.stringify(data)).byteLength })
+        const source = FakeEventSource.instances.at(-1)!
+        source.emit('message', JSON.stringify(data), '1')
+        source.emit('message', JSON.stringify({ id: '2', message: 'two' }), '2')
+        source.emit('message', JSON.stringify(data), '1')
+        expect(session.items.value.map(item => item.id)).toEqual(['1'])
+        source.emit('message', JSON.stringify(data), '1')
+        expect(session.items.value).toHaveLength(1)
+    })
+
+    it('does not index messages rejected by drop-newest or an oversized item', () => {
+        const added = vi.spyOn(Set.prototype, 'add')
+        const session = useEventSourceSession({ url: '/logs', eventSourceFactory: factory(), reconnect: false, maxItems: 1, maxBytes: 80, dropOldest: false })
+        const source = FakeEventSource.instances.at(-1)!
+        source.emit('message', JSON.stringify({ id: 'retained' }), 'retained')
+        source.emit('message', JSON.stringify({ id: 'rejected-newest' }), 'rejected-newest')
+        source.emit('message', JSON.stringify({ id: 'rejected-large', message: 'x'.repeat(100) }), 'rejected-large')
+        expect(added).not.toHaveBeenCalledWith('rejected-newest')
+        expect(added).not.toHaveBeenCalledWith('rejected-large')
+        expect(session.items.value.map(item => item.id)).toEqual(['retained'])
+        session.clear()
+        source.emit('message', JSON.stringify({ id: 'rejected-newest' }), 'rejected-newest')
+        expect(session.items.value.map(item => item.id)).toEqual(['rejected-newest'])
+    })
+
+    it('removes even an oversized incoming ID when drop-oldest evicts the whole buffer', () => {
+        const indexes = new Set<Set<string>>()
+        const originalAdd = Set.prototype.add
+        vi.spyOn(Set.prototype, 'add').mockImplementation(function (this: Set<unknown>, value: unknown) {
+            if (typeof value === 'string' && value.startsWith('oversized-')) originalAdd.call(indexes, this)
+            return originalAdd.call(this, value)
+        })
+        const session = useEventSourceSession({ url: '/logs', eventSourceFactory: factory(), reconnect: false, maxBytes: 80 })
+        const source = FakeEventSource.instances.at(-1)!
+        source.emit('message', JSON.stringify({ id: 'oversized-retained' }), 'oversized-retained')
+        source.emit('message', JSON.stringify({ id: 'oversized-large', message: 'x'.repeat(100) }), 'oversized-large')
+        expect(session.items.value).toEqual([])
+        expect(session.totalBytes.value).toBe(0)
+        for (const index of indexes) expect(index.size).toBe(0)
+        source.emit('message', JSON.stringify({ id: 'oversized-large' }), 'oversized-large')
+        expect(session.items.value.map(item => item.id)).toEqual(['oversized-large'])
+    })
+
+    it('normalizes numeric IDs, keeps Last-Event-ID outside the cache and preserves pause/terminal behavior', () => {
+        const session = useEventSourceSession({ url: '/logs', eventSourceFactory: factory(), reconnect: false, maxItems: 1 })
+        const source = FakeEventSource.instances.at(-1)!
+        source.emit('message', JSON.stringify({ id: 0, message: 'zero' }))
+        source.emit('message', JSON.stringify({ id: '0', message: 'duplicate' }))
+        expect(session.items.value).toHaveLength(1)
+        expect(session.items.value[0].id).toBe('0')
+        session.clear()
+        expect(session.lastEventId.value).toBe('0')
+        session.pause()
+        expect(session.status.value).toBe('paused')
+        session.resume()
+        const resumed = FakeEventSource.instances.at(-1)!
+        expect(resumed.init.lastEventId).toBe('0')
+        resumed.emit('message', JSON.stringify({ id: 0, message: 'new zero' }))
+        expect(session.items.value).toHaveLength(1)
+        resumed.emit('complete', JSON.stringify({ id: 'done' }), 'done')
+        expect(session.status.value).toBe('completed')
+        session.retry()
+        const retried = FakeEventSource.instances.at(-1)!
+        expect(retried.init.lastEventId).toBe('done')
+        retried.emit('error', JSON.stringify({ id: 'failed', message: 'failure' }), 'failed')
+        expect(session.status.value).toBe('failed')
     })
 })
