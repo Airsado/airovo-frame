@@ -293,13 +293,25 @@ function menuToRoute(
  * name, so make collisions deterministic without exposing arbitrary keys to
  * the router.
  */
-function uniqueRouteName(router: Router, preferred: string, absolutePath: string): string {
-    if (!router.hasRoute(preferred)) return preferred
+function uniqueRouteName(reserved: Set<string | symbol>, preferred: string, absolutePath: string): string {
+    if (!reserved.has(preferred)) return preferred
     const base = `dynamic:${absolutePath}`
-    if (!router.hasRoute(base)) return base
+    if (!reserved.has(base)) return base
     let suffix = 2
-    while (router.hasRoute(`${base}:${suffix}`)) suffix += 1
+    while (reserved.has(`${base}:${suffix}`)) suffix += 1
     return `${base}:${suffix}`
+}
+
+function reserveRouteNames(route: RouteRecordRaw, absolutePath: string, reserved: Set<string | symbol>): void {
+    if (typeof route.name === 'string') {
+        route.name = uniqueRouteName(reserved, route.name, absolutePath)
+        // Reserve before visiting children: addRoute registers the entire tree,
+        // so router.hasRoute alone cannot see sibling or ancestor collisions yet.
+        reserved.add(route.name)
+    }
+    for (const child of route.children ?? []) {
+        reserveRouteNames(child, joinPath(absolutePath, child.path), reserved)
+    }
 }
 
 export function createAppRouter(options: FrameworkRouterOptions): FrameworkRouter {
@@ -424,6 +436,7 @@ export function createAppRouter(options: FrameworkRouterOptions): FrameworkRoute
         clearDynamicRoutes()
         dynamicMenus.value = normalizeMenuPaths(items)
         if (mode === 'frontend') return
+        const reservedNames = new Set(router.getRoutes().flatMap(route => route.name == null ? [] : [route.name]))
         function register(itemsToRegister: MenuItem[], parentPath: string, parentName?: string | symbol): void {
             for (const item of itemsToRegister) {
                 const absolutePath = joinPath(parentPath, item.url)
@@ -437,7 +450,7 @@ export function createAppRouter(options: FrameworkRouterOptions): FrameworkRoute
                 const existing = router.getRoutes().find((candidate) => candidate.path === absolutePath)
                 let currentName = existing?.name == null ? undefined : existing.name
                 if (!existing) {
-                    if (typeof route.name === 'string') route.name = uniqueRouteName(router, route.name, absolutePath)
+                    reserveRouteNames(route, absolutePath, reservedNames)
                     try {
                         if (parentName) router.addRoute(parentName, route)
                         else router.addRoute(route)
