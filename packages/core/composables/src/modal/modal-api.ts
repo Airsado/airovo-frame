@@ -70,7 +70,7 @@ export class ModalApi<TData = unknown, TResult = unknown> {
             try {
                 if (await this.options.onBeforeClose?.(reason, this) === false) return false
             } catch (error) {
-                this.setError(error)
+                if (generation === this.generation && this.state.open) this.setError(error)
                 return false
             }
             if (generation !== this.generation || !this.state.open) return false
@@ -103,14 +103,16 @@ export class ModalApi<TData = unknown, TResult = unknown> {
         const operation = (async () => {
             try {
                 const callbackResult = await this.options.onConfirm?.(this.getData(), this)
+                // Callbacks belong to the cycle that started them. Reopening or
+                // closing the host invalidates every subsequent state write.
+                if (generation !== this.generation || !this.state.open) return false
                 if (callbackResult === false) return false
                 if (callbackResult !== undefined && typeof callbackResult !== 'boolean') {
                     this.resultValue.value = callbackResult as TResult
                 }
-                if (generation !== this.generation || !this.state.open) return false
                 return this.state.closeOnConfirm ? this.close('confirm') : true
             } catch (error) {
-                this.setError(error)
+                if (generation === this.generation && this.state.open) this.setError(error)
                 throw error
             } finally {
                 if (generation === this.generation) this.state.loading = false
@@ -135,7 +137,7 @@ export class ModalApi<TData = unknown, TResult = unknown> {
                 if (generation !== this.generation || !this.state.open) return false
                 return this.state.closeOnCancel ? this.close('cancel') : true
             } catch (error) {
-                this.setError(error)
+                if (generation === this.generation && this.state.open) this.setError(error)
                 throw error
             }
         })()
