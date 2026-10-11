@@ -123,6 +123,46 @@ function relativePath(parentPath: string, absolutePath: string): string {
     return absolutePath.startsWith(prefix) ? absolutePath.slice(prefix.length) : absolutePath
 }
 
+function collectRouteNames(routes: RouteRecordRaw[], names: Set<string | symbol>): void {
+    for (const route of routes) {
+        if (route.name != null) names.add(route.name)
+        if (route.children?.length) collectRouteNames(route.children, names)
+    }
+}
+
+/**
+ * Vue Router can attach a dynamic child only through a named parent. Preserve
+ * anonymous local parents as-is for callers while giving internal parent
+ * records a deterministic name in the router's private route table.
+ */
+function nameAnonymousParents(routes: RouteRecordRaw[]): RouteRecordRaw[] {
+    const reserved = new Set<string | symbol>()
+    collectRouteNames(routes, reserved)
+    const nextName = (absolutePath: string): string => {
+        const base = `local:${absolutePath}`
+        if (!reserved.has(base)) {
+            reserved.add(base)
+            return base
+        }
+        let suffix = 2
+        while (reserved.has(`${base}:${suffix}`)) suffix += 1
+        const name = `${base}:${suffix}`
+        reserved.add(name)
+        return name
+    }
+    const visit = (items: RouteRecordRaw[], parentPath = ''): RouteRecordRaw[] => items.map((route) => {
+        const absolutePath = joinPath(parentPath, route.path)
+        const children = route.children?.length ? visit(route.children, absolutePath) : undefined
+        if (!children?.length) return route
+        return {
+            ...route,
+            ...(route.name == null ? { name: nextName(absolutePath) } : {}),
+            children,
+        }
+    })
+    return visit(routes)
+}
+
 function deriveMenusFromRoutes(
     routes: RouteRecordRaw[],
     parentPath = '',
@@ -336,7 +376,7 @@ export function createAppRouter(options: FrameworkRouterOptions): FrameworkRoute
 
     const router = createVueRouter({
         history: history === 'hash' ? createWebHashHistory(options.base) : createWebHistory(options.base),
-        routes,
+        routes: nameAnonymousParents(routes),
         scrollBehavior: options.scrollBehavior ?? ((to, _from, savedPosition) => {
             if (savedPosition) return savedPosition
             if (to.hash) return { el: to.hash, behavior: 'smooth' }
