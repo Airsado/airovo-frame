@@ -80,4 +80,36 @@ describe.each(['backend', 'mixed'] as const)('%s dynamic route name isolation', 
         expect(parent.meta).toEqual({ title: 'Local', requiresAuth: true })
         expect(app.router.getRoutes()).toHaveLength(2)
     })
+
+    it('extends an anonymous local parent and restores its local subtree on clear', () => {
+        const app = createAppRouter({
+            routes: [{
+                path: '/workspace', component: Page, meta: { title: 'Local', requiresAuth: true },
+                children: [{ path: 'local', name: 'Local', component: Page }],
+            }],
+            menusMod, history: 'hash', pageMap: { '/views/Generic.vue': Page },
+        })
+        const parentBefore = app.router.getRoutes().find(route => route.path === '/workspace')!
+        expect(parentBefore.name).toBeTruthy()
+        app.registerDynamicRoutes([{
+            title: 'Workspace', url: '/workspace', children: [{
+                title: 'Remote', url: '/workspace/remote', name: 'Remote', component: '/views/Generic.vue',
+            }],
+        }])
+
+        expect(app.router.resolve('/workspace/local').matched.map(route => route.path)).toEqual(['/workspace', '/workspace/local'])
+        expect(app.router.resolve('/workspace/remote').matched.map(route => route.path)).toEqual(['/workspace', '/workspace/remote'])
+        expect(app.router.getRoutes().find(route => route.path === '/workspace')?.meta).toMatchObject({
+            title: 'Workspace',
+            requiresAuth: true,
+        })
+
+        app.clearDynamicRoutes()
+        expect(app.router.resolve('/workspace/local').matched.map(route => route.path)).toEqual(['/workspace', '/workspace/local'])
+        expect(app.router.getRoutes().some(route => route.path === '/workspace/remote')).toBe(false)
+        expect(app.router.getRoutes().find(route => route.path === '/workspace')?.meta).toEqual({
+            title: 'Local',
+            requiresAuth: true,
+        })
+    })
 })
