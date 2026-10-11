@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, reactive, readonly, ref, watch } from 'vue'
 import type { FormContext } from 'vee-validate'
 import { FormApi } from './form-api'
 import type { FormFieldSchema } from './types'
@@ -85,6 +85,60 @@ describe('FormApi', () => {
         await expect(api.getValues()).resolves.toEqual({ username: 'alice', email: 'a@b.com' })
         await expect(api.getValues(['email'])).resolves.toEqual({ email: 'a@b.com' })
         expect(api.values.value).toEqual({ username: 'alice', email: 'a@b.com' })
+    })
+
+    it('preserves a plain values object whose field is named value', async () => {
+        const values = reactive<Values>({
+            configKey: { value: 'settings' },
+            value: { value: '{"enabled":true}' },
+            nested: { value: [{ value: 1 }, { value: 2 }] },
+        })
+        const errors = ref<Record<string, string>>({})
+        const context = {
+            values,
+            errors,
+            isSubmitting: ref(false),
+            async validate() { return { valid: true, errors: {} } },
+            async validateField() { return { valid: true, errors: [] } },
+            setFieldValue(name: string, value: unknown) { values[name] = value },
+            setValues(next: Values) { Object.assign(values, next) },
+            resetForm() {},
+            setErrors(next: Record<string, string>) { errors.value = next },
+            setFieldError() {},
+        } as unknown as FormContext
+        api = new FormApi({
+            schema: [
+                { fieldName: 'configKey', label: 'Config key', component: 'Input' },
+                { fieldName: 'value', label: 'JSON text', component: 'Textarea' },
+                { fieldName: 'nested', label: 'Nested', component: 'Input', array: true },
+            ],
+            handleSubmit: vi.fn(),
+        })
+        api.mount(context)
+
+        await expect(api.getValues()).resolves.toEqual(values)
+        await expect(api.getRawValues()).resolves.toEqual(values)
+        await expect(api.getValueSnapshot()).resolves.toEqual({ rawValues: values, values })
+        await expect(api.submitForm()).resolves.toEqual(values)
+        expect(api.getLatestSubmissionValues()).toEqual(values)
+    })
+
+    it('unwraps only actual refs while preserving reactive and readonly value objects', async () => {
+        const reactiveValues = reactive<Values>({ value: 'reactive', nested: { value: 1 } })
+        const readonlyValues = readonly({ value: 'readonly', nested: { value: 2 } })
+        for (const values of [reactiveValues, readonlyValues]) {
+            const context = {
+                values,
+                errors: ref<Record<string, string>>({}),
+                isSubmitting: ref(false),
+                async validate() { return { valid: true, errors: {} } },
+                async validateField() { return { valid: true, errors: [] } },
+            } as unknown as FormContext
+            api = new FormApi({ schema: [{ fieldName: 'value', label: 'Value', component: 'Input' }] })
+            api.mount(context)
+            await expect(api.getValues()).resolves.toEqual(values)
+            await expect(api.getRawValues()).resolves.toEqual(values)
+        }
     })
 
     it('exposes raw/snapshot/submission compatibility methods', async () => {
