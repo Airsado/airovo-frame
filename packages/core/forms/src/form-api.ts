@@ -1,4 +1,4 @@
-import { computed, nextTick, ref, shallowReactive, shallowRef, watch, type Ref } from 'vue'
+import { computed, isRef, nextTick, ref, shallowReactive, shallowRef, watch, type Ref } from 'vue'
 import type { FormContext } from 'vee-validate'
 import type { ZodTypeAny } from 'zod'
 import { findFormField } from './form-dom'
@@ -18,7 +18,7 @@ export interface FormApiOptions extends FormRuntimeProps {
 type FormContextLike = FormContext
 
 function unwrap<T>(value: T | Ref<T>): T {
-    return value && typeof value === 'object' && 'value' in value
+    return isRef(value)
         ? value.value
         : value
 }
