@@ -42,6 +42,12 @@ import {
     AlertAction,
     AlertDescription,
     AlertTitle,
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
     Card,
     CardAction,
     CardContent,
@@ -447,6 +453,15 @@ function sseItemData(item: unknown): unknown {
                         <PaginationItem><PaginationNext href="#next" /></PaginationItem>
                     </PaginationContent>
                 </Pagination>
+                <h2 class="text-lg font-semibold">Empty primitive</h2>
+                <Empty class="bg-card">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">∅</EmptyMedia>
+                        <EmptyTitle>暂无结果</EmptyTitle>
+                        <EmptyDescription>调整筛选条件后重试。</EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent><Button size="sm">清除筛选</Button></EmptyContent>
+                </Empty>
             </section>
 
             <section class="space-y-4">
