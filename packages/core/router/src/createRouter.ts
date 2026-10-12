@@ -182,6 +182,7 @@ function deriveMenusFromRoutes(
             : undefined
         const title = meta?.title ?? ''
         if (!title) continue
+        const order = normalizeMenuOrder(meta?.order)
 
         const item: MenuItem = {
             title,
@@ -190,6 +191,7 @@ function deriveMenusFromRoutes(
             icon: meta?.icon,
             group: meta?.group,
             groupKey: meta?.groupKey,
+            ...(order !== undefined ? { order } : {}),
             badge: meta?.badge,
             external: meta?.external === true,
             isActive: meta?.active === true,
@@ -210,9 +212,16 @@ function rawMenuPath(item: MenuItem | MenuItemInput): string {
     return item.url || item.path || ''
 }
 
+function normalizeMenuOrder(value: unknown): number | undefined {
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
 function cloneMenu(item: MenuItem | MenuItemInput): MenuItem {
+    const { order: inputOrder, ...rest } = item
+    const order = normalizeMenuOrder(inputOrder) ?? normalizeMenuOrder(item.meta?.order)
     return {
-        ...item,
+        ...rest,
+        ...(order !== undefined ? { order } : {}),
         url: rawMenuPath(item),
         meta: item.meta ? { ...item.meta } : undefined,
         children: item.children?.map(cloneMenu),
@@ -299,6 +308,7 @@ function menuToRoute(
             ? { component: DynamicRouteOutlet as RouteComponent, cacheName: 'DynamicRouteOutlet' }
             : { component: unknownDynamicComponent(''), cacheName: 'UnknownDynamicRoute' }
     const component = resolved.component
+    const order = normalizeMenuOrder(item.order) ?? normalizeMenuOrder(item.meta?.order)
     const meta = {
         ...(item.meta ?? {}),
         title: item.meta?.title ?? item.title,
@@ -306,6 +316,7 @@ function menuToRoute(
         icon: item.meta?.icon ?? item.icon,
         group: item.meta?.group ?? item.group,
         groupKey: item.groupKey ?? item.meta?.groupKey,
+        ...(order !== undefined ? { order } : {}),
         badge: item.badge ?? item.meta?.badge,
         component: item.component ?? item.meta?.component,
         cacheName: item.meta?.cacheName ?? resolved.cacheName,
