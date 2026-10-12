@@ -38,4 +38,5 @@ export * from './components/ui/checkbox'
 export * from './components/ui/switch'
 export * from './components/ui/number-field'
 export * from './components/ui/toggle-group'
+export * from './components/ui/tags-input'
 
