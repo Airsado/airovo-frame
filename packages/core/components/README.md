@@ -252,3 +252,8 @@ ownership and cancellation remain with the caller.
 `Toggle` wraps Reka UI's pressed control with default/outline variants and
 `default`/`sm`/`lg` sizes. It forwards controlled or uncontrolled pressed state,
 disabled semantics, aria attributes and keyboard behavior.
+## ButtonGroup
+
+`ButtonGroup`, `ButtonGroupText` and `ButtonGroupSeparator` compose connected
+controls with horizontal/vertical orientation, group semantics and focus
+layering. Button actions, input values and form submission remain caller-owned.

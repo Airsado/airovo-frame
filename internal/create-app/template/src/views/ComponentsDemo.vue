@@ -51,6 +51,9 @@ import {
     Slider,
     Spinner,
     Toggle,
+    ButtonGroup,
+    ButtonGroupSeparator,
+    ButtonGroupText,
     Card,
     CardAction,
     CardContent,
@@ -476,6 +479,18 @@ function sseItemData(item: unknown): unknown {
                 <div class="flex items-center gap-2">
                     <Toggle :default-value="true" aria-label="收藏">★</Toggle>
                     <Toggle variant="outline" size="sm" disabled aria-label="锁定">锁定</Toggle>
+                </div>
+                <h2 class="text-lg font-semibold">ButtonGroup primitive</h2>
+                <div class="flex flex-wrap items-center gap-3">
+                    <ButtonGroup>
+                        <Button size="sm">筛选</Button>
+                        <ButtonGroupSeparator />
+                        <Button size="sm" variant="outline">应用</Button>
+                    </ButtonGroup>
+                    <ButtonGroup orientation="vertical">
+                        <ButtonGroupText>批量操作</ButtonGroupText>
+                        <Button size="sm" variant="outline">执行</Button>
+                    </ButtonGroup>
                 </div>
             </section>
 
