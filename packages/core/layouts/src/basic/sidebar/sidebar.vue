@@ -153,6 +153,9 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 :tooltip="label(item.titleKey, item.title)"
                                 :is-active="isExactMatch(item)"
                                 :href="linkHref(item)"
+                                data-sidebar-menu-kind="leaf"
+                                :data-menu-url="item.url"
+                                :aria-current="isExactMatch(item) ? 'page' : undefined"
                                 class="app-sidebar-nav-item"
                                 :data-app-sidebar-active="isExactMatch(item) ? 'true' : 'false'"
                                 :target="item.external ? '_blank' : undefined"
@@ -177,6 +180,9 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 <CollapsibleTrigger as-child>
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
+                                        data-sidebar-menu-kind="parent"
+                                        :data-menu-url="item.url"
+                                        :aria-label="label(item.titleKey, item.title)"
                                         class="app-sidebar-nav-item"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
@@ -198,6 +204,9 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                                 as="a"
                                                 :is-active="isExactMatch(subItem)"
                                                 :href="linkHref(subItem)"
+                                                data-sidebar-menu-kind="child"
+                                                :data-menu-url="subItem.url"
+                                                :aria-current="isExactMatch(subItem) ? 'page' : undefined"
                                                 class="app-sidebar-nav-item data-[active=true]:font-medium"
                                                 :data-app-sidebar-active="isExactMatch(subItem) ? 'true' : 'false'"
                                                 :target="subItem.external ? '_blank' : undefined"
@@ -220,6 +229,9 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 <DropdownMenuTrigger as-child class="group/dropdown-trigger">
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
+                                        data-sidebar-menu-kind="parent-collapsed"
+                                        :data-menu-url="item.url"
+                                        :aria-label="label(item.titleKey, item.title)"
                                         class="app-sidebar-nav-item cursor-pointer"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
@@ -240,6 +252,9 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                             :key="subItem.url"
                                             as-child
                                             :data-sidebar-nav-active="isExactMatch(subItem) ? 'true' : 'false'"
+                                            data-sidebar-menu-kind="collapsed-child"
+                                            :data-menu-url="subItem.url"
+                                            :aria-current="isExactMatch(subItem) ? 'page' : undefined"
                                             class="app-sidebar-nav-item"
                                         >
                                             <a

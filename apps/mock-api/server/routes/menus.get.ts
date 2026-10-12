@@ -12,7 +12,6 @@ const menus: MockMenuItem[] = [
         icon: 'lucide:server',
         group: '系统能力',
         groupKey: 'navigation.system',
-        meta: { permissions: ['demo.dynamic'] },
         children: [{
             title: 'Health',
             titleKey: 'navigation.mockHealth',
