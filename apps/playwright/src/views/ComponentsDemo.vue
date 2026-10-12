@@ -13,12 +13,7 @@ import {
     DatePicker,
     DateTimePicker,
     Drawer,
-    DrawerBody,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
+    DrawerLayout,
     EmptyState,
     ErrorState,
     FacetedFilter,
@@ -558,36 +553,24 @@ function sseItemData(item: unknown): unknown {
                         <Button class="w-fit" variant="outline" @click="showRightDrawer = true">打开右侧 Drawer</Button>
                         <Button class="w-fit" variant="outline" @click="openTypedDrawer">打开 typed Drawer</Button>
                         <Drawer v-model:open="showDrawer">
-                            <DrawerContent>
-                                <DrawerHeader>
-                                    <DrawerTitle>渠道详情</DrawerTitle>
-                                    <DrawerDescription>这是框架组件包提供的底部 Drawer。</DrawerDescription>
-                                </DrawerHeader>
-                                <DrawerBody class="space-y-3 pb-4">
+                            <DrawerLayout title="渠道详情" description="这是框架组件包提供的底部 Drawer。">
+                                <div class="space-y-3 pb-4">
                                     <p v-for="item in 4" :key="item" class="rounded-md border p-3 text-sm">
                                         可滚动内容 {{ item }}：保持头部和底部操作区固定。
                                     </p>
-                                </DrawerBody>
-                                <DrawerFooter>
-                                    <Button @click="showDrawer = false">完成</Button>
-                                </DrawerFooter>
-                            </DrawerContent>
+                                </div>
+                                <template #footer><Button @click="showDrawer = false">完成</Button></template>
+                            </DrawerLayout>
                         </Drawer>
                         <Drawer v-model:open="showRightDrawer">
-                            <DrawerContent side="right">
-                                <DrawerHeader>
-                                    <DrawerTitle>渠道详情</DrawerTitle>
-                                    <DrawerDescription>右侧 Drawer 适合桌面端详情和编辑面板。</DrawerDescription>
-                                </DrawerHeader>
-                                <DrawerBody class="space-y-3 pb-4">
+                            <DrawerLayout side="right" title="渠道详情" description="右侧 Drawer 适合桌面端详情和编辑面板。">
+                                <div class="space-y-3 pb-4">
                                     <p v-for="item in 4" :key="item" class="rounded-md border p-3 text-sm">
                                         右侧可滚动内容 {{ item }}。
                                     </p>
-                                </DrawerBody>
-                                <DrawerFooter>
-                                    <Button @click="showRightDrawer = false">完成</Button>
-                                </DrawerFooter>
-                            </DrawerContent>
+                                </div>
+                                <template #footer><Button @click="showRightDrawer = false">完成</Button></template>
+                            </DrawerLayout>
                         </Drawer>
                         <p class="text-xs text-muted-foreground">{{ typedDrawerResult }}</p>
                         <DemoDrawer>
