@@ -12,10 +12,25 @@ describe('status state components', () => {
             slots: { action: '<button type="button">辅助动作</button>' },
         })
         expect(wrapper.classes()).toContain('border')
+        expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
+        expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('空')
         expect(wrapper.text()).toContain('辅助动作')
         const actionButton = wrapper.findAll('button').find((button) => button.text() === '新增')
         await actionButton?.trigger('click')
         expect(wrapper.emitted('action')).toHaveLength(1)
+    })
+
+    it.each([
+        ['sm', 'size-8'],
+        ['md', 'size-12'],
+        ['lg', 'size-16'],
+    ] as const)('renders icon, description and %s media size', (size, mediaSize) => {
+        const wrapper = mount(EmptyState, {
+            props: { icon: 'lucide:inbox', description: '暂无数据', size },
+        })
+        expect(wrapper.get('[data-slot="empty-icon"]')).toBeTruthy()
+        expect(wrapper.get('[data-slot="empty-description"]').text()).toBe('暂无数据')
+        expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain(mediaSize)
     })
 
     it('emits retry and action from ErrorState and exposes alert semantics', async () => {
