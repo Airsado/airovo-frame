@@ -12,6 +12,8 @@ describe('status state components', () => {
             slots: { action: '<button type="button">辅助动作</button>' },
         })
         expect(wrapper.classes()).toContain('border')
+        expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
+        expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('空')
         expect(wrapper.text()).toContain('辅助动作')
         const actionButton = wrapper.findAll('button').find((button) => button.text() === '新增')
         await actionButton?.trigger('click')
