@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { DropdownMenu } from '@airovo/uikit-shadcnui'
 import DataTableRowActions from './DataTableRowActions.vue'
 
 describe('DataTableRowActions', () => {
@@ -26,5 +27,22 @@ describe('DataTableRowActions', () => {
         expect(button.attributes('data-action-key')).toBe('view')
         await button.trigger('click')
         expect(callback).toHaveBeenCalledWith({ id: 1 })
+    })
+
+    it('forwards dropdown configuration and emits open changes', async () => {
+        const wrapper = mount(DataTableRowActions, {
+            props: {
+                row: { id: 1 },
+                dropdownModal: false,
+                dropdownAriaLabel: '行操作',
+                dropdownContentClass: 'w-72',
+                dropdownActions: [{ key: 'copy', label: '复制', onSelect: vi.fn() }],
+            },
+        })
+        const menu = wrapper.findComponent(DropdownMenu)
+        expect(menu.props('modal')).toBe(false)
+        expect(wrapper.get('[data-slot="dropdown-menu-trigger"]').attributes('aria-label')).toBe('行操作')
+        await menu.vm.$emit('update:open', true)
+        expect(wrapper.emitted('dropdown-open-change')).toEqual([[true]])
     })
 })
