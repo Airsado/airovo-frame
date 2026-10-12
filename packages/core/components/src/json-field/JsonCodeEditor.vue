@@ -13,6 +13,9 @@ const props = withDefaults(defineProps<{
     placeholder?: string
     ariaLabel?: string
     name?: string
+    id?: string
+    ariaDescribedby?: string
+    dataFormRoot?: string
 }>(), { modelValue: '', disabled: false, height: '14rem', ariaLabel: 'JSON' })
 
 const emit = defineEmits<{
@@ -73,7 +76,7 @@ async function copy(): Promise<void> {
             <div aria-hidden="true" class="pointer-events-none absolute inset-y-0 left-0 w-9 select-none overflow-hidden border-r bg-muted/20 py-2 text-right font-mono text-xs leading-5 text-muted-foreground/60">
                 <div v-for="line in lines" :key="line" class="pr-2">{{ line }}</div>
             </div>
-            <Textarea ref="textarea" :model-value="draft" :name="name" :disabled="disabled" :placeholder="placeholder" :aria-label="ariaLabel" :aria-invalid="!status.isValid" class="h-full min-h-0 resize-none border-0 rounded-none py-2 pl-12 pr-3 font-mono text-xs leading-5 focus-visible:ring-0" @update:model-value="publish(String($event))" @keydown="onKeydown" @click="updateCursor" @keyup="updateCursor" @select="updateCursor" @blur="emit('blur')" />
+                <Textarea ref="textarea" :model-value="draft" :id="id" :name="name" :disabled="disabled" :placeholder="placeholder" :aria-label="ariaLabel" :aria-describedby="ariaDescribedby" :data-form-root="dataFormRoot" :aria-invalid="!status.isValid" class="h-full min-h-0 resize-none border-0 rounded-none py-2 pl-12 pr-3 font-mono text-xs leading-5 focus-visible:ring-0" @update:model-value="publish(String($event))" @keydown="onKeydown" @click="updateCursor" @keyup="updateCursor" @select="updateCursor" @blur="emit('blur')" />
         </div>
         <p v-if="!status.isValid" role="alert" class="border-t border-destructive/20 bg-destructive/5 px-3 py-1.5 text-xs text-destructive">{{ status.message }}</p>
     </div>
