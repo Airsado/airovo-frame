@@ -144,9 +144,10 @@ depend on vue-router or choose URL parameter names.
 
 `DatePicker` and `DateTimePicker` accept optional `minDate`, `maxDate`, and
 `locale` props. They are converted to the ui-kit Calendar's DateValue
-constraints; omitted props preserve the previous behavior. DateTimePicker
-passes the same constraints to its date half while keeping time input and
-clear behavior in the wrapper.
+constraints and the trigger label uses the same locale. `DateTimePicker`
+keeps `HH:mm:ss` precision, accepts legacy `HH:mm` input as `:00`, clones
+dates before merging the selected day and time, and resets the time to
+`00:00:00` when cleared. Disabled state prevents date, time, and clear edits.
 
 `DataTableViewOptions` normalizes persisted visibility against the current
 column schema, drops unknown/non-boolean entries, and keeps at least one
