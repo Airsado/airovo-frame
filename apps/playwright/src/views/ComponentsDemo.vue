@@ -49,6 +49,12 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
     Accordion,
     AccordionContent,
     AccordionHeader,
@@ -416,6 +422,14 @@ function sseItemData(item: unknown): unknown {
                     <CardContent>成功率 99.2%</CardContent>
                     <CardFooter>更新时间：刚刚</CardFooter>
                 </Card>
+                <h2 class="text-lg font-semibold">Table primitive</h2>
+                <Table class="rounded-lg border bg-card">
+                    <TableHeader><TableRow><TableHead>渠道</TableHead><TableHead>状态</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                        <TableRow><TableCell>OpenAI 主渠道</TableCell><TableCell>运行中</TableCell></TableRow>
+                        <TableRow data-state="selected"><TableCell>Claude 备用渠道</TableCell><TableCell>已选中</TableCell></TableRow>
+                    </TableBody>
+                </Table>
             </section>
 
             <section class="space-y-4">

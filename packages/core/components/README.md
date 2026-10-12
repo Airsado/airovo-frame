@@ -218,3 +218,10 @@ whether the alert is persistent, transient or connected to request state.
 `CardDescription` and `CardContent` provide a composable surface with
 `size="default" | "sm"`. Slots own the content and actions; the wrapper owns
 surface, spacing, footer and theme classes.
+## Table
+
+`Table` renders an optional horizontal overflow container around the native
+`table`; `TableHeader`, `TableBody`, `TableFooter`, `TableHead`, `TableRow`,
+`TableCell` and `TableCaption` provide styled structural slots. Pass
+`withContainer=false` when an outer layout already owns scrolling; sorting,
+pagination and row data remain the responsibility of DataTable or the caller.
