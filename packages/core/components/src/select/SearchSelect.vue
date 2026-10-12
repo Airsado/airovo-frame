@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@airovo/uikit-shadcnui/components/ui/popover'
-import type { SelectOption } from './SelectBox.vue'
+import { flattenSelectOptions, selectableSelectOptions, type SelectOption } from './options'
 
 const props = withDefaults(defineProps<{
   options?: SelectOption[]
@@ -34,9 +34,11 @@ const props = withDefaults(defineProps<{
 })
 
 const modelValue = defineModel<string | undefined>()
+const flattenedOptions = computed(() => flattenSelectOptions(props.options))
+const selectableOptions = computed(() => selectableSelectOptions(props.options))
 const open = ref(false)
 const selectedLabel = computed(() =>
-  props.options.find((option) => option.value === modelValue.value)?.label,
+  selectableOptions.value.find((option) => option.value === modelValue.value)?.label,
 )
 
 function select(value: string): void {
@@ -65,16 +67,13 @@ function select(value: string): void {
         <CommandList>
           <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
           <CommandGroup>
-            <CommandItem
-              v-for="option in props.options"
-              :key="option.value"
-              :value="option.value"
-              :disabled="option.disabled"
-              @select="select(option.value)"
-            >
-              <Check :class="cn('size-4', modelValue === option.value ? 'opacity-100' : 'opacity-0')" />
-              {{ option.label }}
-            </CommandItem>
+            <template v-for="item in flattenedOptions" :key="item.key">
+              <div v-if="item.group" class="px-2 py-1.5 text-xs font-semibold text-muted-foreground" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">{{ item.option.label }}</div>
+              <CommandItem v-else-if="item.option.value !== undefined" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }" @select="select(item.option.value)">
+                <Check :class="cn('size-4', modelValue === item.option.value ? 'opacity-100' : 'opacity-0')" />
+                {{ item.option.label }}
+              </CommandItem>
+            </template>
           </CommandGroup>
         </CommandList>
       </Command>

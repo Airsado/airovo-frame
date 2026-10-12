@@ -68,6 +68,27 @@ invalid raw draft without discarding it. It can be passed as a component object
 in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
 while `JsonField` owns JSON serialization and visual editing.
 
+## Select option hierarchy
+
+`SelectBox` and `SearchSelect` accept recursive options:
+
+```ts
+const options: SelectOption[] = [
+  {
+    label: '云服务',
+    children: [
+      { label: 'OpenAI', value: 'openai' },
+      { label: 'Claude', value: 'claude' },
+    ],
+  },
+]
+```
+
+A node with `children` is rendered as a non-selectable group label. Only leaf
+nodes with `value` can be selected, so the selected value and form backfill
+remain stable. Nested labels are indented by depth; `SearchSelect` searches
+the rendered descendant labels. Existing flat options keep their behavior.
+=======
 ## DataTable column sizing
 
 DataTable columns can opt into resizing with `resizable`, `minSize`, and
