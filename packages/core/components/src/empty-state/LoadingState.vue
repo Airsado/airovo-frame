@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { Icon } from '@airovo/shared/icons'
+import { computed } from 'vue'
+import { Spinner } from '@airovo/uikit-shadcnui'
 
 defineOptions({ name: 'LoadingState' })
 
@@ -7,6 +8,7 @@ const props = withDefaults(defineProps<{
     message?: string
     size?: 'sm' | 'md' | 'lg'
     inline?: boolean
+    ariaLabel?: string
     class?: string
 }>(), {
     message: '加载中…',
@@ -14,20 +16,17 @@ const props = withDefaults(defineProps<{
     inline: false,
 })
 
-const iconSizeClass = {
-    sm: 'size-4',
-    md: 'size-6',
-    lg: 'size-8',
-}[props.size]
+const resolvedLabel = computed(() => props.ariaLabel ?? props.message)
+const iconSizeClass = { sm: 'size-4', md: 'size-6', lg: 'size-8' }[props.size]
 </script>
 
 <template>
-    <span v-if="props.inline" :class="['inline-flex items-center gap-2', props.class]" aria-live="polite" aria-busy="true">
-        <Icon icon="lucide:loader-circle" :class="[iconSizeClass, 'animate-spin']" aria-hidden="true" />
+    <span v-if="props.inline" :class="['inline-flex items-center gap-2', props.class]" role="status" :aria-label="resolvedLabel" aria-live="polite" aria-busy="true">
+        <Spinner :class="iconSizeClass" aria-hidden="true" />
         <span v-if="props.message" class="text-sm text-muted-foreground">{{ props.message }}</span>
     </span>
-    <div v-else :class="['flex min-h-50 flex-col items-center justify-center gap-3', props.class]" aria-live="polite" aria-busy="true">
-        <Icon icon="lucide:loader-circle" :class="[iconSizeClass, 'animate-spin']" aria-hidden="true" />
+    <div v-else :class="['flex min-h-50 flex-col items-center justify-center gap-3', props.class]" role="status" :aria-label="resolvedLabel" aria-live="polite" aria-busy="true">
+        <Spinner :class="iconSizeClass" aria-hidden="true" />
         <p v-if="props.message" class="text-sm text-muted-foreground">{{ props.message }}</p>
     </div>
 </template>
