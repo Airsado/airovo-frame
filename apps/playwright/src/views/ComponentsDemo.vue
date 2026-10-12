@@ -194,6 +194,8 @@ function resetChannelFilters(): void {
 const [DemoModal, demoModalApi] = useModal({
     title: '保存设置',
     description: '这是框架内置 ModalApi 的确认流程。',
+    contentHeight: '22rem',
+    bodyClass: 'bg-muted/10',
     onConfirm: async () => {
         await new Promise((resolve) => setTimeout(resolve, 350))
     },

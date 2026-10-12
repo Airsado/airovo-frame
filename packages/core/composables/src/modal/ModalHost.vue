@@ -128,16 +128,19 @@ async function cancel() {
                     'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 fixed top-[50%] left-[50%] z-50 flex max-h-[min(85vh,42rem)] min-h-0 w-full translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-hidden rounded-xl border p-0 shadow-lg duration-200 sm:max-w-xl',
                     api.state.contentClass,
                 ]"
-                :style="stackHandle ? { zIndex: stackHandle.zIndex.value } : undefined"
+                :style="{
+                    ...(stackHandle ? { zIndex: stackHandle.zIndex.value } : {}),
+                    ...(api.state.contentHeight !== undefined ? { height: typeof api.state.contentHeight === 'number' ? `${api.state.contentHeight}px` : api.state.contentHeight } : {}),
+                }"
                 @escape-key-down="onEscape"
                 @pointer-down-outside="onOutside"
                 @animation-end="finishTransition"
             >
             <div class="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3 sm:px-5">
-                <DialogHeader class="min-w-0 flex-1 text-left">
-                    <DialogTitle v-if="api.state.title" class="text-sm font-semibold sm:text-base">{{ api.state.title }}</DialogTitle>
-                    <DialogTitle v-else class="sr-only">对话框</DialogTitle>
-                    <DialogDescription v-if="api.state.description" class="text-xs sm:text-sm">{{ api.state.description }}</DialogDescription>
+                <DialogHeader :class="['min-w-0 flex-1 text-left', api.state.headerClass]">
+                    <DialogTitle v-if="api.state.title" :class="['text-sm font-semibold sm:text-base', api.state.titleClass]">{{ api.state.title }}</DialogTitle>
+                    <DialogTitle v-else :class="['sr-only', api.state.titleClass]">对话框</DialogTitle>
+                    <DialogDescription v-if="api.state.description" :class="['text-xs sm:text-sm', api.state.descriptionClass]">{{ api.state.description }}</DialogDescription>
                 </DialogHeader>
                 <Button
                     v-if="api.state.showCloseButton"
@@ -154,12 +157,12 @@ async function cancel() {
                 </Button>
             </div>
 
-            <div class="modal-body min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5" :aria-busy="api.state.loading">
+            <div :class="['modal-body min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5', api.state.bodyClass]" :aria-busy="api.state.loading">
                 <slot :api="api" :data="api.getData()" />
                 <p v-if="api.state.error" role="alert" class="mt-3 text-sm text-destructive">{{ api.state.error }}</p>
             </div>
 
-            <DialogFooter v-if="api.state.footer" class="shrink-0 border-t px-4 py-3 sm:px-5">
+            <DialogFooter v-if="api.state.footer" :class="['shrink-0 border-t px-4 py-3 sm:px-5', api.state.footerClass]">
                 <slot name="footer" :api="api" :data="api.getData()">
                     <Button v-if="api.state.showCancel" type="button" variant="outline" :disabled="api.state.loading" @click="cancel">
                         {{ api.state.cancelText }}

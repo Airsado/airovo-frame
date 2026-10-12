@@ -27,6 +27,12 @@ export interface ModalState {
     cancelText: string
     confirmText: string
     contentClass?: string
+    contentHeight?: string | number
+    headerClass?: string
+    titleClass?: string
+    descriptionClass?: string
+    bodyClass?: string
+    footerClass?: string
     error?: string
 }
 

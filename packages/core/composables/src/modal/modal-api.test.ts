@@ -27,6 +27,16 @@ describe('ModalApi', () => {
         expect(api.state.description).toBe('新标题说明')
     })
 
+    it('keeps layout customization options in modal state', () => {
+        api = new ModalApi({ contentHeight: 480, headerClass: 'header', titleClass: 'title', descriptionClass: 'description', bodyClass: 'body', footerClass: 'footer' })
+        expect(api.state.contentHeight).toBe(480)
+        expect(api.state.headerClass).toBe('header')
+        expect(api.state.titleClass).toBe('title')
+        expect(api.state.descriptionClass).toBe('description')
+        expect(api.state.bodyClass).toBe('body')
+        expect(api.state.footerClass).toBe('footer')
+    })
+
     it('honors an async before-close guard', async () => {
         const onBeforeClose = vi.fn(async () => false)
         api = new ModalApi({ onBeforeClose })
