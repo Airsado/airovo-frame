@@ -23,12 +23,23 @@ describe('ChartCard', () => {
 
     it('renders retry and empty states without a misleading chart', async () => {
         const errorWrapper = mount(ChartCard, { props: { title: '调用趋势', error: new Error('failed') } })
+        expect(errorWrapper.get('[role="alert"]').text()).toContain('图表加载失败')
         await errorWrapper.find('button').trigger('click')
         expect(errorWrapper.emitted('retry')).toHaveLength(1)
         expect(errorWrapper.find('canvas').exists()).toBe(false)
 
         const emptyWrapper = mount(ChartCard, { props: { title: '调用趋势', empty: true, data: { labels: [], datasets: [] } } })
         expect(emptyWrapper.text()).toContain('暂无图表数据')
+        expect(emptyWrapper.get('[role="status"]').text()).toContain('暂无图表数据')
         expect(emptyWrapper.find('canvas').exists()).toBe(false)
+
+        const emptyDatasetWrapper = mount(ChartCard, { props: { title: '调用趋势', data: { labels: ['一'], datasets: [{ label: '请求', data: [] }] } } })
+        expect(emptyDatasetWrapper.text()).toContain('暂无图表数据')
+        expect(emptyDatasetWrapper.find('canvas').exists()).toBe(false)
+    })
+
+    it('marks loading state as a live status', () => {
+        const wrapper = mount(ChartCard, { props: { title: '调用趋势', loading: true } })
+        expect(wrapper.get('[role="status"]').attributes('aria-live')).toBe('polite')
     })
 })
