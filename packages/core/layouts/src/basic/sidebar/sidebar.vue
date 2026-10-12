@@ -199,7 +199,6 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 <CollapsibleTrigger as-child>
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
-                                        :data-app-sidebar-active="isActiveScope(item) ? 'true' : 'false'"
                                         class="app-sidebar-nav-item"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
@@ -243,8 +242,6 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 <DropdownMenuTrigger as-child class="group/dropdown-trigger">
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
-                                        :is-active="isActiveScope(item)"
-                                        :data-app-sidebar-active="isActiveScope(item) ? 'true' : 'false'"
                                         class="app-sidebar-nav-item cursor-pointer"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
