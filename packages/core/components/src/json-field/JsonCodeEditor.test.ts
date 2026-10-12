@@ -19,4 +19,23 @@ describe('JsonCodeEditor', () => {
         expect(wrapper.text()).toContain('JSON 格式无效')
         expect(wrapper.emitted('parse-error')?.at(-1)?.[0]).toBeTruthy()
     })
+
+    it('forwards form and accessible attributes to the textarea', () => {
+        const wrapper = mount(JsonCodeEditor, {
+            props: {
+                modelValue: '{"a":1}',
+                id: 'json-config',
+                name: 'config',
+                ariaDescribedby: 'config-help',
+                dataFormRoot: 'settings-form',
+            },
+        })
+        const textarea = wrapper.get('textarea')
+
+        expect(textarea.attributes('id')).toBe('json-config')
+        expect(textarea.attributes('name')).toBe('config')
+        expect(textarea.attributes('aria-describedby')).toBe('config-help')
+        expect(textarea.attributes('data-form-root')).toBe('settings-form')
+        expect(textarea.attributes('aria-invalid')).toBe('false')
+    })
 })
