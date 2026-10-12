@@ -237,3 +237,8 @@ The existing `Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`,
 `EmptyMedia` and `EmptyContent` primitives are exported from the ui-kit root.
 Use `EmptyMedia` with `variant="icon"` for the new-api icon surface; data loading
 and retry behavior belongs to framework compositions such as `EmptyState`.
+## Slider
+
+`Slider` wraps Reka UI's accessible slider root with track, range and one or
+more thumbs. It forwards min/max/step, orientation, disabled and controlled or
+uncontrolled values; callers own form binding and persistence.

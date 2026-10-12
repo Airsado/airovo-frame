@@ -48,6 +48,7 @@ import {
     EmptyHeader,
     EmptyMedia,
     EmptyTitle,
+    Slider,
     Card,
     CardAction,
     CardContent,
@@ -462,6 +463,8 @@ function sseItemData(item: unknown): unknown {
                     </EmptyHeader>
                     <EmptyContent><Button size="sm">清除筛选</Button></EmptyContent>
                 </Empty>
+                <h2 class="text-lg font-semibold">Slider primitive</h2>
+                <Slider :default-value="[42]" class="max-w-md" aria-label="请求阈值" />
             </section>
 
             <section class="space-y-4">
