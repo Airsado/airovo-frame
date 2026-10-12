@@ -57,3 +57,13 @@ error/retry and empty states. Pass application-owned Chart.js `data` and
 `options`; use the `actions`, `footer` and `legend` props/slots for page-level
 composition. `ChartCard` does not fetch metrics or define business aggregation
 rules.
+
+## JsonField
+
+`JsonField` keeps JSON-backed form values readable for end users. Visual mode
+edits top-level key/value rows, JSON mode edits the formatted string, and both
+use the same `v-model` string. `template` provides a one-click backfill,
+`valueType` can be `string`, `number`, or `any`, and `parse-error` reports an
+invalid raw draft without discarding it. It can be passed as a component object
+in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
+while `JsonField` owns JSON serialization and visual editing.

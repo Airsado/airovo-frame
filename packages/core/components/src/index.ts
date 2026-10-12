@@ -17,4 +17,5 @@ export * from './faceted-filter'
 export * from './toast'
 export * from './live-log'
 export * from './chart'
+export * from './json-field'
 /// <reference path="./shims.d.ts" />
