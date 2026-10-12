@@ -165,3 +165,8 @@ permission ownership remain with the caller.
 scrollable body and optional footer. It accepts `bottom`/`right` side, title,
 description, `actions`/`footer` slots and class overrides; callers still own
 open state and business actions.
+
+`Combobox` is the generic single-value searchable selector. It accepts the
+same option shape as `SelectBox`, supports disabled options and an optional
+`allowCustomValue` Enter path; multi-select chips remain a separate future
+composition.
