@@ -28,6 +28,7 @@ export interface ModalState {
     confirmText: string
     contentClass?: string
     contentHeight?: string | number
+    initialFocus?: string
     headerClass?: string
     titleClass?: string
     descriptionClass?: string

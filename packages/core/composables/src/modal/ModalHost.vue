@@ -99,6 +99,21 @@ function onOutside(event: Event) {
     }
 }
 
+function onOpenAutoFocus(event: Event): void {
+    const selector = props.api.state.initialFocus
+    if (!selector) return
+    let target: HTMLElement | null = null
+    try {
+        const root = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined
+        target = root?.querySelector<HTMLElement>(selector) ?? document.querySelector<HTMLElement>(selector)
+    } catch {
+        return
+    }
+    if (!target) return
+    event.preventDefault()
+    requestAnimationFrame(() => target?.focus())
+}
+
 async function confirm() {
     try {
         await props.api.confirm()
@@ -134,6 +149,7 @@ async function cancel() {
                 }"
                 @escape-key-down="onEscape"
                 @pointer-down-outside="onOutside"
+                @open-auto-focus="onOpenAutoFocus"
                 @animation-end="finishTransition"
             >
             <div class="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3 sm:px-5">
