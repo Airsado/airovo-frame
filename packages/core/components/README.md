@@ -286,3 +286,15 @@ caller-owned.
 `CarouselNext` provide a native scroll-snap carousel with horizontal/vertical
 orientation, keyboard navigation and accessible slide controls. Embla plugins,
 looping and autoplay are intentionally separate follow-up concerns.
+
+## ContextMenu
+
+`ContextMenu` exposes the reusable right-click menu composition from the ui-kit:
+`ContextMenuTrigger`, `ContextMenuContent`, `ContextMenuItem`,
+`ContextMenuCheckboxItem`, `ContextMenuRadioGroup`, `ContextMenuRadioItem`,
+`ContextMenuSub`, `ContextMenuSubTrigger`, `ContextMenuSubContent`,
+`ContextMenuLabel`, `ContextMenuSeparator`, `ContextMenuShortcut`, and
+`ContextMenuItemIndicator`. The wrappers keep Reka UI's `modelValue` and
+`update:modelValue` contracts for checkbox/radio state, while `inset` and
+`variant="destructive"` provide the new-api menu styling. Menu content and
+business actions remain owned by the caller.
