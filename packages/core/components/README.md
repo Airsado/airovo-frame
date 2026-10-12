@@ -155,3 +155,8 @@ lifecycle; JsonField owns JSON parsing and draft preservation.
 `JsonField` accepts `nested` for recursive visual editing. Object paths use dot
 notation and array entries use bracket indexes; switching to JSON mode still
 edits the same draft string, and serialization reconstructs the nested object.
+
+`DataTableRowActions` exposes a stable `data-action-key` for each inline and
+dropdown action. A loading action is disabled, announces `aria-busy`, and
+shows a spinner even when the caller did not provide an icon; callback and
+permission ownership remain with the caller.
