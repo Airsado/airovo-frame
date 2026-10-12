@@ -19,7 +19,8 @@
         "./drawer": "./src/drawer/index.ts",
         "./faceted-filter": "./src/faceted-filter/index.ts",
         "./toast": "./src/toast/index.ts",
-        "./live-log": "./src/live-log/index.ts"
+        "./live-log": "./src/live-log/index.ts",
+        "./chart": "./src/chart/index.ts"
     },
     "license": "MIT",
     "scripts": {

@@ -16,4 +16,5 @@ export * from './drawer'
 export * from './faceted-filter'
 export * from './toast'
 export * from './live-log'
+export * from './chart'
 /// <reference path="./shims.d.ts" />

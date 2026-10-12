@@ -47,3 +47,13 @@ The useFollowTail composable and LiveLog component keep auto-scroll in the
 view layer. They watch an item collection, pause when the user scrolls away
 from the bottom, and expose a follow-latest action to resume. They do not know
 how items are fetched or which SSE/WebSocket transport produced them.
+
+## Charts
+
+`ChartCard` is the framework entry point for Chart.js-backed charts. It accepts
+the `line`, `bar`, `pie`, `doughnut` and `radar` types exposed by the ui-kit,
+uses the active `chart-1..5` theme tokens, and provides consistent loading,
+error/retry and empty states. Pass application-owned Chart.js `data` and
+`options`; use the `actions`, `footer` and `legend` props/slots for page-level
+composition. `ChartCard` does not fetch metrics or define business aggregation
+rules.
