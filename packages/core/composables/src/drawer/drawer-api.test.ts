@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { DrawerApi } from './drawer-api'
 
 describe('DrawerApi', () => {
+    it('defaults to a bottom drawer and accepts a right-side drawer', () => {
+        expect(new DrawerApi().side).toBe('bottom')
+        expect(new DrawerApi({ side: 'right' }).side).toBe('right')
+    })
+
     it('shares the typed payload/result contract with ModalApi', async () => {
         const api = new DrawerApi<{ id: string }, { saved: boolean }>()
         api.open({ id: 'drawer-1' })

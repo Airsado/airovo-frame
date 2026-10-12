@@ -59,6 +59,7 @@ const showResult = ref(false)
 const search = ref('')
 const showDialog = ref(false)
 const showDrawer = ref(false)
+const showRightDrawer = ref(false)
 const selectedDate = ref<Date>()
 const selectedDateTime = ref<Date>()
 const selectedProvider = ref<string | undefined>('openai')
@@ -107,6 +108,7 @@ interface DemoDrawerResult {
 const typedDrawerName = ref('')
 const typedDrawerResult = ref('尚未提交 typed Drawer 结果')
 const [DemoDrawer, demoDrawerApi] = useDrawer<DemoDrawerData, DemoDrawerResult>({
+    side: 'right',
     title: '编辑渠道（typed Drawer）',
     description: 'DrawerApi 和 ModalApi 共享 payload/result/close reason 契约。',
     onConfirm: async (data, api) => {
@@ -472,10 +474,11 @@ function sseItemData(item: unknown): unknown {
                         <div>
                             <p class="font-medium">Drawer</p>
                             <p class="text-sm text-muted-foreground">
-                                底部抽屉提供固定头尾和独立可滚动内容区。
+                                支持底部和右侧抽屉，固定头尾并保持独立可滚动内容区。
                             </p>
                         </div>
                         <Button class="w-fit" @click="showDrawer = true">打开 Drawer</Button>
+                        <Button class="w-fit" variant="outline" @click="showRightDrawer = true">打开右侧 Drawer</Button>
                         <Button class="w-fit" variant="outline" @click="openTypedDrawer">打开 typed Drawer</Button>
                         <Drawer v-model:open="showDrawer">
                             <DrawerContent>
@@ -490,6 +493,22 @@ function sseItemData(item: unknown): unknown {
                                 </DrawerBody>
                                 <DrawerFooter>
                                     <Button @click="showDrawer = false">完成</Button>
+                                </DrawerFooter>
+                            </DrawerContent>
+                        </Drawer>
+                        <Drawer v-model:open="showRightDrawer">
+                            <DrawerContent side="right">
+                                <DrawerHeader>
+                                    <DrawerTitle>渠道详情</DrawerTitle>
+                                    <DrawerDescription>右侧 Drawer 适合桌面端详情和编辑面板。</DrawerDescription>
+                                </DrawerHeader>
+                                <DrawerBody class="space-y-3 pb-4">
+                                    <p v-for="item in 4" :key="item" class="rounded-md border p-3 text-sm">
+                                        右侧可滚动内容 {{ item }}。
+                                    </p>
+                                </DrawerBody>
+                                <DrawerFooter>
+                                    <Button @click="showRightDrawer = false">完成</Button>
                                 </DrawerFooter>
                             </DrawerContent>
                         </Drawer>
