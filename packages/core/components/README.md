@@ -152,3 +152,6 @@ When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit
 lifecycle; JsonField owns JSON parsing and draft preservation.
+`JsonField` accepts `nested` for recursive visual editing. Object paths use dot
+notation and array entries use bracket indexes; switching to JSON mode still
+edits the same draft string, and serialization reconstructs the nested object.

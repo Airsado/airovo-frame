@@ -21,4 +21,9 @@ describe('JsonField', () => {
         expect(wrapper.text()).toContain('JSON 格式无效')
         expect(wrapper.emitted('parse-error')?.at(-1)?.[0]).toBeTruthy()
     })
+
+    it('shows nested paths in visual mode when nested is enabled', () => {
+        const wrapper = mount(JsonField, { props: { modelValue: '{"server":{"host":"localhost"}}', nested: true } })
+        expect(wrapper.findAll('input').map((input) => (input.element as HTMLInputElement).value)).toContain('server.host')
+    })
 })

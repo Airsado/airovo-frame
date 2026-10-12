@@ -88,7 +88,7 @@ const bioUpdated = ref(false)
 const controllerDisabled = ref(false)
 const controllerLoading = ref(false)
 const snapshotJson = ref('点击“读取快照”查看 getValueSnapshot() 返回值')
-const jsonFieldValue = ref('{\n  "endpoint": "/v1/chat/completions",\n  "timeout": 30\n}')
+const jsonFieldValue = ref('{\n  "endpoint": "/v1/chat/completions",\n  "timeout": 30,\n  "headers": { "x-request-id": "demo" }\n}')
 const selectedDialogResult = ref('尚未保存 Dialog 子表单')
 
 /**
@@ -642,7 +642,7 @@ async function openTagDialog(): Promise<void> {
             <section class="rounded-xl border bg-card p-4 sm:p-5">
                 <h2 class="text-lg font-semibold">JsonField 回填与可视化编辑</h2>
                 <p class="mt-1 text-sm text-muted-foreground">表单只绑定 JSON 字符串，用户可以用键值行编辑或切换原始 JSON 模式。</p>
-                <JsonField v-model="jsonFieldValue" class="mt-4" :template="{ endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'demo' } }" value-type="any" />
+                <JsonField v-model="jsonFieldValue" class="mt-4" :template="{ endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'demo' } }" value-type="any" nested />
                 <pre class="mt-3 max-h-40 overflow-auto rounded-lg bg-muted/60 p-3 text-xs">{{ jsonFieldValue }}</pre>
             </section>
 
