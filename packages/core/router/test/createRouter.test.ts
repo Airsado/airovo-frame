@@ -92,6 +92,46 @@ describe('@airovo/router dynamic routes', () => {
         expect(appRouter.router.hasRoute('admin-users')).toBe(true)
     })
 
+    it('preserves order from local route metadata and backend menu metadata', () => {
+        const appRouter = createAppRouter({
+            routes: [
+                { path: '/late', name: 'late', component: Page, meta: { title: 'Late', group: 'Main', order: 20 } },
+                { path: '/early', name: 'early', component: Page, meta: { title: 'Early', group: 'Main', order: 10 } },
+            ],
+            menusMod: 'frontend',
+            history: 'hash',
+        })
+        expect(appRouter.menus.value.map((item) => item.order)).toEqual([20, 10])
+
+        const backend = createAppRouter({ routes: [], menusMod: 'backend', history: 'hash' })
+        backend.registerDynamicRoutes([
+            { title: 'Backend', url: '/backend', order: 3, meta: { order: 99 } },
+            { title: 'Meta only', url: '/meta-only', meta: { order: -1 } },
+            { title: 'Unordered', url: '/unordered' },
+        ])
+        expect(backend.menus.value.map(item => item.order)).toEqual([3, -1, undefined])
+        expect(backend.router.getRoutes().find((route) => route.path === '/backend')?.meta.order).toBe(3)
+        expect(backend.router.getRoutes().find((route) => route.path === '/meta-only')?.meta.order).toBe(-1)
+    })
+
+    it('keeps local order when a mixed-mode override omits it and respects an explicit zero', () => {
+        const appRouter = createAppRouter({
+            routes: [{ path: '/reports', name: 'reports', component: Page, meta: { title: 'Reports', order: 20 } }],
+            menusMod: 'mixed', history: 'hash',
+        })
+        appRouter.registerDynamicRoutes([{ title: 'Backend reports', url: '/reports' }])
+        expect(appRouter.menus.value[0]?.order).toBe(20)
+        expect(appRouter.router.getRoutes().find(route => route.path === '/reports')?.meta.order).toBe(20)
+
+        appRouter.registerDynamicRoutes([{ title: 'Backend reports', url: '/reports', meta: { order: 0 } }])
+        expect(appRouter.menus.value[0]?.order).toBe(0)
+        expect(appRouter.router.getRoutes().find(route => route.path === '/reports')?.meta.order).toBe(0)
+
+        appRouter.clearDynamicRoutes()
+        expect(appRouter.menus.value[0]?.order).toBe(20)
+        expect(appRouter.router.getRoutes().find(route => route.path === '/reports')?.meta.order).toBe(20)
+    })
+
     it('applies mixed-mode backend permissions to an existing local route and restores them', () => {
         const appRouter = createAppRouter({
             routes: [{

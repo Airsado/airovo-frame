@@ -14,6 +14,8 @@ export interface RouteMeta {
     group?: string
     /** i18n key for the sidebar section; group remains a fallback. */
     groupKey?: string
+    /** Optional stable sidebar sort order; lower values render first. */
+    order?: number
     /** Optional badge rendered beside the menu item. */
     badge?: string | number
     /** External navigation entry. External entries are rendered as anchors. */
@@ -59,6 +61,7 @@ declare module 'vue-router' {
         ignoreLayout?: boolean
         group?: string
         groupKey?: string
+        order?: number
         badge?: string | number
         external?: boolean
         roles?: string[]
@@ -85,6 +88,8 @@ export interface MenuItem {
     icon?: string
     group?: string
     groupKey?: string
+    /** Optional stable sidebar sort order; lower values render first. */
+    order?: number
     badge?: string | number
     isActive?: boolean
     /** Stable route name, when supplied by a backend menu adapter. */

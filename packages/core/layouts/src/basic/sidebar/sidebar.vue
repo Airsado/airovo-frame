@@ -32,6 +32,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { SidebarMenuItemType } from './types'
 import { activeMenuPath, containsActiveMenu, isActiveMenu } from './menuActive'
+import { groupSidebarMenus } from './menuGroups'
 
 defineOptions({ name: 'BasicSidebar' })
 
@@ -48,30 +49,7 @@ function label(key: string | undefined, fallback: string): string {
     return key && te(key) ? t(key) : fallback
 }
 
-const groupedMenus = computed(() => {
-    const groups = new Map<string, { title: string; titleKey?: string; items: SidebarMenuItemType[] }>()
-
-    function addToGroup(menu: SidebarMenuItemType, fallbackGroup: { title: string; titleKey?: string } = { title: '导航' }): void {
-        // new-api's root sidebar is a list of NavGroups. A route container
-        // such as `/dashboard` is only a redirect in this demo, so its
-        // grouped children become the visible NavGroup items. Real parent
-        // menus without grouped children stay collapsible below.
-        if (menu.children?.length && !menu.group && menu.children.some(child => child.group)) {
-            for (const child of menu.children) addToGroup(child, { title: menu.title, titleKey: menu.titleKey })
-            return
-        }
-
-        const title = menu.group ?? fallbackGroup.title
-        const titleKey = menu.groupKey ?? fallbackGroup.titleKey
-        const groupId = titleKey ?? title
-        const group = groups.get(groupId) ?? { title, titleKey, items: [] }
-        group.items.push(menu)
-        groups.set(groupId, group)
-    }
-
-    for (const menu of props.menus) addToGroup(menu)
-    return [...groups.values()]
-})
+const groupedMenus = computed(() => groupSidebarMenus(props.menus))
 
 const route = useRoute()
 const router = useRouter()
