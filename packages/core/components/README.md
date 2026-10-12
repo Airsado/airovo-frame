@@ -160,3 +160,8 @@ edits the same draft string, and serialization reconstructs the nested object.
 dropdown action. A loading action is disabled, announces `aria-busy`, and
 shows a spinner even when the caller did not provide an icon; callback and
 permission ownership remain with the caller.
+
+`DrawerLayout` composes the existing Drawer primitive with a fixed header,
+scrollable body and optional footer. It accepts `bottom`/`right` side, title,
+description, `actions`/`footer` slots and class overrides; callers still own
+open state and business actions.
