@@ -106,8 +106,8 @@ describe('DataTable', () => {
         expect(wrapper.emitted('sort-change')?.at(-1)).toEqual([{ key: 'name', direction: 'asc' }])
         expect(wrapper.find('tbody tr').text()).toContain('格式化:two')
 
-        const nextPage = wrapper.findAll('button').find((button) => button.text() === '下一页')
-        await nextPage?.trigger('click')
+        const nextPage = wrapper.get('[aria-label="Go to next page"]')
+        await nextPage.trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
 
         const errorWrapper = mountTable({ error: new Error('failed') })
