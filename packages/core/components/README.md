@@ -198,3 +198,11 @@ caller-owned.
 the slot receives the normalized label/items model and is only rendered for a
 loaded non-empty chart. Chart.js options and actual hover wiring remain
 caller-owned.
+## Accordion
+
+`Accordion`, `AccordionItem`, `AccordionHeader`, `AccordionTrigger` and
+`AccordionContent` wrap the Reka UI accordion primitive. The root supports
+single or multiple values, controlled or uncontrolled state, `collapsible`,
+disabled items and orientation; content exposes a region labelled by its
+trigger. The wrapper owns layout, border and focus styles while callers own
+business content and persistence.

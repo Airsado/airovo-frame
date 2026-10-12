@@ -43,3 +43,5 @@ export * from './components/ui/input-otp'
 export * from './components/ui/kbd'
 export * from './components/ui/tabs'
 
+
+export * from './components/ui/accordion'

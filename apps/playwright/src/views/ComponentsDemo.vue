@@ -38,6 +38,11 @@ import {
 import { PermissionButton } from '@airovo/permission'
 import {
     Badge,
+    Accordion,
+    AccordionContent,
+    AccordionHeader,
+    AccordionItem,
+    AccordionTrigger,
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -363,6 +368,21 @@ function sseItemData(item: unknown): unknown {
                 <div class="rounded-lg border bg-card p-4"><Progress :model-value="64" aria-label="演示进度" /></div>
                 <h2 class="text-lg font-semibold">RadioGroup primitive</h2>
                 <RadioGroup model-value="default" class="flex gap-3"><label class="flex items-center gap-2"><RadioGroupItem value="default" />默认</label><label class="flex items-center gap-2"><RadioGroupItem value="compact" />紧凑</label></RadioGroup>
+                <h2 class="text-lg font-semibold">Accordion primitive</h2>
+                <Accordion type="single" default-value="overview" collapsible class="rounded-lg border bg-card px-4">
+                    <AccordionItem value="overview">
+                        <AccordionHeader>
+                            <AccordionTrigger>概览</AccordionTrigger>
+                        </AccordionHeader>
+                        <AccordionContent>Accordion 使用 Reka UI 提供单项展开、键盘导航和 ARIA 关联。</AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="disabled" disabled>
+                        <AccordionHeader>
+                            <AccordionTrigger>禁用项</AccordionTrigger>
+                        </AccordionHeader>
+                        <AccordionContent>此内容不会被打开。</AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </section>
 
             <section class="space-y-4">
