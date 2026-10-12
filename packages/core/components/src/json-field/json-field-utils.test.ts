@@ -13,4 +13,10 @@ describe('json field utilities', () => {
         expect(jsonError('{"name":}')).toBeTruthy()
         expect(formatJson('{"name":"Ada"}')).toBe('{\n  "name": "Ada"\n}')
     })
+
+    it('flattens and rebuilds nested objects and arrays', () => {
+        const rows = parseJsonRows('{"server":{"host":"localhost","ports":[80,443]}}', true)
+        expect(rows.map((row) => row.key)).toEqual(['server.host', 'server.ports[0]', 'server.ports[1]'])
+        expect(JSON.parse(serializeJsonRows(rows, 'any', true))).toEqual({ server: { host: 'localhost', ports: [80, 443] } })
+    })
 })

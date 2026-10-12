@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
     modelValue?: string
     disabled?: boolean
     valueType?: JsonFieldValueType
+    nested?: boolean
     template?: Record<string, unknown>
     keyLabel?: string
     valueLabel?: string
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<{
     modelValue: '',
     disabled: false,
     valueType: 'string',
+    nested: false,
     keyLabel: '键',
     valueLabel: '值',
     keyPlaceholder: '字段名',
@@ -36,14 +38,15 @@ const emit = defineEmits<{
 
 const mode = ref<'visual' | 'json'>('visual')
 const draft = ref(props.modelValue)
-const rows = ref<JsonFieldRow[]>(parseJsonRows(props.modelValue))
+const rows = ref<JsonFieldRow[]>(parseJsonRows(props.modelValue, props.nested))
 const error = computed(() => jsonError(draft.value))
 
 watch(() => props.modelValue, (value) => {
     if (value === draft.value) return
     draft.value = value
-    rows.value = parseJsonRows(value)
+    rows.value = parseJsonRows(value, props.nested)
 })
+watch(() => props.nested, () => { rows.value = parseJsonRows(draft.value, props.nested) })
 
 function publish(value: string): void {
     draft.value = value
@@ -53,7 +56,7 @@ function publish(value: string): void {
 
 function updateRows(next: JsonFieldRow[]): void {
     rows.value = next
-    publish(serializeJsonRows(next, props.valueType))
+    publish(serializeJsonRows(next, props.valueType, props.nested))
 }
 
 function addRow(): void {
@@ -70,10 +73,10 @@ function removeRow(id: string): void {
 
 function toggleMode(): void {
     if (mode.value === 'visual') {
-        publish(serializeJsonRows(rows.value, props.valueType))
+        publish(serializeJsonRows(rows.value, props.valueType, props.nested))
         mode.value = 'json'
     } else {
-        rows.value = parseJsonRows(draft.value)
+        rows.value = parseJsonRows(draft.value, props.nested)
         mode.value = 'visual'
     }
 }
@@ -81,13 +84,13 @@ function toggleMode(): void {
 function fillTemplate(): void {
     if (props.template === undefined) return
     publish(JSON.stringify(props.template, null, 2))
-    rows.value = parseJsonRows(draft.value)
+    rows.value = parseJsonRows(draft.value, props.nested)
 }
 
 function formatDraft(): void {
     if (error.value) return
     publish(formatJson(draft.value))
-    rows.value = parseJsonRows(draft.value)
+    rows.value = parseJsonRows(draft.value, props.nested)
 }
 </script>
 
