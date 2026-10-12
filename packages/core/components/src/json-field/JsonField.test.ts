@@ -18,7 +18,7 @@ describe('JsonField', () => {
         await wrapper.findAll('button')[0]!.trigger('click')
         const textarea = wrapper.get('textarea')
         await textarea.setValue('{"ok":}')
-        expect(wrapper.text()).toContain('Unexpected')
+        expect(wrapper.text()).toContain('JSON 格式无效')
         expect(wrapper.emitted('parse-error')?.at(-1)?.[0]).toBeTruthy()
     })
 })

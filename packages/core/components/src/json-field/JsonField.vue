@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
-import { Button, Input, Textarea } from '@airovo/uikit-shadcnui'
+import { Button, Input } from '@airovo/uikit-shadcnui'
 import { formatJson, jsonError, parseJsonRows, serializeJsonRows, type JsonFieldRow, type JsonFieldValueType } from './json-field-utils'
+import JsonCodeEditor from './JsonCodeEditor.vue'
 
 defineOptions({ name: 'JsonField' })
 
@@ -116,8 +117,7 @@ function formatDraft(): void {
             <Button type="button" variant="outline" size="sm" class="w-full" :disabled="disabled" @click="addRow"><Icon icon="lucide:plus" class="mr-1.5 size-4" />添加字段</Button>
         </div>
         <div v-else class="space-y-1.5">
-            <Textarea :model-value="draft" class="min-h-48 font-mono text-xs" :disabled="disabled" aria-label="JSON" @update:model-value="publish(String($event))" />
-            <p v-if="error" class="text-xs text-destructive" role="alert">{{ error }}</p>
+            <JsonCodeEditor :model-value="draft" :disabled="disabled" @update:model-value="publish" @parse-error="(message) => emit('parse-error', message)" />
         </div>
     </div>
 </template>
