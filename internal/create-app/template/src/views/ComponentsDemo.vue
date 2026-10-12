@@ -60,6 +60,9 @@ import {
     MenubarMenu,
     MenubarSeparator,
     MenubarTrigger,
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
     AspectRatio,
     Card,
     CardAction,
@@ -620,6 +623,12 @@ function sseItemData(item: unknown): unknown {
                         </MenubarContent>
                     </MenubarMenu>
                 </Menubar>
+                <h2 class="text-lg font-semibold">Resizable primitive</h2>
+                <ResizablePanelGroup class="h-24 max-w-xl rounded-lg border" aria-label="可调整面板">
+                    <ResizablePanel :default-size="40" :min-size="20" class="p-3 text-sm">左侧面板</ResizablePanel>
+                    <ResizableHandle with-handle />
+                    <ResizablePanel :default-size="60" :max-size="80" class="p-3 text-sm">右侧面板</ResizablePanel>
+                </ResizablePanelGroup>
             </section>
 
             <section class="space-y-4">
