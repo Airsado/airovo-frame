@@ -651,6 +651,7 @@ function sseItemData(item: unknown): unknown {
                     <ContextMenuContent>
                         <ContextMenuLabel inset>渠道操作</ContextMenuLabel>
                         <ContextMenuItem inset>复制渠道 <ContextMenuShortcut>⌘C</ContextMenuShortcut></ContextMenuItem>
+                        <ContextMenuItem inset disabled>禁用操作</ContextMenuItem>
                         <ContextMenuItem inset variant="destructive">删除渠道</ContextMenuItem>
                         <ContextMenuSeparator />
                         <ContextMenuCheckboxItem v-model="contextMenuPinned" inset>固定到顶部</ContextMenuCheckboxItem>
