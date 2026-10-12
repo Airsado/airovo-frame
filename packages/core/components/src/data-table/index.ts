@@ -1,4 +1,5 @@
 export { default as DataTable } from './DataTable.vue'
+export { default as DataTableBulkActions } from './DataTableBulkActions.vue'
 export { default as DataTablePage } from './DataTablePage.vue'
 export { default as DataTablePagination } from './DataTablePagination.vue'
 export { default as DataTableRowActions } from './DataTableRowActions.vue'
