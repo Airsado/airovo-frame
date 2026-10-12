@@ -36,6 +36,8 @@ import {
     type DataTableColumnPinning,
     type DataTableFilterGroup,
     type DataTableFetcher,
+    type DataTableQuery,
+    type DataTableQueryState,
 } from '@airovo/components'
 import { PermissionButton } from '@airovo/permission'
 import {
@@ -241,7 +243,34 @@ const serverTableFetcher: DataTableFetcher = async (query, { signal }) => {
     const start = (query.page - 1) * query.pageSize
     return { data: filtered.slice(start, start + query.pageSize), total: filtered.length }
 }
-const serverTable = useDataTable({ fetcher: serverTableFetcher, filters: { search: '' } })
+function readServerTableQuery(): DataTableQueryState {
+    if (typeof window === 'undefined') return {}
+    const params = new URLSearchParams(window.location.search)
+    const page = Number(params.get('tablePage'))
+    const pageSize = Number(params.get('tablePageSize'))
+    const sortValue = params.get('tableSort')?.split(':')
+    let filters: Record<string, unknown> = {}
+    try { filters = JSON.parse(params.get('tableFilters') ?? '{}') } catch { filters = {} }
+    return {
+        page: Number.isFinite(page) ? page : undefined,
+        pageSize: Number.isFinite(pageSize) ? pageSize : undefined,
+        sort: sortValue?.[0] && (sortValue[1] === 'asc' || sortValue[1] === 'desc')
+            ? { key: sortValue[0], direction: sortValue[1] }
+            : undefined,
+        filters,
+    }
+}
+function writeServerTableQuery(query: DataTableQuery): void {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    url.searchParams.set('tablePage', String(query.page))
+    url.searchParams.set('tablePageSize', String(query.pageSize))
+    if (query.sort) url.searchParams.set('tableSort', `${query.sort.key}:${query.sort.direction}`)
+    else url.searchParams.delete('tableSort')
+    url.searchParams.set('tableFilters', JSON.stringify(query.filters ?? {}))
+    window.history.replaceState(window.history.state, '', url)
+}
+const serverTable = useDataTable({ fetcher: serverTableFetcher, filters: { search: '' }, querySync: { read: readServerTableQuery, write: writeServerTableQuery } })
 const serverTableSearch = ref('')
 const serverTableFilterValues = ref<Record<string, string | string[] | undefined>>({})
 const serverTableColumnVisibility = ref<Record<string, boolean>>({ id: false })
@@ -845,7 +874,7 @@ function sseItemData(item: unknown): unknown {
                             <Button size="sm" variant="secondary" @click="runBatchAction">批量处理 {{ selectedCount }} 项</Button>
                         </template>
                     </DataTableBulkActions>
-                    <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。</p>
+                    <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。分页、排序和筛选会同步到 URL query，刷新后可恢复。</p>
                     <p class="px-4 pb-3 text-xs text-muted-foreground">{{ batchActionResult }}</p>
                 </DataPanel>
             </section>

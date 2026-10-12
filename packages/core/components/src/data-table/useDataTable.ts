@@ -4,6 +4,7 @@ import {
     onBeforeUnmount,
     ref,
     shallowRef,
+    watch,
     type ComputedRef,
     type Ref,
 } from 'vue'
@@ -21,7 +22,18 @@ export interface UseDataTableOptions<T extends DataTableRow = DataTableRow> {
     pageSize?: number
     sort?: DataTableSort
     filters?: Record<string, unknown>
+    /** Optional application-owned URL/query state bridge. */
+    querySync?: DataTableQuerySync
     immediate?: boolean
+}
+
+export type DataTableQueryState = Partial<Pick<DataTableQuery, 'page' | 'pageSize' | 'sort'>> & {
+    filters?: Record<string, unknown>
+}
+
+export interface DataTableQuerySync {
+    read?: () => DataTableQueryState | undefined
+    write?: (query: DataTableQuery) => void
 }
 
 export interface UseDataTableReturn<T extends DataTableRow = DataTableRow> {
@@ -44,22 +56,40 @@ export interface UseDataTableReturn<T extends DataTableRow = DataTableRow> {
     cancel: () => void
 }
 
-function normalizePage(value: number | undefined): number {
-    return Number.isFinite(value) && value && value > 0 ? Math.floor(value) : 1
+function normalizePage(value: number | undefined, fallback = 1): number {
+    return Number.isFinite(value) && value && value > 0 ? Math.floor(value) : fallback
 }
 
-function normalizePageSize(value: number | undefined): number {
-    return Number.isFinite(value) && value && value > 0 ? Math.floor(value) : 20
+function normalizePageSize(value: number | undefined, fallback = 20): number {
+    return Number.isFinite(value) && value && value > 0 ? Math.floor(value) : fallback
+}
+
+function normalizeSort(value: unknown): DataTableSort | undefined {
+    if (!value || typeof value !== 'object') return undefined
+    const candidate = value as Partial<DataTableSort>
+    if (typeof candidate.key !== 'string' || !candidate.key || (candidate.direction !== 'asc' && candidate.direction !== 'desc')) return undefined
+    return { key: candidate.key, direction: candidate.direction }
+}
+
+function readQueryState(sync: DataTableQuerySync | undefined): DataTableQueryState {
+    if (!sync?.read) return {}
+    try {
+        const state = sync.read()
+        return state && typeof state === 'object' ? state : {}
+    } catch {
+        return {}
+    }
 }
 
 /** Owns server-side query state without coupling to Axios or an envelope. */
 export function useDataTable<T extends DataTableRow = DataTableRow>(
     options: UseDataTableOptions<T>,
 ): UseDataTableReturn<T> {
-    const page = ref(normalizePage(options.page))
-    const pageSize = ref(normalizePageSize(options.pageSize))
-    const sort = ref<DataTableSort | undefined>(options.sort)
-    const filters = ref<Record<string, unknown>>({ ...(options.filters ?? {}) })
+    const synced = readQueryState(options.querySync)
+    const page = ref(normalizePage(synced.page, normalizePage(options.page)))
+    const pageSize = ref(normalizePageSize(synced.pageSize, normalizePageSize(options.pageSize)))
+    const sort = ref<DataTableSort | undefined>(normalizeSort(synced.sort) ?? options.sort)
+    const filters = ref<Record<string, unknown>>({ ...(options.filters ?? {}), ...(synced.filters ?? {}) })
     // A shallow ref keeps the caller's row subtype intact. `ref<T[]>` runs
     // Vue's `UnwrapRef` over generic rows, which makes the public `Ref<T[]>`
     // contract fail under vue-tsc for otherwise valid table row types.
@@ -76,6 +106,21 @@ export function useDataTable<T extends DataTableRow = DataTableRow>(
         sort: sort.value ? { ...sort.value } : undefined,
         filters: { ...filters.value },
     }))
+
+    if (options.querySync?.write) {
+        watch(query, (value) => {
+            try {
+                options.querySync?.write?.({
+                    page: value.page,
+                    pageSize: value.pageSize,
+                    sort: value.sort ? { ...value.sort } : undefined,
+                    filters: value.filters ? { ...value.filters } : undefined,
+                })
+            } catch {
+                // A URL/history adapter must not break table state when storage is unavailable.
+            }
+        }, { deep: true })
+    }
 
     const hasNextPage = computed(() => total.value > page.value * pageSize.value)
 

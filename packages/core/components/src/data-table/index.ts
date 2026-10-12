@@ -10,7 +10,7 @@ export { default as TruncatedText } from './TruncatedText.vue'
 export { useDataTable } from './useDataTable'
 export { parseStoredDataTableColumnPinning, resolveDataTableColumnPinning } from './column-pinning'
 export type { DataTablePinningColumn, ResolvedDataTablePinnedColumn } from './column-pinning'
-export type { UseDataTableOptions, UseDataTableReturn } from './useDataTable'
+export type { DataTableQueryState, DataTableQuerySync, UseDataTableOptions, UseDataTableReturn } from './useDataTable'
 export type {
     DataTableColumnPinning,
     DataTableColumn,

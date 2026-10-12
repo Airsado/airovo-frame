@@ -84,4 +84,51 @@ describe('useDataTable', () => {
         expect(api.rows.value).toEqual([{ id: 1, name: 'ok' }])
         scope.stop()
     })
+
+    it('restores valid query state and writes changes through an injected sync adapter', async () => {
+        const writes: unknown[] = []
+        const scope = effectScope()
+        const api = scope.run(() => useDataTable<Row>({
+            fetcher: vi.fn(async () => ({ data: [], total: 0 })),
+            immediate: false,
+            page: 4,
+            pageSize: 30,
+            sort: { key: 'fallback', direction: 'asc' },
+            filters: { base: true },
+            querySync: {
+                read: () => ({
+                    page: 2,
+                    pageSize: 50,
+                    sort: { key: 'name', direction: 'desc' },
+                    filters: { status: 'ready' },
+                }),
+                write: (query) => writes.push(query),
+            },
+        }))!
+
+        expect(api.page.value).toBe(2)
+        expect(api.pageSize.value).toBe(50)
+        expect(api.sort.value).toEqual({ key: 'name', direction: 'desc' })
+        expect(api.filters.value).toEqual({ base: true, status: 'ready' })
+
+        await api.setPage(3)
+        expect(writes.at(-1)).toEqual({ page: 3, pageSize: 50, sort: { key: 'name', direction: 'desc' }, filters: { base: true, status: 'ready' } })
+        scope.stop()
+    })
+
+    it('falls back to option defaults for invalid synced values', () => {
+        const scope = effectScope()
+        const api = scope.run(() => useDataTable<Row>({
+            fetcher: vi.fn(async () => []),
+            immediate: false,
+            page: 4,
+            pageSize: 30,
+            sort: { key: 'fallback', direction: 'asc' },
+            querySync: { read: () => ({ page: 0, pageSize: -1, sort: { key: '', direction: 'bad' } as never }) },
+        }))!
+        expect(api.page.value).toBe(4)
+        expect(api.pageSize.value).toBe(30)
+        expect(api.sort.value).toEqual({ key: 'fallback', direction: 'asc' })
+        scope.stop()
+    })
 })
