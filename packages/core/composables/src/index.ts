@@ -7,7 +7,7 @@
  */
 export { useForm } from '@airovo/forms'
 export { DrawerApi, useDrawer } from './drawer'
-export type { DrawerCloseReason, DrawerController, DrawerOptions, DrawerOutcome, DrawerState } from './drawer'
+export type { DrawerCloseReason, DrawerController, DrawerOptions, DrawerOutcome, DrawerSide, DrawerState } from './drawer'
 export { ModalApi, useModal } from './modal'
 export type { ModalCloseReason, ModalOptions, ModalOutcome, ModalState } from './modal'
 export { OverlayStack, overlayStack } from './overlay'
