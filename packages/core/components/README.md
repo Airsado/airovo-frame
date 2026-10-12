@@ -75,3 +75,12 @@ DataTable columns can opt into resizing with `resizable`, `minSize`, and
 id/key and pass `column-sizing-storage-key` to persist widths. Resizing is
 desktop table behavior; mobile card slots continue to use the same rows and
 selection state.
+
+## Status states
+
+`EmptyState` keeps its existing `actionText`/`action` event and `actions` slot;
+`bordered` and the singular `action` slot are optional additions. `ErrorState`
+provides retry/action events and slots with an alert role. `LoadingState`
+supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
+and `aria-busy`/`aria-live` attributes. These components render state only and
+do not fetch data or own retry logic.

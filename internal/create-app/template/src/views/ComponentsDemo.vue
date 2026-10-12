@@ -18,9 +18,11 @@ import {
     DrawerHeader,
     DrawerTitle,
     EmptyState,
+    ErrorState,
     FacetedFilter,
     FilterBar,
     LiveLog,
+    LoadingState,
     MetricStrip,
     PageContainer,
     ResultPage,
@@ -383,6 +385,15 @@ function sseItemData(item: unknown): unknown {
                         </DataPanel>
                     </div>
                 </SectionPage>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-lg font-semibold">ErrorState / LoadingState 状态组件</h2>
+                <div class="grid gap-4 lg:grid-cols-3">
+                    <div class="rounded-lg border bg-card"><ErrorState title="加载渠道失败" description="服务暂时不可用，请稍后重试。" @retry="onAdd" /></div>
+                    <div class="rounded-lg border bg-card"><LoadingState message="正在加载渠道…" size="lg" /></div>
+                    <div class="flex items-center rounded-lg border bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
+                </div>
             </section>
 
             <section class="space-y-4">

@@ -8,11 +8,13 @@ const props = withDefaults(
         title?: string
         description?: string
         actionText?: string
+        bordered?: boolean
         size?: 'sm' | 'md' | 'lg'
         class?: string
     }>(),
     {
         size: 'md',
+        bordered: false,
     },
 )
 
@@ -31,6 +33,7 @@ const iconSizeClass = {
     <div
         :class="[
             'flex min-h-48 flex-col items-center justify-center gap-3 px-4 py-8 text-center md:py-10',
+            props.bordered && 'border',
             props.class,
         ]"
     >
@@ -52,7 +55,10 @@ const iconSizeClass = {
                 {{ description }}
             </p>
         </div>
-        <slot name="actions" />
+        <div v-if="$slots.actions || $slots.action" class="flex flex-wrap items-center justify-center gap-2">
+            <slot name="actions" />
+            <slot name="action" />
+        </div>
         <Button v-if="actionText" @click="$emit('action', $event)">
             {{ actionText }}
         </Button>
