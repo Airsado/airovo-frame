@@ -20,6 +20,19 @@ describe('status state components', () => {
         expect(wrapper.emitted('action')).toHaveLength(1)
     })
 
+    it.each([
+        ['sm', 'size-8'],
+        ['md', 'size-12'],
+        ['lg', 'size-16'],
+    ] as const)('renders icon, description and %s media size', (size, mediaSize) => {
+        const wrapper = mount(EmptyState, {
+            props: { icon: 'lucide:inbox', description: '暂无数据', size },
+        })
+        expect(wrapper.get('[data-slot="empty-icon"]')).toBeTruthy()
+        expect(wrapper.get('[data-slot="empty-description"]').text()).toBe('暂无数据')
+        expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain(mediaSize)
+    })
+
     it('emits retry and action from ErrorState and exposes alert semantics', async () => {
         const wrapper = mount(ErrorState, { props: { description: '网络暂时不可用', actionText: '返回' } })
         expect(wrapper.attributes('role')).toBe('alert')

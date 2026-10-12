@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed } from 'vue'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@airovo/uikit-shadcnui'
 
@@ -13,7 +14,7 @@ const props = withDefaults(defineProps<{
 }>(), { size: 'md', bordered: false })
 
 const emit = defineEmits<{ (event: 'action', ev: MouseEvent): void }>()
-const mediaSize = { sm: 'size-8', md: 'size-12', lg: 'size-16' }[props.size]
+const mediaSize = computed(() => ({ sm: 'size-8', md: 'size-12', lg: 'size-16' })[props.size])
 </script>
 
 <template>
