@@ -1,2 +1,2 @@
 export { default as ChartCard } from './ChartCard.vue'
-export type { ChartLegendItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
+export type { ChartLegendItem, ChartTooltipItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'

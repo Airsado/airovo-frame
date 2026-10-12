@@ -178,4 +178,7 @@ empty slots; the `card` slot owns business card content.
 
 `PageFooter` provides a reusable semantic footer with default/actions slots and
 compact or sticky variants. It owns only layout and styling; page actions remain
+`ChartCard` accepts optional `tooltipLabel`/`tooltipItems` and a `tooltip` slot;
+the slot receives the normalized label/items model and is only rendered for a
+loaded non-empty chart. Chart.js options and actual hover wiring remain
 caller-owned.

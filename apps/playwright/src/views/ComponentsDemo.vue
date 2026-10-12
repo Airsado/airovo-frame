@@ -783,7 +783,9 @@ function sseItemData(item: unknown): unknown {
                     <p class="text-sm text-muted-foreground">图表复用 ui-kit 的 Chart.js 适配，框架负责主题 token、卡片状态和可访问标题。</p>
                 </div>
                 <div class="grid gap-4 lg:grid-cols-2">
-                    <ChartCard title="请求趋势" description="过去 7 天请求量与成功量" type="line" :data="demoChartData" :legend="demoChartLegend" />
+                    <ChartCard title="请求趋势" description="过去 7 天请求量与成功量" type="line" :data="demoChartData" :legend="demoChartLegend" tooltip-label="周一" :tooltip-items="[{ color: 'var(--color-chart-1)', name: '请求量', value: 2400 }]">
+                        <template #tooltip="{ label, items }"><div class="mt-3 rounded-md border bg-card px-2.5 py-1.5 text-xs"><strong>{{ label }}</strong> · {{ items.length }} 个指标</div></template>
+                    </ChartCard>
                     <ChartCard title="暂无数据示例" description="没有数据时不渲染误导性图形" empty />
                 </div>
             </section>

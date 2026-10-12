@@ -8,3 +8,9 @@ export interface ChartLegendItem {
     label: string
     color: string
 }
+
+export interface ChartTooltipItem {
+    color: string
+    name: string
+    value: number | string
+}

@@ -11,6 +11,16 @@ describe('ChartCard', () => {
         expect(wrapper.text()).not.toContain('暂无图表数据')
     })
 
+    it('renders the optional tooltip slot only in the chart state', () => {
+        const wrapper = mount(ChartCard, {
+            props: { title: '趋势', data: { labels: ['一'], datasets: [{ label: '请求', data: [1] }] }, tooltipLabel: '周一', tooltipItems: [{ color: '#111', name: '请求', value: 1 }] },
+            slots: { tooltip: ({ label, items }: { label?: string; items: unknown[] }) => `${label}:${items.length}` },
+        })
+        expect(wrapper.text()).toContain('周一:1')
+        const loading = mount(ChartCard, { props: { title: '趋势', loading: true, tooltipLabel: '隐藏' }, slots: { tooltip: '隐藏' } })
+        expect(loading.text()).not.toContain('隐藏')
+    })
+
     it('renders retry and empty states without a misleading chart', async () => {
         const errorWrapper = mount(ChartCard, { props: { title: '调用趋势', error: new Error('failed') } })
         await errorWrapper.find('button').trigger('click')
