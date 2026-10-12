@@ -96,3 +96,10 @@ DataTable columns can opt into resizing with `resizable`, `minSize`, and
 id/key and pass `column-sizing-storage-key` to persist widths. Resizing is
 desktop table behavior; mobile card slots continue to use the same rows and
 selection state.
+
+## TruncatedCell
+
+`TruncatedCell` and `TruncatedText` provide the new-api DataTable long-text
+pattern: a constrained `truncate` container, keyboard focus, and a Tooltip
+with the full text. Pass `tooltipContent` when the displayed slot is a badge
+or custom rendering; empty text does not create an empty tooltip.
