@@ -65,3 +65,5 @@ export * from './components/ui/toggle'
 export * from './components/ui/button-group'
 
 export * from './components/ui/aspect-ratio'
+
+export * from './components/ui/menubar'
