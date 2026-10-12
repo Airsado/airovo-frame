@@ -38,6 +38,10 @@ import {
 import { PermissionButton } from '@airovo/permission'
 import {
     Badge,
+    Alert,
+    AlertAction,
+    AlertDescription,
+    AlertTitle,
     Accordion,
     AccordionContent,
     AccordionHeader,
@@ -383,6 +387,18 @@ function sseItemData(item: unknown): unknown {
                         <AccordionContent>此内容不会被打开。</AccordionContent>
                     </AccordionItem>
                 </Accordion>
+                <h2 class="text-lg font-semibold">Alert primitive</h2>
+                <div class="grid gap-3 md:grid-cols-2">
+                    <Alert>
+                        <AlertTitle>提示</AlertTitle>
+                        <AlertDescription>这是一个默认 variant 的语义提示框。</AlertDescription>
+                    </Alert>
+                    <Alert variant="destructive">
+                        <AlertTitle>服务异常</AlertTitle>
+                        <AlertDescription>请求失败，请稍后重试。</AlertDescription>
+                        <AlertAction><Button size="sm" variant="outline">重试</Button></AlertAction>
+                    </Alert>
+                </div>
             </section>
 
             <section class="space-y-4">
