@@ -401,33 +401,16 @@ body:has([data-layout-shell]) {
   display: none;
 }
 
-/* Framework navigation owns the selected surface. Derive it from the same
- * primary/background tokens used by buttons and content so a preset cannot
- * leave the sidebar on a different accent family. */
+/* Framework navigation follows the same muted hover and sidebar-accent active
+ * states as new-api's SidebarMenuButton and SidebarMenuSubButton. */
 .app-sidebar-nav-item:not([data-app-sidebar-active='true']):hover {
-  background-color: var(--accent);
+  background-color: var(--muted);
   color: var(--sidebar-foreground);
 }
 
-/* Normalize the upstream outline/ghost dark variants at framework level.
- * Triggers may replace data-slot, but preserve data-variant. Only normalize
- * the default accent interaction; cn() removes it when an app supplies a
- * different hover surface (for example a destructive reset button). */
-:is(button, a, [role='button']):is([data-variant='outline'], [data-variant='ghost']):where([class~='hover:bg-accent']):not(:disabled):not([aria-disabled='true']):is(:hover, :focus-visible, [aria-expanded='true']) {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
-}
-
-/* These primitives use buttonVariants or their own dark input hover without
- * forwarding a variant attribute. Keep selected calendar days on primary. */
-:is([data-slot='select-trigger'], [data-slot='native-select'], [data-slot='calendar-prev-button'], [data-slot='calendar-next-button'], [data-slot='calendar-cell-trigger']):not(:disabled):not([data-disabled]):not([data-selected]):is(:hover, :focus-visible, [aria-expanded='true']) {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
-}
-
 [data-app-sidebar-active='true'] {
-  background-color: var(--app-interaction-active);
-  color: var(--foreground);
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
 }
 
 /* Keep icon and label descendants on the selected surface as well. */
@@ -441,12 +424,6 @@ body:has([data-layout-shell]) {
 [data-layout-shell] [data-sidebar='menu-button'] a,
 [data-layout-shell] [data-sidebar='menu-sub-button'] a {
   cursor: pointer;
-}
-
-/* Native header triggers share the expanded-state tint with ghost buttons. */
-[data-slot='header-tools'] button:is([aria-expanded='true'], [data-state='open']) {
-  background-color: var(--accent);
-  color: var(--foreground);
 }
 
 /* Sheet/scroll-dialog primitives omit a close slot; their close control is
