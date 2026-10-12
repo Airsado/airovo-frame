@@ -4,6 +4,7 @@ import {
     DataPanel,
     DataTable,
     TruncatedText,
+    DataTableBulkActions,
     DataTablePage,
     DataTableRowActions,
     DataTableToolbar,
@@ -794,8 +795,6 @@ function sseItemData(item: unknown): unknown {
                             >
                                 <template #actions>
                                     <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
-                                    <Button size="sm" variant="secondary" :disabled="serverSelectedKeys.length === 0" @click="runBatchAction">批量处理 {{ serverSelectedKeys.length }} 项</Button>
-                                    <Button size="sm" variant="outline" :disabled="serverSelectedKeys.length === 0" @click="clearServerSelection">清除 {{ serverSelectedKeys.length }} 项选择</Button>
                                 </template>
                             </DataTableToolbar>
                         </template>
@@ -841,6 +840,11 @@ function sseItemData(item: unknown): unknown {
                             </div>
                         </template>
                     </DataTablePage>
+                    <DataTableBulkActions :selected-count="serverSelectedKeys.length" entity-name="渠道" @clear-selection="clearServerSelection">
+                        <template #actions="{ selectedCount }">
+                            <Button size="sm" variant="secondary" @click="runBatchAction">批量处理 {{ selectedCount }} 项</Button>
+                        </template>
+                    </DataTableBulkActions>
                     <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。</p>
                     <p class="px-4 pb-3 text-xs text-muted-foreground">{{ batchActionResult }}</p>
                 </DataPanel>

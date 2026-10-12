@@ -51,6 +51,12 @@ Pinned headers and cells use sticky offsets calculated from visible columns.
 The special `selection` and `actions` ids can pin the built-in checkbox and
 row-action columns. `columnPinningStorageKey` restores and persists the
 uncontrolled state; mobile card slots do not apply pinning.
+`DataTableBulkActions` is a business-neutral selection toolbar. It renders only
+when `selectedCount` is greater than zero, emits `clear-selection`, and accepts
+the action buttons through the `actions` or default slot. `placement="floating"`
+shows the new-api-style bottom toolbar; `placement="inline"` keeps it in the
+normal layout flow. Escape and arrow/Home/End keys operate on the toolbar
+buttons without taking ownership of the batch operation itself.
 
 ## LiveLog and follow-tail
 
@@ -99,7 +105,7 @@ A node with `children` is rendered as a non-selectable group label. Only leaf
 nodes with `value` can be selected, so the selected value and form backfill
 remain stable. Nested labels are indented by depth; `SearchSelect` searches
 the rendered descendant labels. Existing flat options keep their behavior.
-=======
+
 ## DataTable column sizing
 
 DataTable columns can opt into resizing with `resizable`, `minSize`, and
@@ -116,7 +122,7 @@ provides retry/action events and slots with an alert role. `LoadingState`
 supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
 and `aria-busy`/`aria-live` attributes. These components render state only and
 do not fetch data or own retry logic.
-=======
+
 ## TruncatedCell
 
 `TruncatedCell` and `TruncatedText` provide the new-api DataTable long-text

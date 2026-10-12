@@ -14,7 +14,7 @@
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 主要缺口 | 优先级 | 验证方式 |
 |---|---|---|---|---|---|---|
-| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | 列宽拖拽、列固定、截断单元格、URL/query 状态、移动卡片和完整 bulk action | P0 | router/component tests、demo、desktop/mobile browser |
+| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | 截断单元格、URL/query 状态和更完整的移动/批量交互矩阵 | P0 | router/component tests、demo、desktop/mobile browser |
 | `components/json-editor.tsx` | JsonField / JsonEditor | `packages/core/components/src/json-field/*` | 已存在但行为不完整 | 已有双模式和回填；需要 FormFieldSchema 组合验证、复杂嵌套编辑和更完整 raw editor | P0 | component tests、MyFormDemo、form submit/reset browser |
 | `components/json-code-editor.tsx` | JsonCodeEditor | 暂无 | 完全缺失 | 格式化、错误保留、光标/缩进、ARIA 和大文本编辑 | P1 | utility tests、keyboard browser |
 | `components/layout/components/section-page-layout.tsx` | SectionPageLayout | `packages/core/components/src/section-page/SectionPage.vue` | 已存在但行为不完整 | sticky 标题刚补入；需补 footer/slot 语义和 tabs/scroll 组合验证 | P0 | component tests、scroll browser |
@@ -23,7 +23,7 @@
 | `components/date-picker.tsx`、`components/datetime-picker.tsx` | DatePicker / DateTimePicker | `packages/core/components/src/date-picker/*` | 已存在但行为不完整 | locale、range、keyboard、disabled/validation 和 form reset 组合 | P1 | date-picker tests、browser keyboard |
 | `components/status-badge.tsx` | StatusBadge | `packages/core/components/src/status-badge/*` | 已存在且行为一致 | 补 auto-color、copyable 等 new-api 业务差异时另立 Issue | P1 | component tests、theme browser |
 | `components/empty-state.tsx`、`components/error-state.tsx`、`components/loading-state.tsx` | Empty/Error/Loading 状态 | `packages/core/components/src/empty-state/*`、DataPanel；Error/Loading 暂无独立导出 | 已存在但行为不完整 | 统一状态 API、retry、skeleton 和表格/图表组合 | P0 | component tests、demo |
-| `components/table-action.tsx`、`data-table/core/row-action-menu.tsx`、`toolbar/bulk-actions.tsx` | TableAction / RowAction / BulkAction | `DataTableRowActions.vue`、DataTable toolbar slot | 已存在但行为不完整 | popConfirm、permission、divider、loading、批量状态和键盘菜单 | P0 | component tests、table browser |
+| `components/table-action.tsx`、`data-table/core/row-action-menu.tsx`、`toolbar/bulk-actions.tsx` | TableAction / RowAction / BulkAction | `DataTableRowActions.vue`、`DataTableBulkActions.vue` | 已存在但行为不完整 | popConfirm、permission、divider、loading、与行操作的完整组合矩阵 | P0 | component tests、table browser |
 | `components/ui/chart.tsx`、`features/*/charts` | Chart / ChartCard | ui-kit chart、`packages/core/components/src/chart/*` | 已存在但行为不完整 | 已有 ChartCard；需补 tooltip model、empty/loading/error、响应式和主题 preset 矩阵 | P1 | chart tests、theme/browser |
 | `components/layout/components/app-sidebar.tsx`、`nav-group.tsx`、`nav-link-item.tsx` | Sidebar / NavGroup | `packages/core/layouts/src/basic/sidebar/*` | 已存在但行为不完整 | order 已支持；需补 view drill-in、motion、parent/child active、collapsed dropdown 验证 | P0 | layout tests、browser |
 | `components/data-table/toolbar/view-options.tsx` | ViewOptions / ColumnVisibility | `DataTableViewOptions.vue` | 已存在但行为不完整 | 列宽、固定列、持久化 schema 迁移和无障碍菜单 | P1 | component tests、browser |
