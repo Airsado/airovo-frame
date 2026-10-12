@@ -3,7 +3,7 @@ import { computed, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Skeleton } from '@airovo/uikit-shadcnui'
-import type { DataTableColumn, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
+import type { DataTableColumn, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import DataTablePagination from './DataTablePagination.vue'
 
 defineOptions({ name: 'DataTable' })
@@ -33,6 +33,10 @@ const props = withDefaults(defineProps<{
     height?: string | number
     /** Maximum table viewport height, expressed as CSS text or pixels. */
     maxHeight?: string | number
+    /** Controlled column visibility; omitted columns follow their hidden flag. */
+    columnVisibility?: DataTableColumnVisibility
+    /** Render the table on desktop and the mobile slot below the sm breakpoint. */
+    mobileCards?: boolean
 }>(), {
     rowKey: 'id',
     loading: false,
@@ -43,6 +47,7 @@ const props = withDefaults(defineProps<{
     page: 1,
     pageSize: 20,
     pageSizeOptions: () => [10, 20, 50, 100],
+    mobileCards: false,
 })
 
 const emit = defineEmits<{
@@ -52,6 +57,7 @@ const emit = defineEmits<{
     (event: 'update:sort', value?: DataTableSort): void
     (event: 'update:page', value: number): void
     (event: 'update:pageSize', value: number): void
+    (event: 'update:columnVisibility', value: DataTableColumnVisibility): void
     (event: 'retry'): void
 }>()
 
@@ -61,7 +67,14 @@ const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
-const visibleColumns = computed(() => props.columns.filter((column) => !column.hidden))
+function columnId(column: DataTableColumn): string {
+    return column.id ?? column.key
+}
+
+const visibleColumns = computed(() => props.columns.filter((column) => {
+    const visibility = props.columnVisibility?.[columnId(column)]
+    return visibility === undefined ? !column.hidden : visibility
+}))
 const currentSort = computed(() => props.sort ?? internalSort.value)
 const hasToolbar = computed(() => Boolean(slots.toolbar))
 const hasActions = computed(() => Boolean(slots.actions || slots.action))
@@ -203,6 +216,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 :page-size="pageSize"
             />
         </div>
+        <div :class="mobileCards ? 'hidden sm:block' : undefined">
         <table class="w-full caption-bottom text-sm tabular-nums">
             <caption v-if="caption" class="sr-only">{{ caption }}</caption>
             <thead>
@@ -220,7 +234,11 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         v-for="column in visibleColumns"
                         :key="column.key"
                         scope="col"
-                        :style="column.width ? { width: column.width } : undefined"
+                        :style="{
+                            width: column.width,
+                            minWidth: column.minWidth,
+                            maxWidth: column.maxWidth,
+                        }"
                         :aria-sort="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'ascending' : 'descending') : undefined"
                         class="h-10 whitespace-nowrap px-3 text-left align-middle font-medium text-foreground"
                         :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
@@ -289,6 +307,10 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 </template>
             </tbody>
         </table>
+        </div>
+        <div v-if="mobileCards" class="space-y-3 sm:hidden">
+            <slot name="mobile" :rows="visibleRows" :selected-keys="selected" :toggle-row="toggleRow" />
+        </div>
         <DataTablePagination
             v-if="pagination"
             :page="page"

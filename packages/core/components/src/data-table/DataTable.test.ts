@@ -115,6 +115,14 @@ describe('DataTable', () => {
         expect(errorWrapper.emitted('retry')).toHaveLength(1)
     })
 
+    it('supports controlled column visibility for view-option integrations', async () => {
+        const wrapper = mountTable({ columnVisibility: { name: false } })
+        expect(wrapper.findAll('thead th')).toHaveLength(0)
+
+        await wrapper.setProps({ columnVisibility: { name: true } })
+        expect(wrapper.findAll('thead th')).toHaveLength(1)
+    })
+
     it('keeps persistent selection keys across page data changes', async () => {
         const wrapper = mountTable({ selectable: true, selectionScope: 'persistent', selectedKeys: [1], data: [{ id: 2, name: 'two' }] })
         await wrapper.find('tbody input[type="checkbox"]').setValue(true)
