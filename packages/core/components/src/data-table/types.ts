@@ -17,6 +17,10 @@ export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
     width?: string
     minWidth?: string
     maxWidth?: string
+    /** Enables the header resize handle for this column. */
+    resizable?: boolean
+    minSize?: number
+    maxSize?: number
     /** Hide the column while retaining it in the column configuration. */
     hidden?: boolean
     /** Read a value from a row (useful for nested or computed values). */

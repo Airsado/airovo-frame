@@ -88,3 +88,11 @@ A node with `children` is rendered as a non-selectable group label. Only leaf
 nodes with `value` can be selected, so the selected value and form backfill
 remain stable. Nested labels are indented by depth; `SearchSelect` searches
 the rendered descendant labels. Existing flat options keep their behavior.
+=======
+## DataTable column sizing
+
+DataTable columns can opt into resizing with `resizable`, `minSize`, and
+`maxSize`. Bind `v-model:column-sizing` for a controlled map keyed by column
+id/key and pass `column-sizing-storage-key` to persist widths. Resizing is
+desktop table behavior; mobile card slots continue to use the same rows and
+selection state.

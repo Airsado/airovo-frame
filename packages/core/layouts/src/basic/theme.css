@@ -401,6 +401,13 @@ body:has([data-layout-shell]) {
   display: none;
 }
 
+/* Collapsed sidebar group labels are visually hidden and pulled out of the
+ * flow by the primitive. They must also leave the hit-testing layer, or an
+ * invisible label can sit on top of the next menu button. */
+[data-layout-shell] [data-collapsible='icon'] [data-slot='sidebar-group-label'] {
+  pointer-events: none;
+}
+
 /* Framework navigation follows the same muted hover and sidebar-accent active
  * states as new-api's SidebarMenuButton and SidebarMenuSubButton. */
 .app-sidebar-nav-item:not([data-app-sidebar-active='true']):hover {
