@@ -268,3 +268,9 @@ overlays and loading behavior.
 `MenubarItem`, `MenubarLabel` and `MenubarSeparator` wrap Reka UI's top-level
 menu semantics. Keyboard navigation, focus and open state come from Reka UI;
 business actions and submenus remain caller-owned.
+## Resizable
+
+`ResizablePanelGroup`, `ResizablePanel` and `ResizableHandle` provide a small
+pointer/keyboard-adjustable split layout. Direction, default/min/max sizes and
+separator focus are framework concerns; persistence and panel content remain
+caller-owned.
