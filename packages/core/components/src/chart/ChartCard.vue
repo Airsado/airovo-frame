@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@airovo/shared/icons'
 import { ChartContainer, ChartLegend, Button, Skeleton } from '@airovo/uikit-shadcnui'
-import type { ChartLegendItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
+import type { ChartLegendItem, ChartTooltipItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
 
 defineOptions({ name: 'ChartCard' })
 
@@ -18,6 +18,8 @@ const props = withDefaults(defineProps<{
     errorText?: string
     emptyText?: string
     legend?: ChartLegendItem[]
+    tooltipLabel?: string
+    tooltipItems?: ChartTooltipItem[]
     class?: string
 }>(), {
     type: 'line',
@@ -56,6 +58,7 @@ const emit = defineEmits<{ (event: 'retry'): void }>()
         <template v-else>
             <ChartContainer class="mt-4" :type="type" :data="data" :options="options" :height="height" :aria-label="title" role="img" />
             <ChartLegend v-if="legend?.length" class="mt-3" :items="legend" />
+            <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems ?? []" />
         </template>
         <slot name="footer" />
     </section>
