@@ -170,14 +170,30 @@ open state and business actions.
 same option shape as `SelectBox`, supports disabled options and an optional
 `allowCustomValue` Enter path; multi-select chips remain a separate future
 composition.
+
+## Tabs
+
+`Tabs`, `TabsList`, `TabsTrigger` and `TabsContent` wrap the Reka UI tabs
+primitive. The root accepts the controlled/uncontrolled value props and emits
+the normal update event; triggers support disabled state, keyboard focus and
+active styling, while content panels stay associated through their `value`.
+The wrapper only owns layout and theme classes; page titles, URL state and
+business actions remain caller-owned.
+
 ## ResponsiveCardList
 
 `ResponsiveCardList` provides a reusable mobile card grid for the same rows as
 a desktop DataTable. It owns responsive layout, stable row keys, loading and
 empty slots; the `card` slot owns business card content.
 
+## PageFooter
+
 `PageFooter` provides a reusable semantic footer with default/actions slots and
 compact or sticky variants. It owns only layout and styling; page actions remain
+caller-owned.
+
+## ChartCard tooltip
+
 `ChartCard` accepts optional `tooltipLabel`/`tooltipItems` and a `tooltip` slot;
 the slot receives the normalized label/items model and is only rendered for a
 loaded non-empty chart. Chart.js options and actual hover wiring remain

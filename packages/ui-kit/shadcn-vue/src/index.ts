@@ -41,4 +41,5 @@ export * from './components/ui/toggle-group'
 export * from './components/ui/tags-input'
 export * from './components/ui/input-otp'
 export * from './components/ui/kbd'
+export * from './components/ui/tabs'
 
