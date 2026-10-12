@@ -167,7 +167,9 @@ edits the same draft string, and serialization reconstructs the nested object.
 `DataTableRowActions` exposes a stable `data-action-key` for each inline and
 dropdown action. A loading action is disabled, announces `aria-busy`, and
 shows a spinner even when the caller did not provide an icon; callback and
-permission ownership remain with the caller.
+permission ownership remain with the caller. The dropdown accepts
+`dropdownAriaLabel`, `dropdownContentClass`, and `dropdownModal`, and emits
+`dropdown-open-change` so callers can coordinate focus or overlay state.
 
 `DrawerLayout` composes the existing Drawer primitive with a fixed header,
 scrollable body and optional footer. It accepts `bottom`/`right` side, title,

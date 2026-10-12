@@ -10,7 +10,11 @@ const props = withDefaults(defineProps<{
   actions?: DataTableRowAction<T>[]
   dropdownActions?: DataTableRowAction<T>[]
   hasPermission?: (permission?: string | string[]) => boolean
-}>(), { actions: () => [], dropdownActions: () => [] })
+  dropdownAriaLabel?: string
+  dropdownContentClass?: string
+  dropdownModal?: boolean
+}>(), { actions: () => [], dropdownActions: () => [], dropdownAriaLabel: '更多操作' })
+const emit = defineEmits<{ (event: 'dropdown-open-change', open: boolean): void }>()
 function allowed(action: DataTableRowAction<T>): boolean {
   if (action.permission && props.hasPermission && !props.hasPermission(action.permission)) return false
   return typeof action.visible === 'function' ? action.visible(props.row) : action.visible !== false
@@ -27,9 +31,9 @@ function select(action: DataTableRowAction<T>): void { if (!state(action.disable
     <Button v-for="action in visibleActions" :key="action.key" type="button" data-slot="data-table-row-action" :data-action-key="action.key" :aria-busy="loading(action) || undefined" :variant="action.variant ?? 'ghost'" size="sm" class="gap-1.5" :disabled="state(action.disabled) || loading(action)" @click="select(action)">
       <Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" class="size-3.5" :class="loading(action) && 'animate-spin'" />{{ action.label }}
     </Button>
-    <DropdownMenu v-if="visibleDropdownActions.length">
-      <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="size-8" aria-label="更多操作"><Icon icon="lucide:ellipsis" class="size-4" /></Button></DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+    <DropdownMenu v-if="visibleDropdownActions.length" :modal="props.dropdownModal" @update:open="(open) => emit('dropdown-open-change', open)">
+      <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="data-popup-open:bg-muted size-8" :aria-label="props.dropdownAriaLabel"><Icon icon="lucide:ellipsis" class="size-4" /></Button></DropdownMenuTrigger>
+      <DropdownMenuContent align="end" :class="['w-48', props.dropdownContentClass]">
         <template v-for="(action, index) in visibleDropdownActions" :key="action.key">
           <DropdownMenuSeparator v-if="index > 0" />
           <DropdownMenuItem :data-action-key="action.key" :aria-busy="loading(action) || undefined" :disabled="state(action.disabled) || loading(action)" @select="select(action)"><Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" class="size-4" :class="loading(action) && 'animate-spin'" />{{ action.label }}</DropdownMenuItem>
