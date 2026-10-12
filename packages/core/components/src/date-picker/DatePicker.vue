@@ -53,9 +53,14 @@ watch(() => props.modelValue, (value) => {
   selected.value = value ? toCalendarDate(fromDate(value, getLocalTimeZone())) as DateValue : undefined
 })
 
-const label = computed(() => props.modelValue
-  ? props.modelValue.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
-  : props.placeholder)
+const label = computed(() => {
+  if (!props.modelValue) return props.placeholder
+  try {
+    return new Intl.DateTimeFormat(props.locale ?? 'zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(props.modelValue)
+  } catch {
+    return props.modelValue.toISOString().slice(0, 10)
+  }
+})
 
 function selectDate(value: DateValue | undefined): void {
   selected.value = value
@@ -71,6 +76,7 @@ function selectDate(value: DateValue | undefined): void {
       <Button
         variant="outline"
         :disabled="props.disabled"
+        :data-empty="!props.modelValue"
         :class="cn('w-[240px] justify-start text-start font-normal', !props.modelValue && 'text-muted-foreground', props.class)"
         :aria-label="label"
       >

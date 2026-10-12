@@ -29,6 +29,15 @@ describe('DatePicker boundaries', () => {
         expect(calendar.attributes('data-locale')).toBe('zh-CN')
     })
 
+    it('formats the trigger label with the requested locale', () => {
+        const value = new Date(2024, 0, 2, 12)
+        const wrapper = mount(DatePicker, {
+            props: { modelValue: value, locale: 'en-US' },
+            global: { stubs },
+        })
+        expect(wrapper.get('button').attributes('aria-label')).toBe(new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(value))
+    })
+
     it('keeps an invalid or reversed boundary configuration renderable', () => {
         expect(() => mount(DatePicker, {
             props: { minDate: new Date(2025, 0, 1), maxDate: new Date(2024, 0, 1) },
