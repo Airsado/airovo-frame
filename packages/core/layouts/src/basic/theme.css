@@ -266,7 +266,7 @@
   --accent-foreground: var(--foreground);
   --accent: var(--app-interaction-hover);
   --sidebar-accent: var(--app-interaction-hover);
-  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-accent-foreground: var(--primary);
   --sidebar-foreground: var(--foreground);
   --muted-foreground: oklch(0.49 0 0);
   --neutral-foreground: var(--foreground);
