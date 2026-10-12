@@ -50,6 +50,7 @@ import {
     EmptyTitle,
     Slider,
     Spinner,
+    Toggle,
     Card,
     CardAction,
     CardContent,
@@ -470,6 +471,11 @@ function sseItemData(item: unknown): unknown {
                 <div class="flex items-center gap-3 rounded-lg border bg-card p-4 text-sm">
                     <Spinner aria-label="正在加载渠道" />
                     正在加载渠道...
+                </div>
+                <h2 class="text-lg font-semibold">Toggle primitive</h2>
+                <div class="flex items-center gap-2">
+                    <Toggle :default-value="true" aria-label="收藏">★</Toggle>
+                    <Toggle variant="outline" size="sm" disabled aria-label="锁定">锁定</Toggle>
                 </div>
             </section>
 

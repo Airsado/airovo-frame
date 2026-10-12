@@ -247,3 +247,8 @@ uncontrolled values; callers own form binding and persistence.
 `Spinner` is the shared loading indicator with `role="status"`, an accessible
 label, `animate-spin` and configurable `strokeWidth`/class. Loading state
 ownership and cancellation remain with the caller.
+## Toggle
+
+`Toggle` wraps Reka UI's pressed control with default/outline variants and
+`default`/`sm`/`lg` sizes. It forwards controlled or uncontrolled pressed state,
+disabled semantics, aria attributes and keyboard behavior.
