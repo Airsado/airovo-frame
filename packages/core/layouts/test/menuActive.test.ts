@@ -19,4 +19,9 @@ describe('active menu resolution', () => {
         expect(isActiveMenu(parent, path)).toBe(true)
         expect(isActiveMenu(parent.children[0]!, path)).toBe(false)
     })
+    it('keeps expanded parent and child active semantics separate', () => {
+        expect(isActiveMenu(parent, '/users/list')).toBe(false)
+        expect(isActiveMenu(parent.children[0]!, '/users/list')).toBe(true)
+        expect(containsActiveMenu(parent, '/users/list')).toBe(true)
+    })
 })
