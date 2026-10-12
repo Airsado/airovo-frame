@@ -212,3 +212,9 @@ business content and persistence.
 `role="alert"` surface with `default` and `destructive` variants. The action
 slot is positioned by the composition; callers own the button behavior and
 whether the alert is persistent, transient or connected to request state.
+## Card
+
+`Card`, `CardHeader`, `CardFooter`, `CardTitle`, `CardAction`,
+`CardDescription` and `CardContent` provide a composable surface with
+`size="default" | "sm"`. Slots own the content and actions; the wrapper owns
+surface, spacing, footer and theme classes.

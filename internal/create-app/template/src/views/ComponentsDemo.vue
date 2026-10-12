@@ -42,6 +42,13 @@ import {
     AlertAction,
     AlertDescription,
     AlertTitle,
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
     Accordion,
     AccordionContent,
     AccordionHeader,
@@ -399,6 +406,16 @@ function sseItemData(item: unknown): unknown {
                         <AlertAction><Button size="sm" variant="outline">重试</Button></AlertAction>
                     </Alert>
                 </div>
+                <h2 class="text-lg font-semibold">Card primitive</h2>
+                <Card size="sm">
+                    <CardHeader>
+                        <CardTitle>渠道统计</CardTitle>
+                        <CardDescription>最近 24 小时调用情况</CardDescription>
+                        <CardAction><Button size="sm" variant="ghost">查看</Button></CardAction>
+                    </CardHeader>
+                    <CardContent>成功率 99.2%</CardContent>
+                    <CardFooter>更新时间：刚刚</CardFooter>
+                </Card>
             </section>
 
             <section class="space-y-4">
