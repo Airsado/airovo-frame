@@ -33,4 +33,5 @@ export * from './components/ui/stepper'
 export * from './components/ui/input-group'
 export * from './components/ui/select'
 export * from './components/ui/progress'
+export * from './components/ui/radio-group'
 
