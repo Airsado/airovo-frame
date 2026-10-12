@@ -408,14 +408,15 @@ body:has([data-layout-shell]) {
   color: var(--sidebar-foreground);
 }
 
-[data-app-sidebar-active='true'] {
+[data-layout-shell] [data-app-sidebar-active='true'] {
   background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
+  /* Keep active text ahead of the primitive's text-sidebar-foreground utility. */
+  color: var(--color-sidebar-accent-foreground);
 }
 
 /* Keep icon and label descendants on the selected surface as well. */
-[data-app-sidebar-active='true'] > svg,
-[data-app-sidebar-active='true'] > span {
+[data-layout-shell] [data-app-sidebar-active='true'] > svg,
+[data-layout-shell] [data-app-sidebar-active='true'] > span {
   color: inherit;
 }
 
