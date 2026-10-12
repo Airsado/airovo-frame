@@ -271,8 +271,9 @@ overlays and loading behavior.
 
 `Menubar`, `MenubarMenu`, `MenubarTrigger`, `MenubarContent`, `MenubarGroup`,
 `MenubarItem`, `MenubarLabel` and `MenubarSeparator` wrap Reka UI's top-level
-menu semantics. Keyboard navigation, focus and open state come from Reka UI;
-business actions and submenus remain caller-owned.
+menu semantics. Advanced exports add portals, submenus, checkbox/radio items
+and shortcuts. Keyboard navigation, focus and open state come from Reka UI;
+business actions remain caller-owned.
 ## Resizable
 
 `ResizablePanelGroup`, `ResizablePanel` and `ResizableHandle` provide a small
