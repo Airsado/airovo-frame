@@ -54,6 +54,12 @@ import {
     ButtonGroup,
     ButtonGroupSeparator,
     ButtonGroupText,
+    Menubar,
+    MenubarContent,
+    MenubarItem,
+    MenubarMenu,
+    MenubarSeparator,
+    MenubarTrigger,
     AspectRatio,
     Card,
     CardAction,
@@ -603,6 +609,17 @@ function sseItemData(item: unknown): unknown {
                     <div class="rounded-lg border bg-card"><LoadingState message="正在加载渠道…" size="lg" /></div>
                     <div class="flex items-center rounded-lg border bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
                 </div>
+                <h2 class="text-lg font-semibold">Menubar primitive</h2>
+                <Menubar>
+                    <MenubarMenu value="file">
+                        <MenubarTrigger>文件</MenubarTrigger>
+                        <MenubarContent>
+                            <MenubarItem>打开</MenubarItem>
+                            <MenubarSeparator />
+                            <MenubarItem disabled>禁用项</MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
+                </Menubar>
             </section>
 
             <section class="space-y-4">

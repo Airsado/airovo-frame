@@ -262,3 +262,9 @@ layering. Button actions, input values and form submission remain caller-owned.
 `AspectRatio` provides a responsive ratio container with a `ratio` prop and
 slot content. It delegates sizing semantics to Reka UI while callers own media,
 overlays and loading behavior.
+## Menubar
+
+`Menubar`, `MenubarMenu`, `MenubarTrigger`, `MenubarContent`, `MenubarGroup`,
+`MenubarItem`, `MenubarLabel` and `MenubarSeparator` wrap Reka UI's top-level
+menu semantics. Keyboard navigation, focus and open state come from Reka UI;
+business actions and submenus remain caller-owned.
