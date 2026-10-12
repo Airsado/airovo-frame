@@ -27,7 +27,7 @@
 | `components/ui/chart.tsx`、`features/*/charts` | Chart / ChartCard | ui-kit chart、`packages/core/components/src/chart/*` | 已存在但行为不完整 | 已有 ChartCard；需补 tooltip model、empty/loading/error、响应式和主题 preset 矩阵 | P1 | chart tests、theme/browser |
 | `components/layout/components/app-sidebar.tsx`、`nav-group.tsx`、`nav-link-item.tsx` | Sidebar / NavGroup | `packages/core/layouts/src/basic/sidebar/*` | 已存在但行为不完整 | order 已支持；需补 view drill-in、motion、parent/child active、collapsed dropdown 验证 | P0 | layout tests、browser |
 | `components/data-table/toolbar/view-options.tsx` | ViewOptions / ColumnVisibility | `DataTableViewOptions.vue` | 已存在但行为不完整 | 列宽、固定列、持久化 schema 迁移和无障碍菜单 | P1 | component tests、browser |
-| `components/ui/tooltip.tsx`、`popover.tsx`、`command.tsx`、`combobox.tsx`、`calendar.tsx` | Tooltip / Popover / Command / Combobox / Calendar | `packages/ui-kit/shadcn-vue/src/components/ui/*` | 只有 primitive，缺少框架组合 | new-api keyboard/focus/mobile behavior 和业务无关组合 API | P1 | primitive tests、keyboard browser |
+| `components/ui/context-menu.tsx`、`tooltip.tsx`、`popover.tsx`、`command.tsx`、`combobox.tsx`、`calendar.tsx` | ContextMenu / Tooltip / Popover / Command / Combobox / Calendar | `packages/ui-kit/shadcn-vue/src/components/ui/*` | ContextMenu 已有基础与高级 primitive，其余只有 primitive | ContextMenu 仍需 Chrome 右键、键盘和 submenu 验证；其他控件需要 new-api keyboard/focus/mobile behavior 和业务无关组合 API | P1 | primitive tests、keyboard browser |
 
 ## Primitive 对照
 

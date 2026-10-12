@@ -94,6 +94,19 @@ import {
     AccordionHeader,
     AccordionItem,
     AccordionTrigger,
+    ContextMenu,
+    ContextMenuCheckboxItem,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuLabel,
+    ContextMenuRadioGroup,
+    ContextMenuRadioItem,
+    ContextMenuSeparator,
+    ContextMenuShortcut,
+    ContextMenuSub,
+    ContextMenuSubContent,
+    ContextMenuSubTrigger,
+    ContextMenuTrigger,
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -141,6 +154,8 @@ const showDialog = ref(false)
 const showAlertDialog = ref(false)
 const showDrawer = ref(false)
 const showRightDrawer = ref(false)
+const contextMenuPinned = ref(true)
+const contextMenuDensity = ref('compact')
 const selectedDate = ref<Date>()
 const selectedDateTime = ref<Date>()
 const selectedProvider = ref<string | undefined>('openai')
@@ -628,6 +643,31 @@ function sseItemData(item: unknown): unknown {
                         </MenubarContent>
                     </MenubarMenu>
                 </Menubar>
+                <h2 class="text-lg font-semibold">ContextMenu advanced primitives</h2>
+                <ContextMenu>
+                    <ContextMenuTrigger class="flex min-h-24 items-center justify-center rounded-lg border border-dashed bg-card px-4 text-sm text-muted-foreground">
+                        在此区域点击右键
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                        <ContextMenuLabel inset>渠道操作</ContextMenuLabel>
+                        <ContextMenuItem inset>复制渠道 <ContextMenuShortcut>⌘C</ContextMenuShortcut></ContextMenuItem>
+                        <ContextMenuItem inset variant="destructive">删除渠道</ContextMenuItem>
+                        <ContextMenuSeparator />
+                        <ContextMenuCheckboxItem v-model="contextMenuPinned" inset>固定到顶部</ContextMenuCheckboxItem>
+                        <ContextMenuRadioGroup v-model="contextMenuDensity">
+                            <ContextMenuLabel inset>密度</ContextMenuLabel>
+                            <ContextMenuRadioItem value="compact" inset>紧凑</ContextMenuRadioItem>
+                            <ContextMenuRadioItem value="comfortable" inset>舒适</ContextMenuRadioItem>
+                        </ContextMenuRadioGroup>
+                        <ContextMenuSub>
+                            <ContextMenuSubTrigger inset>更多视图</ContextMenuSubTrigger>
+                            <ContextMenuSubContent>
+                                <ContextMenuItem>按状态筛选</ContextMenuItem>
+                                <ContextMenuItem>导出当前页</ContextMenuItem>
+                            </ContextMenuSubContent>
+                        </ContextMenuSub>
+                    </ContextMenuContent>
+                </ContextMenu>
                 <h2 class="text-lg font-semibold">Resizable primitive</h2>
                 <ResizablePanelGroup class="h-24 max-w-xl rounded-lg border" aria-label="可调整面板">
                     <ResizablePanel :default-size="40" :min-size="20" class="p-3 text-sm">左侧面板</ResizablePanel>
