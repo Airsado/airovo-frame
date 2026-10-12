@@ -1,0 +1,1 @@
+<script setup lang="ts">import type { AlertDialogDescriptionProps } from 'reka-ui';import { AlertDialogDescription } from 'reka-ui';const props=defineProps<AlertDialogDescriptionProps>()</script><template><AlertDialogDescription data-slot="alert-dialog-description" v-bind="props" class="text-sm text-muted-foreground"><slot/></AlertDialogDescription></template>
