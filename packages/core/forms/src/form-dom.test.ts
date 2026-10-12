@@ -18,6 +18,40 @@ const cases: Array<{ name: string; schema: FormFieldSchema[]; path: string; init
 ]
 
 describe('form DOM ownership', () => {
+    it('binds a custom component object through the FormFieldSchema contract', async () => {
+        let api!: FormApi
+        const JsonLikeField = defineComponent({
+            props: { modelValue: { type: String, default: '' }, disabled: Boolean },
+            emits: ['update:modelValue'],
+            setup(props, { emit }) {
+                return () => h('input', {
+                    value: props.modelValue,
+                    disabled: props.disabled,
+                    onInput: (event: Event) => emit('update:modelValue', (event.target as HTMLInputElement).value),
+                })
+            },
+        })
+        const Host = defineComponent({ setup() {
+            const [Form, formApi] = useForm({
+                schema: [{ fieldName: 'json', label: 'JSON', component: JsonLikeField, defaultValue: '{"ready":true}' }],
+            })
+            api = formApi
+            return () => h(Form)
+        } })
+        wrapper = mount(Host)
+        await flushPromises()
+        const input = wrapper.get<HTMLInputElement>('input')
+        expect(input.element.value).toBe('{"ready":true}')
+        await input.setValue('{"changed":true}')
+        expect((api.values.value.json as Array<{ value: string }>)[0]?.value).toBe('{"changed":true}')
+        api.setProps({ disabled: true })
+        await nextTick()
+        expect(input.element.disabled).toBe(true)
+        api.resetFields(['json'])
+        await nextTick()
+        expect(input.element.value).toBe('{"ready":true}')
+    })
+
     it.each(cases)('isolates $name IDs and failed-field focus for tuple and direct renderers', async ({ schema, path, initialValues }) => {
         let first!: FormApi, second!: FormApi
         const Host = defineComponent({ setup() {

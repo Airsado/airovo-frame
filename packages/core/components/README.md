@@ -147,3 +147,8 @@ clear behavior in the wrapper.
 column schema, drops unknown/non-boolean entries, and keeps at least one
 configurable column visible. Its trigger, menu and restore action expose
 stable data-slot and aria labels for keyboard and screen-reader tests.
+
+When used in a FormFieldSchema, pass JsonField as the component object and use
+componentProps for valueType/template. The form renderer owns modelValue,
+update:modelValue, disabled state, validation ARIA attributes and reset/submit
+lifecycle; JsonField owns JSON parsing and draft preservation.
