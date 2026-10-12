@@ -38,6 +38,15 @@ import {
 import { PermissionButton } from '@airovo/permission'
 import {
     Badge,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
     Button,
     Dialog,
     DialogContent,
@@ -66,6 +75,7 @@ defineOptions({ name: 'ComponentsDemo' })
 const showResult = ref(false)
 const search = ref('')
 const showDialog = ref(false)
+const showAlertDialog = ref(false)
 const showDrawer = ref(false)
 const showRightDrawer = ref(false)
 const selectedDate = ref<Date>()
@@ -509,6 +519,13 @@ function sseItemData(item: unknown): unknown {
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
+                        <AlertDialog v-model:open="showAlertDialog">
+                            <AlertDialogTrigger as-child><Button variant="outline">打开 AlertDialog</Button></AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader><AlertDialogTitle>确认删除</AlertDialogTitle><AlertDialogDescription>此操作不可撤销。</AlertDialogDescription></AlertDialogHeader>
+                                <AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction @click="showAlertDialog = false">确认</AlertDialogAction></AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                     <div
                         class="flex flex-col gap-3 rounded-lg border bg-card p-4"
