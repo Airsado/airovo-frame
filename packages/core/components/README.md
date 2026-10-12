@@ -151,7 +151,9 @@ keeps `HH:mm:ss` precision, accepts legacy `HH:mm` input as `:00`, clones
 dates before merging the selected day and time, and resets the time to
 `00:00:00` when cleared. Disabled state prevents date, time, and clear edits.
 
-`DataTableViewOptions` normalizes persisted visibility against the current
+`DataTableViewOptions` uses a non-modal dropdown by default, exposes an
+optional `modal`/`dropdownContentClass` API and emits `dropdown-open-change`.
+It normalizes persisted visibility against the current
 column schema, drops unknown/non-boolean entries, and keeps at least one
 configurable column visible. Its trigger, menu and restore action expose
 stable data-slot and aria labels for keyboard and screen-reader tests.

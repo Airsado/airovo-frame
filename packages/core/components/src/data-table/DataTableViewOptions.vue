@@ -12,12 +12,18 @@ const props = withDefaults(defineProps<{
   modelValue?: DataTableColumnVisibility
   storageKey?: string
   label?: string
+  modal?: boolean
+  dropdownContentClass?: string
 }>(), {
   modelValue: () => ({}),
   label: '列显示',
+  modal: false,
 })
 
-const emit = defineEmits<{ (event: 'update:modelValue', value: DataTableColumnVisibility): void }>()
+const emit = defineEmits<{
+  (event: 'update:modelValue', value: DataTableColumnVisibility): void
+  (event: 'dropdown-open-change', open: boolean): void
+}>()
 const localVisibility = ref<DataTableColumnVisibility>(normalizeDataTableColumnVisibility(props.columns, props.modelValue))
 const configurableColumns = computed(() => props.columns.filter((column) => column.id !== 'selection' && !column.hidden))
 const columnId = (column: DataTableColumn): string => column.id ?? column.key
@@ -57,11 +63,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <DropdownMenu>
+  <DropdownMenu :modal="props.modal" @update:open="(open) => emit('dropdown-open-change', open)">
     <DropdownMenuTrigger as-child>
       <Button type="button" variant="outline" size="sm" class="gap-1.5" data-slot="data-table-view-options-trigger" :aria-label="label"><Icon icon="lucide:columns-3" class="size-4" />{{ label }}</Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="min-w-48" data-slot="data-table-view-options-menu">
+    <DropdownMenuContent align="end" :class="['min-w-48', props.dropdownContentClass]" data-slot="data-table-view-options-menu">
       <DropdownMenuLabel>{{ label }}</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuCheckboxItem v-for="column in configurableColumns" :key="columnId(column)" :model-value="isVisible(column)" @update:model-value="(value) => setVisible(column, value === true)">
