@@ -59,3 +59,5 @@ export * from './components/ui/empty'
 export * from './components/ui/slider'
 
 export * from './components/ui/spinner'
+
+export * from './components/ui/toggle'
