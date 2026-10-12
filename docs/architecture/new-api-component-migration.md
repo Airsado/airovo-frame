@@ -35,11 +35,21 @@
 |---|---|---|
 | Button / Input / Textarea / Label / Badge / Separator / Skeleton | 已存在 | 补状态和 visual regression，不重复实现 |
 | Select / NativeSelect / Dialog / Drawer / Sheet / Tooltip / Popover / Command / ScrollArea | 已存在 | 对照 keyboard、focus、outside、mobile |
-| Accordion / Alert / AlertDialog / AspectRatio / Card / Checkbox / Progress / RadioGroup / Switch / Tabs / Table | 部分缺失 | 以 ui-kit primitive Issue 分批补齐 |
-| ButtonGroup / Combobox / ContextMenu / InputGroup / Kbd / Menubar / Resizable / Slider / Spinner / Toggle / ToggleGroup | 缺失或未公开 | 评估 Reka UI primitive 后分别建立 Issue |
+| Accordion / Alert / AlertDialog / AspectRatio / Card / Checkbox / Empty / Pagination / Progress / RadioGroup / Slider / Spinner / Switch / Table / Tabs / Toggle / ToggleGroup | 已存在但行为不完整 | 已有公开 API、测试、Demo 和模板；继续补 light/dark、mobile、visual regression 和组合验证 |
+| ButtonGroup / ContextMenu / InputGroup / Kbd / Menubar / TagsInput / InputOTP / NumberField | 已存在但行为不完整 | 已有公开 API和基础测试；继续补 keyboard/focus、主题和 browser matrix |
+| Resizable / Carousel / Slider advanced composition | 完全缺失 | 先评估 Vue 依赖与 pointer/keyboard contract，再单独建立 Issue |
 | Calendar / Chart / Field / Form / Item / NativeSelect / Stepper | 已存在或已有近似 | 补框架组合和主题/可访问性验证 |
 
 ## 迁移规则
+
+## 当前基线（2026-10-12）
+
+`dev` 已公开并合并了 Accordion、Alert、AlertDialog、AspectRatio、Card、
+Empty、Pagination、Table、Slider、Spinner、Toggle、ButtonGroup、Menubar
+以及相关 primitive。它们的 API、基础状态和 Demo 已有证据，但这不代表
+桌面/移动、light/dark、focus 和所有业务组合矩阵都已完成；这些差异继续
+作为后续验证任务管理。Resizable、Carousel 和更复杂的 submenu/checkbox
+menu 组合仍未迁移。
 
 1. 每个组件族先引用本表中的 new-api 源文件，再创建独立 Issue。
 2. 只迁移跨业务可复用的 props、slots、events、状态和组合；渠道、用户、权限、统计接口留在应用层。
