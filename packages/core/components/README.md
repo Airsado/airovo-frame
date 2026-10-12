@@ -129,3 +129,10 @@ do not fetch data or own retry logic.
 pattern: a constrained `truncate` container, keyboard focus, and a Tooltip
 with the full text. Pass `tooltipContent` when the displayed slot is a badge
 or custom rendering; empty text does not create an empty tooltip.
+## Query state synchronization
+
+`useDataTable` accepts an optional `querySync` adapter. Its `read()` method can
+restore page, pageSize, sort and filters; its `write(query)` method receives
+normalized changes. The adapter belongs to the application and may wrap
+vue-router, URLSearchParams or another state store. The framework does not
+depend on vue-router or choose URL parameter names.
