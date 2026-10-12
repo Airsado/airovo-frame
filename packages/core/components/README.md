@@ -175,3 +175,7 @@ composition.
 `ResponsiveCardList` provides a reusable mobile card grid for the same rows as
 a desktop DataTable. It owns responsive layout, stable row keys, loading and
 empty slots; the `card` slot owns business card content.
+
+`PageFooter` provides a reusable semantic footer with default/actions slots and
+compact or sticky variants. It owns only layout and styling; page actions remain
+caller-owned.
