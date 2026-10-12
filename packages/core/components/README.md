@@ -231,3 +231,9 @@ pagination and row data remain the responsibility of DataTable or the caller.
 `PaginationPrevious`, `PaginationNext` and `PaginationEllipsis` provide a
 semantic navigation structure. Links expose active page and standard anchor
 attributes; page calculation, routing and request state remain caller-owned.
+## Empty primitives
+
+The existing `Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`,
+`EmptyMedia` and `EmptyContent` primitives are exported from the ui-kit root.
+Use `EmptyMedia` with `variant="icon"` for the new-api icon surface; data loading
+and retry behavior belongs to framework compositions such as `EmptyState`.
