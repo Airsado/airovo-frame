@@ -31,9 +31,12 @@ describe('status state components', () => {
     it('supports block and inline loading sizes', () => {
         const block = mount(LoadingState, { props: { size: 'lg' } })
         expect(block.attributes('aria-busy')).toBe('true')
+        expect(block.attributes('role')).toBe('status')
+        expect(block.attributes('aria-label')).toBe('加载中…')
         expect(block.find('.size-8').exists()).toBe(true)
         const inline = mount(LoadingState, { props: { inline: true, message: '保存中', size: 'sm' } })
         expect(inline.element.tagName).toBe('SPAN')
+        expect(inline.attributes('role')).toBe('status')
         expect(inline.text()).toContain('保存中')
         expect(inline.find('.size-4').exists()).toBe(true)
     })
