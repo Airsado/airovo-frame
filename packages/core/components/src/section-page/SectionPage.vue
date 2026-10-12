@@ -17,7 +17,10 @@ withDefaults(defineProps<{
 
 <template>
     <section class="flex min-h-0 flex-1 flex-col bg-background text-foreground" :class="$props.class">
-        <header class="shrink-0 px-3 pb-2.5 pt-3 sm:px-4 sm:pb-3 sm:pt-5">
+        <header
+            data-slot="section-page-header"
+            class="sticky top-0 z-20 shrink-0 border-b border-border/70 bg-background/95 px-3 pb-2.5 pt-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4 sm:pb-3 sm:pt-5"
+        >
             <div v-if="$slots.breadcrumb" class="mb-2 sm:mb-3">
                 <slot name="breadcrumb" />
             </div>
