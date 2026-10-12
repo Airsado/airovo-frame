@@ -40,4 +40,5 @@ export * from './components/ui/number-field'
 export * from './components/ui/toggle-group'
 export * from './components/ui/tags-input'
 export * from './components/ui/input-otp'
+export * from './components/ui/kbd'
 
