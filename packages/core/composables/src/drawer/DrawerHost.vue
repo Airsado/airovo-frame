@@ -113,7 +113,10 @@ async function cancel() {
             />
             <DialogContent
                 :class="[
-                    'bg-background text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom fixed inset-x-0 bottom-0 z-50 flex max-h-[80vh] flex-col overflow-hidden rounded-t-xl border-t text-sm shadow-lg outline-none duration-200',
+                    'bg-background text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col overflow-hidden text-sm shadow-lg outline-none duration-200',
+                    api.side === 'right'
+                        ? 'inset-y-0 right-0 h-full w-[min(100%,28rem)] max-w-[90vw] rounded-l-xl border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right'
+                        : 'inset-x-0 bottom-0 max-h-[80vh] rounded-t-xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
                     api.state.contentClass,
                 ]"
                 :style="stackHandle ? { zIndex: stackHandle.zIndex.value } : undefined"
@@ -121,7 +124,7 @@ async function cancel() {
                 @pointer-down-outside="onOutside"
                 @animation-end="finishTransition"
             >
-                <div class="bg-muted mx-auto mt-3 h-1 w-24 shrink-0 rounded-full" />
+                <div v-if="api.side === 'bottom'" class="bg-muted mx-auto mt-3 h-1 w-24 shrink-0 rounded-full" />
                 <div class="flex shrink-0 items-start justify-between gap-3 px-4 py-3 sm:px-5">
                     <DialogHeader class="min-w-0 flex-1 text-left">
                         <DialogTitle v-if="api.state.title" class="text-base font-semibold">{{ api.state.title }}</DialogTitle>
