@@ -11,8 +11,12 @@ describe('select option hierarchy', () => {
     ]
 
     it('flattens parent labels and nested selectable children with depth', () => {
-        expect(flattenSelectOptions(options).map(item => [item.option.label, item.depth, item.group])).toEqual([
-            ['内容', 0, true], ['文章', 1, false], ['媒体', 1, true], ['视频', 2, false], ['设置', 0, false],
+        expect(flattenSelectOptions(options).map(item => [item.option.label, item.depth, item.group, item.key])).toEqual([
+            ['内容', 0, true, '0'],
+            ['文章', 1, false, '0.0'],
+            ['媒体', 1, true, '0.1'],
+            ['视频', 2, false, '0.1.0'],
+            ['设置', 0, false, '1'],
         ])
     })
 

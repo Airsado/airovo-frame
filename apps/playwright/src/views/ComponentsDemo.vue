@@ -612,7 +612,7 @@ function sseItemData(item: unknown): unknown {
                         <span class="text-xs font-medium text-muted-foreground">渠道（SelectBox）</span>
                         <SelectBox
                             v-model="selectedProvider"
-                            :options="providerOptions"
+                            :options="hierarchicalProviderOptions"
                             allow-clear
                             placeholder="选择渠道"
                         />
@@ -633,7 +633,7 @@ function sseItemData(item: unknown): unknown {
                             v-model="searchedProvider"
                             :options="hierarchicalProviderOptions"
                             search-placeholder="搜索渠道名称"
-                            placeholder="搜索并选择渠道"
+                            placeholder="搜索并选择层级渠道"
                         />
                         <span class="text-xs text-muted-foreground">当前值：{{ searchedProvider ?? '未选择' }}</span>
                         </label>

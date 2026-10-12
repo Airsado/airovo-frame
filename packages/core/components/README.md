@@ -70,8 +70,21 @@ while `JsonField` owns JSON serialization and visual editing.
 
 ## Select option hierarchy
 
-`SelectBox` and `SearchSelect` accept recursive options. A node with `children`
-is rendered as a non-selectable group label; only leaf nodes with `value` can
-be selected. `SearchSelect` resolves the selected label from flattened leaf
-options and searches descendant item labels. Existing flat options keep their
-current behavior.
+`SelectBox` and `SearchSelect` accept recursive options:
+
+```ts
+const options: SelectOption[] = [
+  {
+    label: '云服务',
+    children: [
+      { label: 'OpenAI', value: 'openai' },
+      { label: 'Claude', value: 'claude' },
+    ],
+  },
+]
+```
+
+A node with `children` is rendered as a non-selectable group label. Only leaf
+nodes with `value` can be selected, so the selected value and form backfill
+remain stable. Nested labels are indented by depth; `SearchSelect` searches
+the rendered descendant labels. Existing flat options keep their behavior.

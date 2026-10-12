@@ -6,6 +6,7 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@airovo/uikit-shadcnui/components/ui/select'
@@ -84,8 +85,10 @@ function clear(event: MouseEvent): void {
     </div>
     <SelectContent :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <SelectGroup>
-        <template v-for="item in flattenedOptions" :key="`${item.option.label}:${item.depth}:${item.option.value ?? 'group'}`">
-          <div v-if="item.group" class="px-2 py-1.5 text-xs font-semibold text-muted-foreground" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">{{ item.option.label }}</div>
+        <template v-for="item in flattenedOptions" :key="item.key">
+          <SelectLabel v-if="item.group" class="font-semibold" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+            {{ item.option.label }}
+          </SelectLabel>
           <SelectItem v-else-if="item.option.value !== undefined" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
             {{ item.option.label }}
           </SelectItem>
