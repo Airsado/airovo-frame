@@ -60,6 +60,10 @@ import {
     Progress,
     RadioGroup,
     RadioGroupItem,
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
 } from '@airovo/uikit-shadcnui'
 import { Combobox, SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
@@ -439,6 +443,23 @@ function sseItemData(item: unknown): unknown {
                         </DataPanel>
                     </div>
                 </SectionPage>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-lg font-semibold">Tabs primitive</h2>
+                <Tabs default-value="overview" class="rounded-lg border bg-card p-4">
+                    <TabsList>
+                        <TabsTrigger value="overview">概览</TabsTrigger>
+                        <TabsTrigger value="activity">活动</TabsTrigger>
+                        <TabsTrigger value="disabled" disabled>禁用项</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="overview" class="rounded-md border p-3 text-sm">
+                        Tabs 内容区域支持默认值、活动状态和 focus-visible 样式。
+                    </TabsContent>
+                    <TabsContent value="activity" class="rounded-md border p-3 text-sm">
+                        切换标签不会改变页面标题或外层滚动容器的位置。
+                    </TabsContent>
+                </Tabs>
             </section>
 
             <section class="space-y-4">
