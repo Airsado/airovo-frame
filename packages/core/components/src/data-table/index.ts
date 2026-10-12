@@ -1,5 +1,6 @@
 export { default as DataTable } from './DataTable.vue'
 export { default as DataTableBulkActions } from './DataTableBulkActions.vue'
+export { default as ResponsiveCardList } from './ResponsiveCardList.vue'
 export { default as DataTablePage } from './DataTablePage.vue'
 export { default as DataTablePagination } from './DataTablePagination.vue'
 export { default as DataTableRowActions } from './DataTableRowActions.vue'
@@ -8,3 +9,25 @@ export { default as DataTableViewOptions } from './DataTableViewOptions.vue'
 export { default as TruncatedCell } from './TruncatedCell.vue'
 export { default as TruncatedText } from './TruncatedText.vue'
 export { normalizeDataTableColumnVisibility } from './column-visibility'
+export { useDataTable } from './useDataTable'
+export { parseStoredDataTableColumnPinning, resolveDataTableColumnPinning } from './column-pinning'
+export type { DataTablePinningColumn, ResolvedDataTablePinnedColumn } from './column-pinning'
+export type { DataTableQueryState, DataTableQuerySync, UseDataTableOptions, UseDataTableReturn } from './useDataTable'
+export type {
+    DataTableColumnPinning,
+    DataTableColumn,
+    DataTableColumnVisibility,
+    DataTableFetchContext,
+    DataTableFetcher,
+    DataTableFilterGroup,
+    DataTableFilterOption,
+    DataTableFilterValue,
+    DataTableQuery,
+    DataTableResult,
+    DataTableRowAction,
+    DataTableRow,
+    DataTableRowKey,
+    DataTablePinSide,
+    DataTableSelectionScope,
+    DataTableSort,
+} from './types'

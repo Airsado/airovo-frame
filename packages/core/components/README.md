@@ -170,3 +170,8 @@ open state and business actions.
 same option shape as `SelectBox`, supports disabled options and an optional
 `allowCustomValue` Enter path; multi-select chips remain a separate future
 composition.
+## ResponsiveCardList
+
+`ResponsiveCardList` provides a reusable mobile card grid for the same rows as
+a desktop DataTable. It owns responsive layout, stable row keys, loading and
+empty slots; the `card` slot owns business card content.

@@ -30,4 +30,17 @@ describe('Combobox', () => {
         await input.trigger('keydown', { key: 'Enter' })
         expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual(['custom-model'])
     })
+
+    it('renders only selectable leaf options when groups are provided', () => {
+        const wrapper = mount(Combobox, {
+            props: {
+                options: [{ label: 'Cloud', children: [{ label: 'OpenAI', value: 'openai' }] }],
+            },
+            global: { stubs },
+        })
+
+        expect(wrapper.findAll('button')).toHaveLength(2)
+        expect(wrapper.text()).toContain('OpenAI')
+        expect(wrapper.text()).not.toContain('Cloud')
+    })
 })

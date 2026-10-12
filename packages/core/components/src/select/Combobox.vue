@@ -5,7 +5,7 @@ import { cn } from '@airovo/uikit-shadcnui'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@airovo/uikit-shadcnui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@airovo/uikit-shadcnui/components/ui/popover'
-import type { SelectOption } from './SelectBox.vue'
+import { selectableSelectOptions, type SelectOption } from './options'
 
 defineOptions({ name: 'Combobox' })
 
@@ -28,7 +28,8 @@ const props = withDefaults(defineProps<{
 
 const modelValue = defineModel<string | undefined>()
 const open = ref(false)
-const selectedLabel = computed(() => props.options.find((option) => option.value === modelValue.value)?.label ?? modelValue.value)
+const selectableOptions = computed(() => selectableSelectOptions(props.options))
+const selectedLabel = computed(() => selectableOptions.value.find((option) => option.value === modelValue.value)?.label ?? modelValue.value)
 
 function select(value: string): void {
     modelValue.value = value
@@ -66,7 +67,7 @@ function selectCustom(event: KeyboardEvent): void {
                 <CommandList>
                     <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
                     <CommandGroup>
-                        <CommandItem v-for="option in props.options" :key="option.value" :value="option.value" :disabled="option.disabled" @select="select(option.value)">
+                        <CommandItem v-for="option in selectableOptions" :key="option.value" :value="option.value!" :disabled="option.disabled" @select="select(option.value!)">
                             <Check :class="cn('size-4', modelValue === option.value ? 'opacity-100' : 'opacity-0')" />
                             {{ option.label }}
                         </CommandItem>

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import {
     DataPanel,
     DataTable,
+    ResponsiveCardList,
     TruncatedText,
     DataTableBulkActions,
     DataTablePage,
@@ -849,13 +850,15 @@ function sseItemData(item: unknown): unknown {
                             </DataTable>
                         </template>
                         <template #mobile>
-                            <div class="space-y-3">
-                                <div v-for="row in serverTable.rows.value" :key="String(row.id)" class="rounded-lg border bg-card p-3 shadow-xs">
-                                    <div class="flex items-center justify-between gap-2"><span class="font-medium">{{ row.name }}</span><StatusBadge :status="row.status === '运行中' ? 'success' : 'disabled'" :text="String(row.status)" /></div>
-                                    <p class="mt-2 text-xs text-muted-foreground">{{ row.type }} · #{{ row.id }}</p>
-                                    <DataTableRowActions class="mt-2" :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" />
-                                </div>
-                            </div>
+                            <ResponsiveCardList :rows="serverTable.rows.value" :columns="serverTableColumns" row-key="id">
+                                <template #card="{ row }">
+                                    <div class="rounded-lg border bg-card p-3 shadow-xs">
+                                        <div class="flex items-center justify-between gap-2"><span class="font-medium">{{ row.name }}</span><StatusBadge :status="row.status === '运行中' ? 'success' : 'disabled'" :text="String(row.status)" /></div>
+                                        <p class="mt-2 text-xs text-muted-foreground">{{ row.type }} · #{{ row.id }}</p>
+                                        <DataTableRowActions class="mt-2" :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" />
+                                    </div>
+                                </template>
+                            </ResponsiveCardList>
                         </template>
                     </DataTablePage>
                     <DataTableBulkActions :selected-count="serverSelectedKeys.length" entity-name="渠道" @clear-selection="clearServerSelection">
