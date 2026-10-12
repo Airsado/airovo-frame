@@ -206,3 +206,9 @@ single or multiple values, controlled or uncontrolled state, `collapsible`,
 disabled items and orientation; content exposes a region labelled by its
 trigger. The wrapper owns layout, border and focus styles while callers own
 business content and persistence.
+## Alert
+
+`Alert`, `AlertTitle`, `AlertDescription` and `AlertAction` provide a semantic
+`role="alert"` surface with `default` and `destructive` variants. The action
+slot is positioned by the composition; callers own the button behavior and
+whether the alert is persistent, transient or connected to request state.
