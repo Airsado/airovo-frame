@@ -136,3 +136,9 @@ restore page, pageSize, sort and filters; its `write(query)` method receives
 normalized changes. The adapter belongs to the application and may wrap
 vue-router, URLSearchParams or another state store. The framework does not
 depend on vue-router or choose URL parameter names.
+
+`DatePicker` and `DateTimePicker` accept optional `minDate`, `maxDate`, and
+`locale` props. They are converted to the ui-kit Calendar's DateValue
+constraints; omitted props preserve the previous behavior. DateTimePicker
+passes the same constraints to its date half while keeping time input and
+clear behavior in the wrapper.

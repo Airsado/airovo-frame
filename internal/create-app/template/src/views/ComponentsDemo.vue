@@ -537,7 +537,7 @@ function sseItemData(item: unknown): unknown {
                         class="flex flex-col gap-3 rounded-lg border bg-card p-4"
                     >
                         <p class="font-medium">DatePicker</p>
-                        <DatePicker v-model="selectedDate" />
+                        <DatePicker v-model="selectedDate" :min-date="new Date(2024, 0, 1)" :max-date="new Date(2030, 11, 31)" locale="zh-CN" />
                         <p class="text-xs text-muted-foreground">
                             {{
                                 selectedDate?.toLocaleString('zh-CN') ??
@@ -606,7 +606,7 @@ function sseItemData(item: unknown): unknown {
                         class="flex flex-col gap-3 rounded-lg border bg-card p-4"
                     >
                         <p class="font-medium">DateTimePicker</p>
-                        <DateTimePicker v-model="selectedDateTime" />
+                        <DateTimePicker v-model="selectedDateTime" :min-date="new Date(2024, 0, 1)" :max-date="new Date(2030, 11, 31)" locale="zh-CN" />
                         <p class="text-xs text-muted-foreground">
                             {{
                                 selectedDateTime?.toLocaleString('zh-CN') ??

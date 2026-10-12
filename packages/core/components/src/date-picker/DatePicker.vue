@@ -18,6 +18,9 @@ const props = withDefaults(defineProps<{
   modelValue?: Date
   placeholder?: string
   disabled?: boolean
+  minDate?: Date
+  maxDate?: Date
+  locale?: string
   class?: string
 }>(), { placeholder: '选择日期' })
 
@@ -43,6 +46,8 @@ function onCloseAutoFocus(event: Event): void {
 }
 
 const selected = ref<DateValue | undefined>(props.modelValue ? toCalendarDate(fromDate(props.modelValue, getLocalTimeZone())) as DateValue : undefined)
+const minValue = computed(() => props.minDate ? toCalendarDate(fromDate(props.minDate, getLocalTimeZone())) as DateValue : undefined)
+const maxValue = computed(() => props.maxDate ? toCalendarDate(fromDate(props.maxDate, getLocalTimeZone())) as DateValue : undefined)
 
 watch(() => props.modelValue, (value) => {
   selected.value = value ? toCalendarDate(fromDate(value, getLocalTimeZone())) as DateValue : undefined
@@ -76,6 +81,9 @@ function selectDate(value: DateValue | undefined): void {
     <PopoverContent class="w-auto p-0" align="start" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <Calendar
         layout="month-and-year"
+        :locale="props.locale"
+        :min-value="minValue"
+        :max-value="maxValue"
         :model-value="selected as never"
         @update:model-value="selectDate"
       />
