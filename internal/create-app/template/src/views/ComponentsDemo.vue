@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import {
     DataPanel,
     DataTable,
+    ChartCard,
     useDataTable,
     DatePicker,
     DateTimePicker,
@@ -164,6 +165,17 @@ const demoMetrics = [
         icon: 'lucide:coins',
         tone: 'warning' as const,
     },
+]
+const demoChartData = {
+    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+    datasets: [
+        { label: '请求量', data: [320, 410, 365, 520, 468, 590, 640], tension: 0.35, fill: true },
+        { label: '成功量', data: [300, 398, 352, 506, 455, 576, 628], tension: 0.35 },
+    ],
+}
+const demoChartLegend = [
+    { label: '请求量', color: 'var(--color-chart-1)' },
+    { label: '成功量', color: 'var(--color-chart-2)' },
 ]
 const tableRows = [
     { id: 1, name: 'StatCard', category: '数据展示', purpose: '汇总指标' },
@@ -708,6 +720,17 @@ function sseItemData(item: unknown): unknown {
                         </template>
                     </DataTable>
                 </DataPanel>
+            </section>
+
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-lg font-semibold">ChartCard 图表组合</h2>
+                    <p class="text-sm text-muted-foreground">图表复用 ui-kit 的 Chart.js 适配，框架负责主题 token、卡片状态和可访问标题。</p>
+                </div>
+                <div class="grid gap-4 lg:grid-cols-2">
+                    <ChartCard title="请求趋势" description="过去 7 天请求量与成功量" type="line" :data="demoChartData" :legend="demoChartLegend" />
+                    <ChartCard title="暂无数据示例" description="没有数据时不渲染误导性图形" empty />
+                </div>
             </section>
 
             <section class="space-y-4">
