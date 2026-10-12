@@ -132,8 +132,10 @@ do not fetch data or own retry logic.
 
 `TruncatedCell` and `TruncatedText` provide the new-api DataTable long-text
 pattern: a constrained `truncate` container, keyboard focus, and a Tooltip
-with the full text. Pass `tooltipContent` when the displayed slot is a badge
-or custom rendering; empty text does not create an empty tooltip.
+with the full text. `TruncatedCell` extracts text from string, number, array,
+and ordinary VNode slots when `text` is omitted; pass `tooltipContent` to
+override the extracted value for badges or custom rendering. Empty text does
+not create an empty tooltip.
 ## Query state synchronization
 
 `useDataTable` accepts an optional `querySync` adapter. Its `read()` method can

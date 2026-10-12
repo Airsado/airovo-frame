@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@airovo/uikit-shadcnui'
+import { getTruncatedText } from './truncated-text-utils'
 
 defineOptions({ name: 'TruncatedCell' })
 
 const props = withDefaults(defineProps<{
     text?: string | number
-    tooltipContent?: string
+    tooltipContent?: string | number
     side?: 'top' | 'bottom' | 'left' | 'right'
     tabIndex?: number
     class?: string
@@ -17,7 +18,13 @@ const props = withDefaults(defineProps<{
     tabIndex: 0,
 })
 
-const content = computed(() => props.tooltipContent ?? (props.text === undefined ? '' : String(props.text)))
+const slots = useSlots()
+const slotContent = computed(() => getTruncatedText(slots.default?.({})))
+const content = computed(() => props.tooltipContent !== undefined
+    ? String(props.tooltipContent)
+    : props.text !== undefined
+        ? String(props.text)
+        : slotContent.value)
 </script>
 
 <template>

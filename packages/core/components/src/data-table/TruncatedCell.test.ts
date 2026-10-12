@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { h } from 'vue'
 import { describe, expect, it } from 'vitest'
 import TruncatedCell from './TruncatedCell.vue'
 
@@ -22,5 +23,14 @@ describe('TruncatedCell', () => {
             props: { text: 'display', tooltipContent: 'full value', contentClass: 'content-style', tooltipClass: 'tooltip-style' },
         })
         expect(wrapper.find('.content-style').text()).toBe('display')
+    })
+
+    it('creates a tooltip trigger from custom slot text when text is omitted', () => {
+        const wrapper = mount(TruncatedCell, {
+            slots: { default: () => [h('span', 'first'), h('strong', ' second')] },
+        })
+        expect(wrapper.find('[data-slot="tooltip-trigger"]').exists()).toBe(true)
+        expect(wrapper.text()).toContain('first')
+        expect(wrapper.text()).toContain('second')
     })
 })
