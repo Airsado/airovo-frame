@@ -69,3 +69,5 @@ export * from './components/ui/aspect-ratio'
 export * from './components/ui/menubar'
 
 export * from './components/ui/resizable'
+
+export * from './components/ui/carousel'
