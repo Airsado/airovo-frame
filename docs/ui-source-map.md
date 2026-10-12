@@ -8,7 +8,7 @@
 |---|---|---|
 | `web/src/components/layout/components/authenticated-layout.tsx` | 认证壳层组合 Header、SidebarProvider、SidebarInset；内容区作为独立 inset 工作区 | `packages/core/layouts/src/basic/layout.vue`、`LayoutHost.vue` |
 | `web/src/components/layout/components/header.tsx`、`app-header.tsx` | Header 与侧栏共享壳层，工具区承载搜索、语言、通知、主题/设置和用户操作 | `packages/core/layouts/src/basic/header/header.vue` 与 `basic/components/*`；业务导航交由 `business` 插槽 |
-| `web/src/components/layout/components/app-sidebar.tsx`、`nav-group.tsx`、`nav-link-item.tsx` | 分组导航、父子菜单、active/hover/cursor 状态及独立滚动 | `packages/core/layouts/src/basic/sidebar/sidebar.vue`、`packages/ui-kit/shadcn-vue/src/components/ui/sidebar/*`；菜单项和文字统一 pointer 光标 |
+| `web/src/components/layout/components/app-sidebar.tsx`、`nav-group.tsx`、`nav-link-item.tsx` | 分组导航、父子菜单、普通项 muted hover、当前项 sidebar-accent active 及独立滚动 | `packages/core/layouts/src/basic/sidebar/sidebar.vue`、`packages/core/layouts/src/basic/theme.css`、`packages/ui-kit/shadcn-vue/src/components/ui/sidebar/*`；菜单项和文字统一 pointer 光标 |
 | `web/src/components/ui/sidebar.tsx` | inset 变体使用 margin、圆角和阴影；侧栏可折叠且内容区独立滚动 | `packages/ui-kit/shadcn-vue/src/components/ui/sidebar/*`、`packages/core/layouts/src/basic/layout.vue`；展开态由原生 shadow 表现左边缘，rail 保持可命中，`SidebarInset` 不加自定义 `z-10` |
 | `web/src/components/config-drawer.tsx`、`drawer-layout.ts` | 设置抽屉头尾固定，中部内容滚动，提供预览和 reset | `packages/core/layouts/src/basic/components/LayoutSettings/*`、`packages/core/composables/src/*` |
 | `web/src/context/theme-customization-provider.tsx`、`lib/theme-customization.ts` | 主题 preset/font/radius/scale/contentLayout 统一状态并映射为 data 属性 | `packages/core/config/src/preferences/*`、`packages/core/stores/src/preferences/*` |
