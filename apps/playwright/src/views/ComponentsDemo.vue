@@ -48,7 +48,7 @@ import {
     NativeSelect,
     NativeSelectOption,
 } from '@airovo/uikit-shadcnui'
-import { SelectBox, SearchSelect } from '@airovo/components'
+import { Combobox, SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
 import { useEventSourceSession, type EventSourceProtocolEventPayload } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
@@ -70,6 +70,7 @@ const showRightDrawer = ref(false)
 const selectedDate = ref<Date>()
 const selectedDateTime = ref<Date>()
 const selectedProvider = ref<string | undefined>('openai')
+const selectedCombobox = ref<string | undefined>()
 const selectedRegion = ref('us-east')
 const searchedProvider = ref<string | undefined>()
 const selectedChannelStatus = ref<string | undefined>()
@@ -664,6 +665,11 @@ function sseItemData(item: unknown): unknown {
                             placeholder="搜索并选择层级渠道"
                         />
                         <span class="text-xs text-muted-foreground">当前值：{{ searchedProvider ?? '未选择' }}</span>
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-sm">
+                        <span class="text-xs font-medium text-muted-foreground">通用 Combobox</span>
+                        <Combobox v-model="selectedCombobox" :options="providerOptions" allow-custom-value placeholder="搜索或输入渠道" />
+                        <span class="text-xs text-muted-foreground">当前值：{{ selectedCombobox ?? '未选择' }}</span>
                         </label>
                     </div>
                 </div>
