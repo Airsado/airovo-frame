@@ -22,3 +22,7 @@ cannot fall through to an implicit API close.
 
 Business forms remain in the application and return values through the
 controller contract; applications need no custom host or popup z-index.
+
+`ModalOptions` also accepts `contentHeight`, `headerClass`, `titleClass`,
+`descriptionClass`, `bodyClass`, and `footerClass`. `ModalHost` keeps the
+header/footer fixed while the body remains the scroll container.
