@@ -21,6 +21,9 @@ describe('status state components', () => {
     it('emits retry and action from ErrorState and exposes alert semantics', async () => {
         const wrapper = mount(ErrorState, { props: { description: '网络暂时不可用', actionText: '返回' } })
         expect(wrapper.attributes('role')).toBe('alert')
+        expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
+        expect(wrapper.get('[data-slot="empty-icon"]').attributes('data-variant')).toBe('icon')
+        expect(wrapper.get('[data-slot="empty-description"]').text()).toContain('网络暂时不可用')
         const buttons = wrapper.findAll('button')
         await buttons[0]!.trigger('click')
         await buttons[1]!.trigger('click')
