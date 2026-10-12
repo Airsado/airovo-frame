@@ -225,3 +225,9 @@ surface, spacing, footer and theme classes.
 `TableCell` and `TableCaption` provide styled structural slots. Pass
 `withContainer=false` when an outer layout already owns scrolling; sorting,
 pagination and row data remain the responsibility of DataTable or the caller.
+## Pagination
+
+`Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`,
+`PaginationPrevious`, `PaginationNext` and `PaginationEllipsis` provide a
+semantic navigation structure. Links expose active page and standard anchor
+attributes; page calculation, routing and request state remain caller-owned.

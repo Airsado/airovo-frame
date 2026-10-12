@@ -55,6 +55,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
     Accordion,
     AccordionContent,
     AccordionHeader,
@@ -430,6 +437,16 @@ function sseItemData(item: unknown): unknown {
                         <TableRow data-state="selected"><TableCell>Claude 备用渠道</TableCell><TableCell>已选中</TableCell></TableRow>
                     </TableBody>
                 </Table>
+                <h2 class="text-lg font-semibold">Pagination primitive</h2>
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem><PaginationPrevious href="#previous" /></PaginationItem>
+                        <PaginationItem><PaginationLink href="#page-1">1</PaginationLink></PaginationItem>
+                        <PaginationItem><PaginationLink href="#page-2" is-active>2</PaginationLink></PaginationItem>
+                        <PaginationItem><PaginationEllipsis /></PaginationItem>
+                        <PaginationItem><PaginationNext href="#next" /></PaginationItem>
+                    </PaginationContent>
+                </Pagination>
             </section>
 
             <section class="space-y-4">
