@@ -57,6 +57,7 @@ import {
     Input,
     NativeSelect,
     NativeSelectOption,
+    Progress,
 } from '@airovo/uikit-shadcnui'
 import { Combobox, SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
@@ -351,6 +352,11 @@ function sseItemData(item: unknown): unknown {
             提供的通用后台组件；页面骨架和基础交互由框架包提供。</template
         >
         <div class="space-y-8">
+            <section class="space-y-4">
+                <h2 class="text-lg font-semibold">Progress primitive</h2>
+                <div class="rounded-lg border bg-card p-4"><Progress :model-value="64" aria-label="演示进度" /></div>
+            </section>
+
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">New API 风格页面骨架</h2>
                 <SectionPage
