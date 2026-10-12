@@ -67,3 +67,11 @@ use the same `v-model` string. `template` provides a one-click backfill,
 invalid raw draft without discarding it. It can be passed as a component object
 in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
 while `JsonField` owns JSON serialization and visual editing.
+
+## Select option hierarchy
+
+`SelectBox` and `SearchSelect` accept recursive options. A node with `children`
+is rendered as a non-selectable group label; only leaf nodes with `value` can
+be selected. `SearchSelect` resolves the selected label from flattened leaf
+options and searches descendant item labels. Existing flat options keep their
+current behavior.

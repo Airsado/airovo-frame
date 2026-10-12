@@ -77,6 +77,10 @@ const providerOptions = [
     { label: 'Claude 备用渠道', value: 'claude' },
     { label: '本地 Ollama（禁用）', value: 'ollama', disabled: true },
 ]
+const hierarchicalProviderOptions = [
+    { label: '云服务', children: providerOptions.slice(0, 2) },
+    { label: '本地服务', children: [providerOptions[2]!] },
+]
 const channelStatusOptions = [
     { label: '运行中', value: 'enabled', count: 24 },
     { label: '已停用', value: 'disabled', count: 3 },
@@ -627,7 +631,7 @@ function sseItemData(item: unknown): unknown {
                         <span class="text-xs font-medium text-muted-foreground">可搜索渠道（SearchSelect）</span>
                         <SearchSelect
                             v-model="searchedProvider"
-                            :options="providerOptions"
+                            :options="hierarchicalProviderOptions"
                             search-placeholder="搜索渠道名称"
                             placeholder="搜索并选择渠道"
                         />

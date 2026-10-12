@@ -10,12 +10,9 @@ import {
   SelectValue,
 } from '@airovo/uikit-shadcnui/components/ui/select'
 import { computed, ref, useAttrs, watch } from 'vue'
+import { flattenSelectOptions, type SelectOption } from './options'
 
-export interface SelectOption {
-  label: string
-  value: string
-  disabled?: boolean
-}
+export type { SelectOption } from './options'
 
 const props = withDefaults(defineProps<{
   options?: SelectOption[]
@@ -38,6 +35,7 @@ const open = ref(false)
 const popupStyle = computed(() => owner?.popupZIndex.value === undefined
   ? undefined
   : { zIndex: owner.popupZIndex.value })
+const flattenedOptions = computed(() => flattenSelectOptions(props.options))
 
 // Watch the owning main layer rather than raising a popup above every overlay.
 // Reka remains responsible for focus scopes, Escape, outside and body locking.
@@ -86,14 +84,12 @@ function clear(event: MouseEvent): void {
     </div>
     <SelectContent :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <SelectGroup>
-        <SelectItem
-          v-for="option in props.options"
-          :key="option.value"
-          :value="option.value"
-          :disabled="option.disabled"
-        >
-          {{ option.label }}
-        </SelectItem>
+        <template v-for="item in flattenedOptions" :key="`${item.option.label}:${item.depth}:${item.option.value ?? 'group'}`">
+          <div v-if="item.group" class="px-2 py-1.5 text-xs font-semibold text-muted-foreground" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">{{ item.option.label }}</div>
+          <SelectItem v-else-if="item.option.value !== undefined" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+            {{ item.option.label }}
+          </SelectItem>
+        </template>
       </SelectGroup>
     </SelectContent>
   </Select>
