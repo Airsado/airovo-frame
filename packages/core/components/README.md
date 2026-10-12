@@ -67,3 +67,11 @@ use the same `v-model` string. `template` provides a one-click backfill,
 invalid raw draft without discarding it. It can be passed as a component object
 in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
 while `JsonField` owns JSON serialization and visual editing.
+
+## DataTable column sizing
+
+DataTable columns can opt into resizing with `resizable`, `minSize`, and
+`maxSize`. Bind `v-model:column-sizing` for a controlled map keyed by column
+id/key and pass `column-sizing-storage-key` to persist widths. Resizing is
+desktop table behavior; mobile card slots continue to use the same rows and
+selection state.

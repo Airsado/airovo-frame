@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Skeleton } from '@airovo/uikit-shadcnui'
@@ -37,6 +37,10 @@ const props = withDefaults(defineProps<{
     columnVisibility?: DataTableColumnVisibility
     /** Render the table on desktop and the mobile slot below the sm breakpoint. */
     mobileCards?: boolean
+    /** Controlled pixel widths keyed by column id/key. */
+    columnSizing?: Record<string, number>
+    /** Optional localStorage key for column widths. */
+    columnSizingStorageKey?: string
 }>(), {
     rowKey: 'id',
     loading: false,
@@ -58,6 +62,7 @@ const emit = defineEmits<{
     (event: 'update:page', value: number): void
     (event: 'update:pageSize', value: number): void
     (event: 'update:columnVisibility', value: DataTableColumnVisibility): void
+    (event: 'update:columnSizing', value: Record<string, number>): void
     (event: 'retry'): void
 }>()
 
@@ -65,6 +70,8 @@ const { t } = useI18n({ useScope: 'global' })
 const slots = useSlots()
 const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
+const internalColumnSizing = ref<Record<string, number>>({ ...props.columnSizing })
+const resizing = ref<{ id: string; startX: number; startWidth: number; min: number; max?: number }>()
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 function columnId(column: DataTableColumn): string {
@@ -75,6 +82,19 @@ const visibleColumns = computed(() => props.columns.filter((column) => {
     const visibility = props.columnVisibility?.[columnId(column)]
     return visibility === undefined ? !column.hidden : visibility
 }))
+const currentColumnSizing = computed(() => props.columnSizing ?? internalColumnSizing.value)
+const columnSize = (column: DataTableColumn): number | undefined => {
+    const value = currentColumnSizing.value[columnId(column)]
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+const columnStyle = (column: DataTableColumn): Record<string, string> => {
+    const size = columnSize(column)
+    return {
+        width: size === undefined ? (column.width ?? '') : `${size}px`,
+        minWidth: column.minWidth ?? (column.minSize ? `${column.minSize}px` : ''),
+        maxWidth: column.maxWidth ?? (column.maxSize ? `${column.maxSize}px` : ''),
+    }
+}
 const currentSort = computed(() => props.sort ?? internalSort.value)
 const hasToolbar = computed(() => Boolean(slots.toolbar))
 const hasActions = computed(() => Boolean(slots.actions || slots.action))
@@ -192,6 +212,61 @@ function clearSort(): void {
     emit('sort-change', undefined)
 }
 
+function initialColumnSize(column: DataTableColumn): number {
+    const controlled = columnSize(column)
+    if (controlled !== undefined) return controlled
+    const width = Number.parseFloat(column.width ?? '')
+    return Number.isFinite(width) ? width : 160
+}
+
+function updateColumnSizing(next: Record<string, number>): void {
+    if (props.columnSizing === undefined) internalColumnSizing.value = next
+    if (props.columnSizingStorageKey && typeof window !== 'undefined') {
+        try { window.localStorage.setItem(props.columnSizingStorageKey, JSON.stringify(next)) } catch { /* optional storage */ }
+    }
+    emit('update:columnSizing', next)
+}
+
+function startResize(event: PointerEvent, column: DataTableColumn): void {
+    if (!column.resizable) return
+    event.preventDefault()
+    event.stopPropagation()
+    resizing.value = {
+        id: columnId(column),
+        startX: event.clientX,
+        startWidth: initialColumnSize(column),
+        min: column.minSize ?? 72,
+        max: column.maxSize,
+    }
+    window.addEventListener('pointermove', resizeColumn)
+    window.addEventListener('pointerup', stopResize, { once: true })
+}
+
+function resizeColumn(event: PointerEvent): void {
+    const active = resizing.value
+    if (!active) return
+    const proposed = active.startWidth + event.clientX - active.startX
+    const nextWidth = Math.max(active.min, active.max === undefined ? proposed : Math.min(active.max, proposed))
+    updateColumnSizing({ ...currentColumnSizing.value, [active.id]: nextWidth })
+}
+
+function stopResize(): void {
+    resizing.value = undefined
+    window.removeEventListener('pointermove', resizeColumn)
+}
+
+function loadColumnSizing(): void {
+    if (!props.columnSizingStorageKey || typeof window === 'undefined' || props.columnSizing !== undefined) return
+    try {
+        const raw = window.localStorage.getItem(props.columnSizingStorageKey)
+        if (raw) internalColumnSizing.value = { ...internalColumnSizing.value, ...JSON.parse(raw) }
+    } catch { /* invalid persisted state falls back to defaults */ }
+}
+
+onMounted(loadColumnSizing)
+onBeforeUnmount(stopResize)
+watch(() => props.columnSizing, value => { internalColumnSizing.value = { ...value } }, { deep: true })
+
 function retry(): void {
     emit('retry')
 }
@@ -234,13 +309,9 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         v-for="column in visibleColumns"
                         :key="column.key"
                         scope="col"
-                        :style="{
-                            width: column.width,
-                            minWidth: column.minWidth,
-                            maxWidth: column.maxWidth,
-                        }"
+                        :style="columnStyle(column)"
                         :aria-sort="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'ascending' : 'descending') : undefined"
-                        class="h-10 whitespace-nowrap px-3 text-left align-middle font-medium text-foreground"
+                        class="relative h-10 whitespace-nowrap px-3 text-left align-middle font-medium text-foreground"
                         :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                     >
                         <button
@@ -253,6 +324,12 @@ function toCssSize(value: string | number | undefined): string | undefined {
                             <Icon :icon="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down') : 'lucide:arrow-up-down'" class="size-3.5 text-muted-foreground" />
                         </button>
                         <template v-else>{{ column.title }}</template>
+                        <span
+                            v-if="column.resizable"
+                            class="absolute inset-y-0 right-0 z-10 w-1 cursor-col-resize touch-none select-none hover:bg-primary/40"
+                            aria-hidden="true"
+                            @pointerdown="startResize($event, column)"
+                        />
                     </th>
                     <th v-if="hasActions" scope="col" class="h-10 whitespace-nowrap px-3 text-right align-middle font-medium text-foreground">操作</th>
                 </tr>
@@ -291,7 +368,8 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         <td
                             v-for="column in visibleColumns"
                             :key="column.key"
-                            class="whitespace-nowrap p-3 align-middle"
+                            class="relative whitespace-nowrap p-3 align-middle"
+                            :style="columnStyle(column)"
                             :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                         >
                             <slot :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column)" :index="index">
