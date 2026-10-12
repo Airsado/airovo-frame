@@ -17,7 +17,7 @@ selection and Vue DOM identity stable when sorting or replacing data.
 
 Use the optional `toolbar` slot for controls above the table and the `actions`
 slot for a per-row action column. The toolbar exposes `selectedKeys`, `loading`,
-`error`, `retry`, `sort`, `page` and `pageSize`; row actions expose `row`,
+`error`, `retry`, `sort`, `columnPinning`, `setColumnPinning`, `page` and `pageSize`; row actions expose `row`,
 `index` and `rowKey`; the singular `action` slot name is accepted as an alias.
 The action column and its loading/empty/error colspan are omitted when no
 action slot is supplied.
@@ -40,6 +40,17 @@ callback. `DataTablePage` provides separate `table` and `mobile` slots so the
 same query, pagination and selection state can render as a desktop table and a
 mobile card list. Channel fields, API calls and edit dialogs remain application
 code.
+
+`DataTable` also accepts `columnPinning` as a record keyed by column id/key:
+
+```ts
+const columnPinning = { name: 'left', actions: 'right' } as const
+```
+
+Pinned headers and cells use sticky offsets calculated from visible columns.
+The special `selection` and `actions` ids can pin the built-in checkbox and
+row-action columns. `columnPinningStorageKey` restores and persists the
+uncontrolled state; mobile card slots do not apply pinning.
 
 ## LiveLog and follow-tail
 

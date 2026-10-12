@@ -135,6 +135,43 @@ describe('DataTable', () => {
         window.dispatchEvent(new PointerEvent('pointerup', { clientX: 350 }))
     })
 
+    it('pins visible headers and cells with cumulative left/right offsets', async () => {
+        const wrapper = mountTable({
+            columns: [
+                { key: 'name', title: '名称', width: '180px' },
+                { key: 'kind', title: '类型', width: '120px' },
+                { key: 'status', title: '状态', width: '100px' },
+            ],
+            selectable: true,
+            columnPinning: { selection: 'left', name: 'left', kind: 'left', actions: 'right' },
+        }, { actions: '操作' })
+
+        expect(wrapper.find('thead th[data-column-id="selection"]').attributes('style')).toContain('left: 0px')
+        expect(wrapper.find('thead th[data-column-id="name"]').attributes('style')).toContain('left: 40px')
+        expect(wrapper.find('thead th[data-column-id="actions"]').attributes('style')).toContain('right: 0px')
+        expect(wrapper.find('tbody td[data-column-id="name"]').attributes('style')).toContain('left: 40px')
+
+        await wrapper.setProps({ columnVisibility: { name: false } })
+        expect(wrapper.find('thead th[data-column-id="kind"]').exists()).toBe(true)
+        expect(wrapper.find('thead th[data-column-id="kind"]').attributes('style')).toContain('left: 40px')
+        expect(wrapper.find('thead th[data-column-id="name"]').exists()).toBe(false)
+    })
+
+    it('restores uncontrolled pinning state from localStorage', () => {
+        localStorage.setItem('data-table-pinning-test', '{"name":"left","actions":"right"}')
+        const wrapper = mountTable({
+            columns: [
+                { key: 'name', title: '名称', width: '180px' },
+                { key: 'kind', title: '类型' },
+            ],
+            columnPinningStorageKey: 'data-table-pinning-test',
+        }, { actions: '操作' })
+
+        expect(wrapper.find('thead th[data-column-id="name"]').attributes('style')).toContain('left: 0px')
+        expect(wrapper.find('thead th[data-column-id="actions"]').attributes('style')).toContain('right: 0px')
+        localStorage.removeItem('data-table-pinning-test')
+    })
+
     it('keeps persistent selection keys across page data changes', async () => {
         const wrapper = mountTable({ selectable: true, selectionScope: 'persistent', selectedKeys: [1], data: [{ id: 2, name: 'two' }] })
         await wrapper.find('tbody input[type="checkbox"]').setValue(true)

@@ -5,8 +5,11 @@ export { default as DataTableRowActions } from './DataTableRowActions.vue'
 export { default as DataTableToolbar } from './DataTableToolbar.vue'
 export { default as DataTableViewOptions } from './DataTableViewOptions.vue'
 export { useDataTable } from './useDataTable'
+export { parseStoredDataTableColumnPinning, resolveDataTableColumnPinning } from './column-pinning'
+export type { DataTablePinningColumn, ResolvedDataTablePinnedColumn } from './column-pinning'
 export type { UseDataTableOptions, UseDataTableReturn } from './useDataTable'
 export type {
+    DataTableColumnPinning,
     DataTableColumn,
     DataTableColumnVisibility,
     DataTableFetchContext,
@@ -19,6 +22,7 @@ export type {
     DataTableRowAction,
     DataTableRow,
     DataTableRowKey,
+    DataTablePinSide,
     DataTableSelectionScope,
     DataTableSort,
 } from './types'
