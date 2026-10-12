@@ -16,7 +16,7 @@
 |---|---|---|---|---|---|---|
 | `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | 截断单元格、URL/query 状态和更完整的移动/批量交互矩阵 | P0 | router/component tests、demo、desktop/mobile browser |
 | `components/json-editor.tsx` | JsonField / JsonEditor | `packages/core/components/src/json-field/*` | 已存在但行为不完整 | 已有双模式和回填；需要 FormFieldSchema 组合验证、复杂嵌套编辑和更完整 raw editor | P0 | component tests、MyFormDemo、form submit/reset browser |
-| `components/json-code-editor.tsx` | JsonCodeEditor | 暂无 | 完全缺失 | 格式化、错误保留、光标/缩进、ARIA 和大文本编辑 | P1 | utility tests、keyboard browser |
+| `components/json-code-editor.tsx` | JsonCodeEditor | `packages/core/components/src/json-field/JsonCodeEditor.vue` | 已存在但行为不完整 | FormField 组合、错误保留、光标/缩进、ARIA 和大文本 browser 矩阵 | P1 | utility/component tests、keyboard browser |
 | `components/layout/components/section-page-layout.tsx` | SectionPageLayout | `packages/core/components/src/section-page/SectionPage.vue` | 已存在但行为不完整 | sticky 标题刚补入；需补 footer/slot 语义和 tabs/scroll 组合验证 | P0 | component tests、scroll browser |
 | `components/ui/drawer.tsx`、`components/drawer-layout.ts` | Drawer / DrawerLayout | `packages/core/components/src/drawer/*`、`packages/core/composables/src/drawer/*` | 已存在但行为不完整 | right side 已支持；需补 layout composition、focus、nested、mobile 和 result contract 矩阵 | P0 | overlay tests、browser focus/escape |
 | `components/ui/dialog.tsx`、`components/dialog.tsx` | Dialog / Modal | ui-kit dialog、`packages/core/composables/src/modal/*` | 已存在但行为不完整 | 与 new-api close/outside/focus/stack 状态的完整对照 | P1 | overlay tests、browser |
@@ -37,7 +37,7 @@
 | Select / NativeSelect / Dialog / Drawer / Sheet / Tooltip / Popover / Command / ScrollArea | 已存在 | 对照 keyboard、focus、outside、mobile |
 | Accordion / Alert / AlertDialog / AspectRatio / Card / Checkbox / Empty / Pagination / Progress / RadioGroup / Slider / Spinner / Switch / Table / Tabs / Toggle / ToggleGroup | 已存在但行为不完整 | 已有公开 API、测试、Demo 和模板；继续补 light/dark、mobile、visual regression 和组合验证 |
 | ButtonGroup / ContextMenu / InputGroup / Kbd / Menubar / TagsInput / InputOTP / NumberField | 已存在但行为不完整 | 已有公开 API和基础测试；继续补 keyboard/focus、主题和 browser matrix |
-| Resizable / Carousel / Slider advanced composition | 完全缺失 | 先评估 Vue 依赖与 pointer/keyboard contract，再单独建立 Issue |
+| Carousel / Resizable | 已存在但行为不完整 | 核心 scroll-snap/pointer contract 已有；继续补 loop/plugin、多 panel 持久化和 mobile matrix |
 | Calendar / Chart / Field / Form / Item / NativeSelect / Stepper | 已存在或已有近似 | 补框架组合和主题/可访问性验证 |
 
 ## 迁移规则
@@ -45,11 +45,12 @@
 ## 当前基线（2026-10-12）
 
 `dev` 已公开并合并了 Accordion、Alert、AlertDialog、AspectRatio、Card、
-Empty、Pagination、Table、Slider、Spinner、Toggle、ButtonGroup、Menubar
-以及相关 primitive。它们的 API、基础状态和 Demo 已有证据，但这不代表
+Empty、Pagination、Table、Slider、Spinner、Toggle、ButtonGroup、Menubar、
+Carousel、Resizable 以及 JsonCodeEditor 基础实现。
+这些 primitive 的 API、基础状态和 Demo 已有证据，但这不代表
 桌面/移动、light/dark、focus 和所有业务组合矩阵都已完成；这些差异继续
-作为后续验证任务管理。Resizable、Carousel 和更复杂的 submenu/checkbox
-menu 组合仍未迁移。
+作为后续验证任务管理。Resizable 的多 panel 持久化、Carousel 的 loop/plugin
+能力以及更复杂的 submenu/checkbox menu 组合仍未迁移。
 
 1. 每个组件族先引用本表中的 new-api 源文件，再创建独立 Issue。
 2. 只迁移跨业务可复用的 props、slots、events、状态和组合；渠道、用户、权限、统计接口留在应用层。
