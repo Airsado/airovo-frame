@@ -24,6 +24,8 @@ import {
     LoadingState,
     MetricStrip,
     PageContainer,
+    PageFooter,
+    PageFooterPortal,
     ResultPage,
     SectionPage,
     StatCard,
@@ -606,6 +608,12 @@ function sseItemData(item: unknown): unknown {
                             </div>
                         </DataPanel>
                     </div>
+                    <PageFooterPortal>
+                        <PageFooter compact>
+                            <span>SectionPage footer portal</span>
+                            <template #actions><Button size="sm">保存视图</Button></template>
+                        </PageFooter>
+                    </PageFooterPortal>
                 </SectionPage>
             </section>
 

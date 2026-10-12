@@ -1,9 +1,13 @@
 <script lang="ts" setup>
+import { provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { pageFooterTargetKey } from './page-footer-context'
 
 defineOptions({ name: 'SectionPage' })
 
 const { t } = useI18n({ useScope: 'global' })
+const footerTarget = ref<HTMLElement | null>(null)
+provide(pageFooterTargetKey, footerTarget)
 
 withDefaults(defineProps<{
     fixedContent?: boolean
@@ -46,5 +50,6 @@ withDefaults(defineProps<{
         <footer v-if="$slots.footer" class="shrink-0 border-t bg-background px-3 py-2.5 sm:px-4 sm:py-3">
             <slot name="footer" />
         </footer>
+        <div ref="footerTarget" data-slot="section-page-footer-host" class="shrink-0 empty:hidden" />
     </section>
 </template>

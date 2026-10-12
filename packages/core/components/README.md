@@ -204,6 +204,10 @@ empty slots; the `card` slot owns business card content.
 compact or sticky variants. It owns only layout and styling; page actions remain
 caller-owned.
 
+`PageFooterPortal` can be placed inside `SectionPage` content to render a
+`PageFooter` into the page's stable footer host, keeping it outside the content
+scroll container. Direct `SectionPage` `footer` slots remain supported.
+
 ## ChartCard tooltip
 
 `ChartCard` accepts optional `tooltipLabel`/`tooltipItems` and a `tooltip` slot;
