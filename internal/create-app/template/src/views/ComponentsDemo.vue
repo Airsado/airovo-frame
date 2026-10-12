@@ -54,6 +54,7 @@ import {
     ButtonGroup,
     ButtonGroupSeparator,
     ButtonGroupText,
+    AspectRatio,
     Card,
     CardAction,
     CardContent,
@@ -492,6 +493,10 @@ function sseItemData(item: unknown): unknown {
                         <Button size="sm" variant="outline">执行</Button>
                     </ButtonGroup>
                 </div>
+                <h2 class="text-lg font-semibold">AspectRatio primitive</h2>
+                <AspectRatio :ratio="16 / 9" class="max-w-md rounded-lg bg-muted p-4 text-center text-sm">
+                    16:9 preview
+                </AspectRatio>
             </section>
 
             <section class="space-y-4">
