@@ -3,6 +3,9 @@ import { ref } from 'vue'
 import {
     DataPanel,
     DataTable,
+    DataTablePage,
+    DataTableRowActions,
+    DataTableToolbar,
     ChartCard,
     useDataTable,
     DatePicker,
@@ -26,6 +29,7 @@ import {
     StatusBadge,
     UserCard,
     type DataTableColumn,
+    type DataTableFilterGroup,
     type DataTableFetcher,
 } from '@airovo/components'
 import { PermissionButton } from '@airovo/permission'
@@ -199,6 +203,10 @@ const serverTableColumns: DataTableColumn[] = [
     { key: 'status', title: '状态', sortable: true },
     { key: 'id', title: '内部 ID', hidden: true },
 ]
+const serverTableFilters: DataTableFilterGroup[] = [
+    { key: 'status', title: '状态', singleSelect: true, options: [{ label: '运行中', value: '运行中', count: 30 }, { label: '已停用', value: '已停用', count: 7 }] },
+    { key: 'type', title: '类型', singleSelect: true, options: [{ label: 'OpenAI', value: 'OpenAI', count: 13 }, { label: 'Claude', value: 'Claude', count: 12 }, { label: '自定义', value: '自定义', count: 12 }] },
+]
 const serverTableFailNext = ref(false)
 const serverTableFetcher: DataTableFetcher = async (query, { signal }) => {
     await new Promise<void>((resolve, reject) => {
@@ -213,7 +221,9 @@ const serverTableFetcher: DataTableFetcher = async (query, { signal }) => {
         throw new Error('演示请求失败，请点击表格中的重试')
     }
     const search = String(query.filters?.search ?? '').trim().toLowerCase()
-    let filtered = serverTableRows.filter((row) => !search || `${row.name} ${row.type}`.toLowerCase().includes(search))
+    const status = String(query.filters?.status ?? '')
+    const type = String(query.filters?.type ?? '')
+    let filtered = serverTableRows.filter((row) => (!search || `${row.name} ${row.type}`.toLowerCase().includes(search)) && (!status || row.status === status) && (!type || row.type === type))
     if (query.sort) {
         const direction = query.sort.direction === 'asc' ? 1 : -1
         const key = query.sort.key as keyof typeof serverTableRows[number]
@@ -224,10 +234,16 @@ const serverTableFetcher: DataTableFetcher = async (query, { signal }) => {
 }
 const serverTable = useDataTable({ fetcher: serverTableFetcher, filters: { search: '' } })
 const serverTableSearch = ref('')
+const serverTableFilterValues = ref<Record<string, string | string[] | undefined>>({})
+const serverTableColumnVisibility = ref<Record<string, boolean>>({ id: false })
 const serverSelectedKeys = ref<(string | number)[]>([])
 const batchActionResult = ref('尚未执行批量操作')
 async function applyServerTableSearch(): Promise<void> {
-    await serverTable.setFilters({ search: serverTableSearch.value })
+    await serverTable.setFilters({ search: serverTableSearch.value, ...serverTableFilterValues.value })
+}
+function updateServerTableFilters(value: Record<string, string | string[] | undefined>): void {
+    serverTableFilterValues.value = value
+    void applyServerTableSearch()
 }
 function runBatchAction(): void {
     batchActionResult.value = `批量操作收到稳定 keys：${serverSelectedKeys.value.join(', ') || '无'}`
@@ -741,46 +757,66 @@ function sseItemData(item: unknown): unknown {
                     </p>
                 </div>
                 <DataPanel>
-                    <DataTable
-                        v-model:selected-keys="serverSelectedKeys"
-                        :columns="serverTableColumns"
-                        :data="serverTable.rows.value"
-                        :loading="serverTable.loading.value"
-                        :error="serverTable.error.value"
-                        selectable
-                        pagination
-                        manual-sort
-                        :sort="serverTable.sort.value"
-                        :page="serverTable.page.value"
-                        :page-size="serverTable.pageSize.value"
-                        :total="serverTable.total.value"
-                        :max-height="420"
-                        @sort-change="serverTable.setSort"
-                        @update:page="serverTable.setPage"
-                        @update:page-size="serverTable.setPageSize"
-                        @retry="serverTable.retry"
-                    >
+                    <DataTablePage mobile-cards>
                         <template #toolbar>
-                        <div class="flex flex-wrap items-center gap-2 p-4">
-                            <Input v-model="serverTableSearch" class="w-full sm:w-64" placeholder="搜索渠道名称或类型" @keyup.enter="applyServerTableSearch" />
-                            <Button size="sm" @click="applyServerTableSearch">查询</Button>
-                            <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
-                            <Button size="sm" variant="secondary" :disabled="serverSelectedKeys.length === 0" @click="runBatchAction">
-                                批量处理 {{ serverSelectedKeys.length }} 项
-                            </Button>
-                            <Button size="sm" variant="outline" :disabled="serverSelectedKeys.length === 0" @click="clearServerSelection">
-                                清除 {{ serverSelectedKeys.length }} 项选择
-                            </Button>
-                            <span v-if="serverTable.error.value" class="text-xs text-destructive">请求失败，可点击表格中的重试</span>
-                        </div>
+                            <DataTableToolbar
+                                v-model="serverTableSearch"
+                                :columns="serverTableColumns"
+                                :column-visibility="serverTableColumnVisibility"
+                                column-visibility-storage-key="playwright-channel-table-columns"
+                                :filters="serverTableFilters"
+                                :filter-values="serverTableFilterValues"
+                                :loading="serverTable.loading.value"
+                                search-placeholder="搜索渠道名称或类型"
+                                @update:filter-values="updateServerTableFilters"
+                                @refresh="serverTable.reload"
+                                @reset="applyServerTableSearch"
+                                @update:column-visibility="serverTableColumnVisibility = $event"
+                            >
+                                <template #actions>
+                                    <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
+                                    <Button size="sm" variant="secondary" :disabled="serverSelectedKeys.length === 0" @click="runBatchAction">批量处理 {{ serverSelectedKeys.length }} 项</Button>
+                                    <Button size="sm" variant="outline" :disabled="serverSelectedKeys.length === 0" @click="clearServerSelection">清除 {{ serverSelectedKeys.length }} 项选择</Button>
+                                </template>
+                            </DataTableToolbar>
                         </template>
-                        <template #cell-status="{ value }">
-                            <StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" />
+                        <template #table>
+                            <DataTable
+                                v-model:selected-keys="serverSelectedKeys"
+                                v-model:column-visibility="serverTableColumnVisibility"
+                                :columns="serverTableColumns"
+                                :data="serverTable.rows.value"
+                                :loading="serverTable.loading.value"
+                                :error="serverTable.error.value"
+                                selectable
+                                pagination
+                                manual-sort
+                                :sort="serverTable.sort.value"
+                                :page="serverTable.page.value"
+                                :page-size="serverTable.pageSize.value"
+                                :total="serverTable.total.value"
+                                :max-height="420"
+                                @sort-change="serverTable.setSort"
+                                @update:page="serverTable.setPage"
+                                @update:page-size="serverTable.setPageSize"
+                                @retry="serverTable.retry"
+                            >
+                                <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
+                                <template #actions="{ row }">
+                                    <DataTableRowActions :row="row" :actions="[{ key: 'view', label: '查看', icon: 'lucide:eye', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" :dropdown-actions="[{ key: 'copy', label: '复制 ID', icon: 'lucide:copy', onSelect: () => { batchActionResult = `复制记录 ${String(row.id)}` } }]" />
+                                </template>
+                            </DataTable>
                         </template>
-                        <template #actions="{ rowKey }">
-                            <Button size="sm" variant="ghost" @click="batchActionResult = `打开记录 ${String(rowKey)}`">查看</Button>
+                        <template #mobile>
+                            <div class="space-y-3">
+                                <div v-for="row in serverTable.rows.value" :key="String(row.id)" class="rounded-lg border bg-card p-3 shadow-xs">
+                                    <div class="flex items-center justify-between gap-2"><span class="font-medium">{{ row.name }}</span><StatusBadge :status="row.status === '运行中' ? 'success' : 'disabled'" :text="String(row.status)" /></div>
+                                    <p class="mt-2 text-xs text-muted-foreground">{{ row.type }} · #{{ row.id }}</p>
+                                    <DataTableRowActions class="mt-2" :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" />
+                                </div>
+                            </div>
                         </template>
-                    </DataTable>
+                    </DataTablePage>
                     <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。</p>
                     <p class="px-4 pb-3 text-xs text-muted-foreground">{{ batchActionResult }}</p>
                 </DataPanel>

@@ -10,15 +10,49 @@ export type DataTableSelectionScope = 'page' | 'persistent'
 export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
     key: string
     title: string
+    /** Stable id used by column visibility and persisted table settings. */
+    id?: string
     sortable?: boolean
     align?: 'left' | 'center' | 'right'
     width?: string
+    minWidth?: string
+    maxWidth?: string
     /** Hide the column while retaining it in the column configuration. */
     hidden?: boolean
     /** Read a value from a row (useful for nested or computed values). */
     value?: (row: T) => unknown
     /** Format the displayed value without changing the value exposed to slots. */
     formatter?: (value: unknown, row: T, index: number) => unknown
+}
+
+export type DataTableColumnVisibility = Record<string, boolean>
+
+export interface DataTableFilterOption {
+    label: string
+    value: string
+    count?: number
+    disabled?: boolean
+}
+
+export interface DataTableFilterGroup {
+    key: string
+    title: string
+    options: DataTableFilterOption[]
+    singleSelect?: boolean
+}
+
+export type DataTableFilterValue = string | string[] | undefined
+
+export interface DataTableRowAction<T extends DataTableRow = DataTableRow> {
+    key: string
+    label: string
+    icon?: string
+    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+    permission?: string | string[]
+    visible?: boolean | ((row: T) => boolean)
+    disabled?: boolean | ((row: T) => boolean)
+    loading?: boolean | ((row: T) => boolean)
+    onSelect?: (row: T) => void
 }
 
 export interface DataTableSort {

@@ -29,6 +29,18 @@ guard prevents a late response from replacing newer results. The default
 selection policy is current-page selection; applications that need cross-page
 selection must own that policy outside the component.
 
+For channel-style administration pages, compose `DataTablePage` with
+`DataTableToolbar`, `DataTableViewOptions` and `DataTableRowActions`. The
+toolbar owns presentation of debounced search, faceted filters, refresh/reset
+actions and column visibility; the application still owns the filter values and
+calls `useDataTable.setFilters()`. `DataTableViewOptions` accepts a caller-owned
+storage key for column visibility. `DataTableRowActions` accepts typed row
+actions with visible/disabled/loading predicates and an optional permission
+callback. `DataTablePage` provides separate `table` and `mobile` slots so the
+same query, pagination and selection state can render as a desktop table and a
+mobile card list. Channel fields, API calls and edit dialogs remain application
+code.
+
 ## LiveLog and follow-tail
 
 The useFollowTail composable and LiveLog component keep auto-scroll in the
