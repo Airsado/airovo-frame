@@ -58,6 +58,8 @@ import {
     NativeSelect,
     NativeSelectOption,
     Progress,
+    RadioGroup,
+    RadioGroupItem,
 } from '@airovo/uikit-shadcnui'
 import { Combobox, SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
@@ -355,6 +357,8 @@ function sseItemData(item: unknown): unknown {
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">Progress primitive</h2>
                 <div class="rounded-lg border bg-card p-4"><Progress :model-value="64" aria-label="演示进度" /></div>
+                <h2 class="text-lg font-semibold">RadioGroup primitive</h2>
+                <RadioGroup model-value="default" class="flex gap-3"><label class="flex items-center gap-2"><RadioGroupItem value="default" />默认</label><label class="flex items-center gap-2"><RadioGroupItem value="compact" />紧凑</label></RadioGroup>
             </section>
 
             <section class="space-y-4">
