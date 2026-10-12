@@ -195,6 +195,7 @@ const [DemoModal, demoModalApi] = useModal({
     title: '保存设置',
     description: '这是框架内置 ModalApi 的确认流程。',
     contentHeight: '22rem',
+    initialFocus: '#modal-demo-input',
     bodyClass: 'bg-muted/10',
     onConfirm: async () => {
         await new Promise((resolve) => setTimeout(resolve, 350))
@@ -798,6 +799,7 @@ function sseItemData(item: unknown): unknown {
                         >
                         <DemoModal>
                             <template #default="{ data }">
+                                <Input id="modal-demo-input" model-value="初始焦点示例" aria-label="Modal 初始焦点" />
                                 <p class="text-sm text-muted-foreground">
                                     当前数据：{{ data ?? '无' }}
                                 </p>

@@ -28,8 +28,9 @@ describe('ModalApi', () => {
     })
 
     it('keeps layout customization options in modal state', () => {
-        api = new ModalApi({ contentHeight: 480, headerClass: 'header', titleClass: 'title', descriptionClass: 'description', bodyClass: 'body', footerClass: 'footer' })
+        api = new ModalApi({ contentHeight: 480, initialFocus: '#first-input', headerClass: 'header', titleClass: 'title', descriptionClass: 'description', bodyClass: 'body', footerClass: 'footer' })
         expect(api.state.contentHeight).toBe(480)
+        expect(api.state.initialFocus).toBe('#first-input')
         expect(api.state.headerClass).toBe('header')
         expect(api.state.titleClass).toBe('title')
         expect(api.state.descriptionClass).toBe('description')
