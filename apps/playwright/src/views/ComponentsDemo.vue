@@ -49,6 +49,7 @@ import {
     EmptyMedia,
     EmptyTitle,
     Slider,
+    Spinner,
     Card,
     CardAction,
     CardContent,
@@ -465,6 +466,11 @@ function sseItemData(item: unknown): unknown {
                 </Empty>
                 <h2 class="text-lg font-semibold">Slider primitive</h2>
                 <Slider :default-value="[42]" class="max-w-md" aria-label="请求阈值" />
+                <h2 class="text-lg font-semibold">Spinner primitive</h2>
+                <div class="flex items-center gap-3 rounded-lg border bg-card p-4 text-sm">
+                    <Spinner aria-label="正在加载渠道" />
+                    正在加载渠道...
+                </div>
             </section>
 
             <section class="space-y-4">
