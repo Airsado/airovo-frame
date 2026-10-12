@@ -14,7 +14,7 @@
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 主要缺口 | 优先级 | 验证方式 |
 |---|---|---|---|---|---|---|
-| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | 截断单元格、URL/query 状态和更完整的移动/批量交互矩阵 | P0 | router/component tests、demo、desktop/mobile browser |
+| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | URL/query 状态和更完整的移动/批量交互矩阵；TruncatedCell 已补自定义 slot 文本提取 | P0 | router/component tests、demo、desktop/mobile browser |
 | `components/json-editor.tsx` | JsonField / JsonEditor | `packages/core/components/src/json-field/*` | 已存在但行为不完整 | 已有双模式和回填；需要 FormFieldSchema 组合验证、复杂嵌套编辑和更完整 raw editor | P0 | component tests、MyFormDemo、form submit/reset browser |
 | `components/json-code-editor.tsx` | JsonCodeEditor | `packages/core/components/src/json-field/JsonCodeEditor.vue` | 已存在但行为不完整 | FormField 组合、错误保留、光标/缩进、ARIA 和大文本 browser 矩阵 | P1 | utility/component tests、keyboard browser |
 | `components/layout/components/section-page-layout.tsx` | SectionPageLayout | `packages/core/components/src/section-page/SectionPage.vue` | 已存在但行为不完整 | sticky 标题刚补入；需补 footer/slot 语义和 tabs/scroll 组合验证 | P0 | component tests、scroll browser |
