@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import {
     DataPanel,
     DataTable,
+    TruncatedText,
     DataTablePage,
     DataTableRowActions,
     DataTableToolbar,
@@ -804,6 +805,7 @@ function sseItemData(item: unknown): unknown {
                                 @update:page-size="serverTable.setPageSize"
                                 @retry="serverTable.retry"
                             >
+                                <template #cell-name="{ value }"><TruncatedText :text="String(value)" max-width="max-w-40" /></template>
                                 <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
                                 <template #actions="{ row }">
                                     <DataTableRowActions :row="row" :actions="[{ key: 'view', label: '查看', icon: 'lucide:eye', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" :dropdown-actions="[{ key: 'copy', label: '复制 ID', icon: 'lucide:copy', onSelect: () => { batchActionResult = `复制记录 ${String(row.id)}` } }]" />
