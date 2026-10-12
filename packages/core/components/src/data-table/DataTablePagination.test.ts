@@ -12,7 +12,8 @@ describe('DataTablePagination', () => {
         })
 
         expect(wrapper.text()).toContain('第 2 / 3 页')
-        await wrapper.findAll('button')[1]?.trigger('click')
+        expect(wrapper.get('[data-slot="pagination-link"][data-active]').attributes('aria-current')).toBe('page')
+        await wrapper.get('[aria-label="Go to next page"]').trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([3])
 
         await wrapper.find('select').setValue('20')

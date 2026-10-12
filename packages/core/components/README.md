@@ -29,6 +29,11 @@ guard prevents a late response from replacing newer results. The default
 selection policy is current-page selection; applications that need cross-page
 selection must own that policy outside the component.
 
+`DataTablePagination` composes the ui-kit Pagination primitives while keeping
+the existing `page`, `pageSize`, `total`, `update:page` and `update:pageSize`
+contract. It owns only page clamping and presentation; query synchronization
+and data fetching remain with `useDataTable` or the caller.
+
 For channel-style administration pages, compose `DataTablePage` with
 `DataTableToolbar`, `DataTableViewOptions` and `DataTableRowActions`. The
 toolbar owns presentation of debounced search, faceted filters, refresh/reset
