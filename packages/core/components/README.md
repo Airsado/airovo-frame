@@ -274,3 +274,9 @@ business actions and submenus remain caller-owned.
 pointer/keyboard-adjustable split layout. Direction, default/min/max sizes and
 separator focus are framework concerns; persistence and panel content remain
 caller-owned.
+## Carousel
+
+`Carousel`, `CarouselContent`, `CarouselItem`, `CarouselPrevious` and
+`CarouselNext` provide a native scroll-snap carousel with horizontal/vertical
+orientation, keyboard navigation and accessible slide controls. Embla plugins,
+looping and autoplay are intentionally separate follow-up concerns.

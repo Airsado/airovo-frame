@@ -63,6 +63,11 @@ import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
     AspectRatio,
     Card,
     CardAction,
@@ -629,6 +634,15 @@ function sseItemData(item: unknown): unknown {
                     <ResizableHandle with-handle />
                     <ResizablePanel :default-size="60" :max-size="80" class="p-3 text-sm">右侧面板</ResizablePanel>
                 </ResizablePanelGroup>
+                <h2 class="text-lg font-semibold">Carousel primitive</h2>
+                <Carousel class="max-w-md rounded-lg border" aria-label="演示轮播">
+                    <CarouselContent>
+                        <CarouselItem class="p-8 text-center">第一张</CarouselItem>
+                        <CarouselItem class="p-8 text-center">第二张</CarouselItem>
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                </Carousel>
             </section>
 
             <section class="space-y-4">
