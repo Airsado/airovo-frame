@@ -279,6 +279,17 @@ const schema: FormFieldSchema[] = [
             rows: 4,
         },
     },
+    {
+        component: JsonField,
+        label: '请求 JSON 配置',
+        fieldName: 'requestConfig',
+        defaultValue: JSON.stringify({ endpoint: '/v1/chat/completions', timeout: 30 }),
+        componentProps: {
+            valueType: 'any',
+            template: { endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'form-demo' } },
+        },
+        description: 'JsonField 直接作为 FormFieldSchema 自定义组件，提交、重置和错误状态由表单接管。',
+    },
 ]
 
 const advancedSchema: FormFieldSchema[] = [
