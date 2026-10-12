@@ -75,7 +75,8 @@ how items are fetched or which SSE/WebSocket transport produced them.
 `ChartCard` is the framework entry point for Chart.js-backed charts. It accepts
 the `line`, `bar`, `pie`, `doughnut` and `radar` types exposed by the ui-kit,
 uses the active `chart-1..5` theme tokens, and provides consistent loading,
-error/retry and empty states. Pass application-owned Chart.js `data` and
+error/retry and empty states. A dataset with no data points is treated as
+empty and does not mount Chart.js. Pass application-owned Chart.js `data` and
 `options`; use the `actions`, `footer` and `legend` props/slots for page-level
 composition. `ChartCard` does not fetch metrics or define business aggregation
 rules.

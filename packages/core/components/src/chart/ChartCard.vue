@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Icon } from '@airovo/shared/icons'
 import { ChartContainer, ChartLegend, Button, Skeleton } from '@airovo/uikit-shadcnui'
 import type { ChartLegendItem, ChartTooltipItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
@@ -31,6 +32,9 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{ (event: 'retry'): void }>()
+const hasChartData = computed(() => Boolean(props.data?.datasets?.some((dataset) => Array.isArray(dataset.data) && dataset.data.length > 0)))
+const isEmpty = computed(() => props.empty || !hasChartData.value)
+const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [] })
 </script>
 
 <template>
@@ -43,20 +47,20 @@ const emit = defineEmits<{ (event: 'retry'): void }>()
             <slot name="actions" />
         </header>
 
-        <div v-if="loading" class="mt-4 space-y-3">
+        <div v-if="loading" role="status" aria-live="polite" aria-label="正在加载图表" class="mt-4 space-y-3">
             <Skeleton class="h-56 w-full" />
         </div>
-        <div v-else-if="error" class="mt-4 flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
+        <div v-else-if="error" role="alert" class="mt-4 flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
             <Icon icon="lucide:triangle-alert" class="size-7 text-destructive" />
             <p class="text-sm text-destructive">{{ errorText }}</p>
             <Button type="button" size="sm" variant="outline" @click="emit('retry')">重试</Button>
         </div>
-        <div v-else-if="empty || !data?.datasets?.length" class="mt-4 flex min-h-56 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center">
+        <div v-else-if="isEmpty" role="status" aria-live="polite" class="mt-4 flex min-h-56 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center">
             <Icon icon="lucide:chart-no-axes-combined" class="size-7 text-muted-foreground" />
             <p class="text-sm text-muted-foreground">{{ emptyText }}</p>
         </div>
         <template v-else>
-            <ChartContainer class="mt-4" :type="type" :data="data" :options="options" :height="height" :aria-label="title" role="img" />
+            <ChartContainer class="mt-4" :type="type" :data="chartData" :options="options" :height="height" :aria-label="title" role="img" />
             <ChartLegend v-if="legend?.length" class="mt-3" :items="legend" />
             <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems ?? []" />
         </template>
