@@ -257,3 +257,8 @@ disabled semantics, aria attributes and keyboard behavior.
 `ButtonGroup`, `ButtonGroupText` and `ButtonGroupSeparator` compose connected
 controls with horizontal/vertical orientation, group semantics and focus
 layering. Button actions, input values and form submission remain caller-owned.
+## AspectRatio
+
+`AspectRatio` provides a responsive ratio container with a `ratio` prop and
+slot content. It delegates sizing semantics to Reka UI while callers own media,
+overlays and loading behavior.
