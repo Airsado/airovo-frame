@@ -1128,7 +1128,7 @@ function sseItemData(item: unknown): unknown {
                             </DataTable>
                         </template>
                         <template #mobile>
-                            <ResponsiveCardList :rows="serverTable.rows.value" :columns="serverTableColumns" row-key="id">
+                            <ResponsiveCardList :rows="serverTable.rows.value" :columns="serverTableColumns" row-key="id" selectable :selected-keys="serverSelectedKeys" @update:selected-keys="serverSelectedKeys = $event">
                                 <template #card="{ row }">
                                     <div class="rounded-lg border bg-card p-3 shadow-xs">
                                         <div class="flex items-center justify-between gap-2"><span class="font-medium">{{ row.name }}</span><StatusBadge :status="row.status === '运行中' ? 'success' : 'disabled'" :text="String(row.status)" /></div>

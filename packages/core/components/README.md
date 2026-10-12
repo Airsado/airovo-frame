@@ -197,7 +197,9 @@ business actions remain caller-owned.
 
 `ResponsiveCardList` provides a reusable mobile card grid for the same rows as
 a desktop DataTable. It owns responsive layout, stable row keys, loading and
-empty slots; the `card` slot owns business card content.
+empty slots, and optional page/persistent row selection. In selectable mode the
+`card` slot receives `selected`, `toggleRow`, and `rowKey`; the default card
+renders row checkboxes and a current-page select-all control.
 
 ## PageFooter
 

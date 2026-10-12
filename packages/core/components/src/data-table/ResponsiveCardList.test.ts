@@ -19,4 +19,18 @@ describe('ResponsiveCardList', () => {
         const empty = mount(ResponsiveCardList, { props: { rows: [] } })
         expect(empty.text()).toContain('暂无数据')
     })
+
+    it('supports current-page card selection and exposes slot state', async () => {
+        const wrapper = mount(ResponsiveCardList, {
+            props: { selectable: true, rows: [{ id: 1, name: 'one' }, { id: 2, name: 'two' }] },
+            slots: { card: '<div data-card>{{ row.name }} {{ selected ? "selected" : "idle" }}</div>' },
+        })
+        const rows = wrapper.findAll('input[type="checkbox"]')
+        expect(rows).toHaveLength(3)
+        await rows[1]!.setValue(true)
+        expect(wrapper.emitted('update:selectedKeys')).toEqual([[[1]]])
+        expect(wrapper.get('[data-card]').text()).toContain('selected')
+        await rows[0]!.setValue(true)
+        expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[1, 2]])
+    })
 })
