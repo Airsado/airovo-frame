@@ -142,3 +142,8 @@ depend on vue-router or choose URL parameter names.
 constraints; omitted props preserve the previous behavior. DateTimePicker
 passes the same constraints to its date half while keeping time input and
 clear behavior in the wrapper.
+
+`DataTableViewOptions` normalizes persisted visibility against the current
+column schema, drops unknown/non-boolean entries, and keeps at least one
+configurable column visible. Its trigger, menu and restore action expose
+stable data-slot and aria labels for keyboard and screen-reader tests.
