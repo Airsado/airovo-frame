@@ -30,6 +30,7 @@ import {
     StatusBadge,
     UserCard,
     type DataTableColumn,
+    type DataTableColumnPinning,
     type DataTableFilterGroup,
     type DataTableFetcher,
 } from '@airovo/components'
@@ -203,10 +204,10 @@ const serverTableRows = Array.from({ length: 37 }, (_, index) => ({
     status: index % 5 === 0 ? '已停用' : '运行中',
 }))
 const serverTableColumns: DataTableColumn[] = [
-    { key: 'name', title: '渠道名称', sortable: true, resizable: true, minSize: 140, maxSize: 320 },
-    { key: 'type', title: '类型', sortable: true, resizable: true, minSize: 100, maxSize: 220 },
-    { key: 'status', title: '状态', sortable: true, resizable: true, minSize: 100, maxSize: 220 },
-    { key: 'id', title: '内部 ID', hidden: true },
+    { key: 'name', title: '渠道名称', sortable: true, width: '280px', resizable: true, minSize: 140, maxSize: 320 },
+    { key: 'type', title: '类型', sortable: true, width: '180px', resizable: true, minSize: 100, maxSize: 220 },
+    { key: 'status', title: '状态', sortable: true, width: '160px', resizable: true, minSize: 100, maxSize: 220 },
+    { key: 'id', title: '内部 ID', hidden: true, width: '120px' },
 ]
 const serverTableFilters: DataTableFilterGroup[] = [
     { key: 'status', title: '状态', singleSelect: true, options: [{ label: '运行中', value: '运行中', count: 30 }, { label: '已停用', value: '已停用', count: 7 }] },
@@ -242,6 +243,7 @@ const serverTableSearch = ref('')
 const serverTableFilterValues = ref<Record<string, string | string[] | undefined>>({})
 const serverTableColumnVisibility = ref<Record<string, boolean>>({ id: false })
 const serverTableColumnSizing = ref<Record<string, number>>({})
+const serverTableColumnPinning = ref<DataTableColumnPinning>({ name: 'left', actions: 'right' })
 const serverSelectedKeys = ref<(string | number)[]>([])
 const batchActionResult = ref('尚未执行批量操作')
 async function applyServerTableSearch(): Promise<void> {
@@ -792,6 +794,8 @@ function sseItemData(item: unknown): unknown {
                                 v-model:column-visibility="serverTableColumnVisibility"
                                 v-model:column-sizing="serverTableColumnSizing"
                                 column-sizing-storage-key="playwright-channel-table-sizing"
+                                v-model:column-pinning="serverTableColumnPinning"
+                                column-pinning-storage-key="playwright-channel-table-pinning"
                                 :columns="serverTableColumns"
                                 :data="serverTable.rows.value"
                                 :loading="serverTable.loading.value"
