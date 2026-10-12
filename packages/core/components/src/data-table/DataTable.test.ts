@@ -123,6 +123,18 @@ describe('DataTable', () => {
         expect(wrapper.findAll('thead th')).toHaveLength(1)
     })
 
+    it('supports bounded column sizing through the resize handle', async () => {
+        const wrapper = mountTable({
+            columns: [{ key: 'name', title: '名称', resizable: true, minSize: 100, maxSize: 220 }],
+        })
+        const handle = wrapper.find('th span.cursor-col-resize')
+        expect(handle.exists()).toBe(true)
+        await handle.trigger('pointerdown', { clientX: 100 })
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 350 }))
+        expect(wrapper.emitted('update:columnSizing')?.at(-1)?.[0]).toEqual({ name: 220 })
+        window.dispatchEvent(new PointerEvent('pointerup', { clientX: 350 }))
+    })
+
     it('keeps persistent selection keys across page data changes', async () => {
         const wrapper = mountTable({ selectable: true, selectionScope: 'persistent', selectedKeys: [1], data: [{ id: 2, name: 'two' }] })
         await wrapper.find('tbody input[type="checkbox"]').setValue(true)
