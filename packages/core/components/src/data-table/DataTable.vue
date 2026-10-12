@@ -3,7 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Skeleton } from '@airovo/uikit-shadcnui'
-import type { DataTableColumn, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
+import { parseStoredDataTableColumnPinning, resolveDataTableColumnPinning, type ResolvedDataTablePinnedColumn } from './column-pinning'
+import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import DataTablePagination from './DataTablePagination.vue'
 
 defineOptions({ name: 'DataTable' })
@@ -35,6 +36,10 @@ const props = withDefaults(defineProps<{
     maxHeight?: string | number
     /** Controlled column visibility; omitted columns follow their hidden flag. */
     columnVisibility?: DataTableColumnVisibility
+    /** Controlled fixed-column state keyed by column id/key. */
+    columnPinning?: DataTableColumnPinning
+    /** Optional localStorage key for fixed-column state. */
+    columnPinningStorageKey?: string
     /** Render the table on desktop and the mobile slot below the sm breakpoint. */
     mobileCards?: boolean
     /** Controlled pixel widths keyed by column id/key. */
@@ -63,6 +68,7 @@ const emit = defineEmits<{
     (event: 'update:pageSize', value: number): void
     (event: 'update:columnVisibility', value: DataTableColumnVisibility): void
     (event: 'update:columnSizing', value: Record<string, number>): void
+    (event: 'update:columnPinning', value: DataTableColumnPinning): void
     (event: 'retry'): void
 }>()
 
@@ -72,6 +78,7 @@ const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
 const internalColumnSizing = ref<Record<string, number>>({ ...props.columnSizing })
 const resizing = ref<{ id: string; startX: number; startWidth: number; min: number; max?: number }>()
+const internalColumnPinning = ref<DataTableColumnPinning>(readStoredColumnPinning(props.columnPinningStorageKey))
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 function columnId(column: DataTableColumn): string {
@@ -95,6 +102,7 @@ const columnStyle = (column: DataTableColumn): Record<string, string> => {
         maxWidth: column.maxWidth ?? (column.maxSize ? `${column.maxSize}px` : ''),
     }
 }
+const currentColumnPinning = computed(() => props.columnPinning ?? internalColumnPinning.value)
 const currentSort = computed(() => props.sort ?? internalSort.value)
 const hasToolbar = computed(() => Boolean(slots.toolbar))
 const hasActions = computed(() => Boolean(slots.actions || slots.action))
@@ -143,6 +151,13 @@ const someVisibleSelected = computed(() => {
     if (!props.selectable || visibleRows.value.length === 0) return false
     return visibleRowKeys.value.some((key) => selected.value.includes(key))
 })
+const pinningColumns = computed(() => [
+    ...(props.selectable ? [{ id: 'selection', width: 40 }] : []),
+    ...visibleColumns.value.map((column) => ({ id: columnId(column), width: columnWidth(column) })),
+    ...(hasActions.value ? [{ id: 'actions', width: 100 }] : []),
+])
+const resolvedPinnedColumns = computed(() => resolveDataTableColumnPinning(pinningColumns.value, currentColumnPinning.value))
+const hasPinnedColumns = computed(() => resolvedPinnedColumns.value.size > 0)
 
 function rowKeyOf(row: DataTableRow): DataTableRowKey {
     const key = typeof props.rowKey === 'function' ? props.rowKey(row) : row[props.rowKey]
@@ -153,6 +168,67 @@ function rowKeyOf(row: DataTableRow): DataTableRowKey {
 function cellValue(row: DataTableRow, column: DataTableColumn): unknown {
     return column.value ? column.value(row) : row[column.key]
 }
+
+function columnWidth(column: DataTableColumn): number {
+    return columnSize(column) ?? parsePixelSize(column.width) ?? parsePixelSize(column.minWidth) ?? 160
+}
+
+function parsePixelSize(value: string | undefined): number | undefined {
+    const match = /^\s*(\d+(?:\.\d+)?)px\s*$/i.exec(value ?? '')
+    if (!match) return undefined
+    const size = Number(match[1])
+    return Number.isFinite(size) && size > 0 ? size : undefined
+}
+
+function pinnedColumn(id: string): ResolvedDataTablePinnedColumn | undefined {
+    return resolvedPinnedColumns.value.get(id)
+}
+
+function pinnedStyle(id: string, kind: 'header' | 'cell'): Record<string, string | number> | undefined {
+    const pinned = pinnedColumn(id)
+    if (!pinned) return undefined
+    return {
+        position: 'sticky',
+        [pinned.side]: `${pinned.offset}px`,
+        zIndex: kind === 'header' ? 30 : 10,
+        boxShadow: pinned.edge
+            ? pinned.side === 'left'
+                ? '8px 0 10px -10px var(--foreground)'
+                : '-8px 0 10px -10px var(--foreground)'
+            : 'none',
+    }
+}
+
+function setColumnPinning(value: DataTableColumnPinning): void {
+    const next = { ...value }
+    if (props.columnPinning === undefined) internalColumnPinning.value = next
+    emit('update:columnPinning', next)
+}
+
+function readStoredColumnPinning(key: string | undefined): DataTableColumnPinning {
+    if (!key || typeof window === 'undefined') return {}
+    try {
+        return parseStoredDataTableColumnPinning(window.localStorage.getItem(key))
+    } catch {
+        return {}
+    }
+}
+
+function persistColumnPinning(value: DataTableColumnPinning): void {
+    const key = props.columnPinningStorageKey
+    if (!key || typeof window === 'undefined') return
+    try {
+        window.localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+        // Storage is optional and can be unavailable in private/embedded contexts.
+    }
+}
+
+watch(currentColumnPinning, persistColumnPinning, { deep: true })
+watch(() => props.columnPinningStorageKey, (key, previousKey) => {
+    if (props.columnPinning !== undefined || key === previousKey) return
+    internalColumnPinning.value = readStoredColumnPinning(key)
+}, { flush: 'post' })
 
 function displayValue(row: DataTableRow, column: DataTableColumn, index: number): unknown {
     const value = cellValue(row, column)
@@ -287,16 +363,18 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 :error="error"
                 :retry="retry"
                 :sort="currentSort"
+                :column-pinning="currentColumnPinning"
+                :set-column-pinning="setColumnPinning"
                 :page="page"
                 :page-size="pageSize"
             />
         </div>
         <div :class="mobileCards ? 'hidden sm:block' : undefined">
-        <table class="w-full caption-bottom text-sm tabular-nums">
+        <table class="w-full caption-bottom text-sm tabular-nums" :class="hasPinnedColumns ? 'min-w-max' : undefined">
             <caption v-if="caption" class="sr-only">{{ caption }}</caption>
             <thead>
                 <tr class="border-b">
-                    <th v-if="selectable" scope="col" class="h-10 w-10 px-3 align-middle">
+                    <th v-if="selectable" data-column-id="selection" scope="col" class="data-table-pinned-header h-10 w-10 px-3 align-middle" :style="pinnedStyle('selection', 'header')">
                         <input
                             type="checkbox"
                             :checked="allVisibleSelected"
@@ -308,10 +386,11 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     <th
                         v-for="column in visibleColumns"
                         :key="column.key"
+                        :data-column-id="columnId(column)"
                         scope="col"
-                        :style="columnStyle(column)"
+                        :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'header') }"
                         :aria-sort="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'ascending' : 'descending') : undefined"
-                        class="relative h-10 whitespace-nowrap px-3 text-left align-middle font-medium text-foreground"
+                        class="data-table-pinned-header relative h-10 whitespace-nowrap px-3 text-left align-middle font-medium text-foreground"
                         :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                     >
                         <button
@@ -331,15 +410,15 @@ function toCssSize(value: string | number | undefined): string | undefined {
                             @pointerdown="startResize($event, column)"
                         />
                     </th>
-                    <th v-if="hasActions" scope="col" class="h-10 whitespace-nowrap px-3 text-right align-middle font-medium text-foreground">操作</th>
+                    <th v-if="hasActions" data-column-id="actions" scope="col" class="data-table-pinned-header h-10 whitespace-nowrap px-3 text-right align-middle font-medium text-foreground" :style="pinnedStyle('actions', 'header')">操作</th>
                 </tr>
             </thead>
             <tbody>
                 <template v-if="loading">
                     <tr v-for="index in 3" :key="index" class="border-b last:border-0">
-                        <td v-if="selectable" class="p-3"><Skeleton class="h-4 w-4" /></td>
-                        <td v-for="column in visibleColumns" :key="column.key" class="p-3"><Skeleton class="h-5 w-full" /></td>
-                        <td v-if="hasActions" class="p-3"><Skeleton class="ml-auto h-5 w-16" /></td>
+                        <td v-if="selectable" class="data-table-pinned-cell p-3" :style="pinnedStyle('selection', 'cell')"><Skeleton class="h-4 w-4" /></td>
+                        <td v-for="column in visibleColumns" :key="column.key" :data-column-id="columnId(column)" class="data-table-pinned-cell p-3" :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'cell') }"><Skeleton class="h-5 w-full" /></td>
+                        <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell p-3" :style="pinnedStyle('actions', 'cell')"><Skeleton class="ml-auto h-5 w-16" /></td>
                     </tr>
                 </template>
                 <tr v-else-if="error">
@@ -356,8 +435,8 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </td>
                 </tr>
                 <template v-else>
-                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="border-b transition-colors last:border-0 hover:bg-accent">
-                        <td v-if="selectable" class="w-10 p-3 align-middle">
+                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group border-b transition-colors last:border-0 hover:bg-accent" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
+                        <td v-if="selectable" data-column-id="selection" class="data-table-pinned-cell w-10 p-3 align-middle" :style="pinnedStyle('selection', 'cell')">
                             <input
                                 type="checkbox"
                                 :checked="selected.includes(visibleRowKeys[index])"
@@ -368,15 +447,16 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         <td
                             v-for="column in visibleColumns"
                             :key="column.key"
-                            class="relative whitespace-nowrap p-3 align-middle"
-                            :style="columnStyle(column)"
+                            :data-column-id="columnId(column)"
+                            class="data-table-pinned-cell whitespace-nowrap p-3 align-middle"
+                            :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'cell') }"
                             :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                         >
                             <slot :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column)" :index="index">
                                 {{ displayValue(row, column, index) ?? '—' }}
                             </slot>
                         </td>
-                        <td v-if="hasActions" class="whitespace-nowrap p-3 text-right align-middle">
+                        <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell whitespace-nowrap p-3 text-right align-middle" :style="pinnedStyle('actions', 'cell')">
                             <slot name="actions" :row="row" :value="row" :index="index" :row-key="visibleRowKeys[index]">
                                 <slot name="action" :row="row" :value="row" :index="index" :row-key="visibleRowKeys[index]" />
                             </slot>
@@ -401,3 +481,21 @@ function toCssSize(value: string | number | undefined): string | undefined {
         <button v-if="currentSort" type="button" class="sr-only" @click="clearSort">清除排序</button>
     </div>
 </template>
+
+<style>
+.data-table-pinned-header {
+    background-color: var(--table-header, var(--background));
+}
+
+.data-table-pinned-cell {
+    background-color: var(--background);
+}
+
+.data-table-row:hover > .data-table-pinned-cell {
+    background-color: color-mix(in oklch, var(--muted) 50%, var(--background));
+}
+
+.data-table-row[data-state='selected'] > .data-table-pinned-cell {
+    background-color: var(--muted);
+}
+</style>

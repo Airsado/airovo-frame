@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import {
     DataPanel,
     DataTable,
+    TruncatedText,
     DataTablePage,
     DataTableRowActions,
     DataTableToolbar,
@@ -31,6 +32,7 @@ import {
     StatusBadge,
     UserCard,
     type DataTableColumn,
+    type DataTableColumnPinning,
     type DataTableFilterGroup,
     type DataTableFetcher,
 } from '@airovo/components'
@@ -78,6 +80,10 @@ const providerOptions = [
     { label: 'OpenAI 主渠道', value: 'openai' },
     { label: 'Claude 备用渠道', value: 'claude' },
     { label: '本地 Ollama（禁用）', value: 'ollama', disabled: true },
+]
+const hierarchicalProviderOptions = [
+    { label: '云服务', children: providerOptions.slice(0, 2) },
+    { label: '本地服务', children: [providerOptions[2]!] },
 ]
 const channelStatusOptions = [
     { label: '运行中', value: 'enabled', count: 24 },
@@ -200,10 +206,10 @@ const serverTableRows = Array.from({ length: 37 }, (_, index) => ({
     status: index % 5 === 0 ? '已停用' : '运行中',
 }))
 const serverTableColumns: DataTableColumn[] = [
-    { key: 'name', title: '渠道名称', sortable: true, resizable: true, minSize: 140, maxSize: 320 },
-    { key: 'type', title: '类型', sortable: true, resizable: true, minSize: 100, maxSize: 220 },
-    { key: 'status', title: '状态', sortable: true, resizable: true, minSize: 100, maxSize: 220 },
-    { key: 'id', title: '内部 ID', hidden: true },
+    { key: 'name', title: '渠道名称', sortable: true, width: '280px', resizable: true, minSize: 140, maxSize: 320 },
+    { key: 'type', title: '类型', sortable: true, width: '180px', resizable: true, minSize: 100, maxSize: 220 },
+    { key: 'status', title: '状态', sortable: true, width: '160px', resizable: true, minSize: 100, maxSize: 220 },
+    { key: 'id', title: '内部 ID', hidden: true, width: '120px' },
 ]
 const serverTableFilters: DataTableFilterGroup[] = [
     { key: 'status', title: '状态', singleSelect: true, options: [{ label: '运行中', value: '运行中', count: 30 }, { label: '已停用', value: '已停用', count: 7 }] },
@@ -239,6 +245,7 @@ const serverTableSearch = ref('')
 const serverTableFilterValues = ref<Record<string, string | string[] | undefined>>({})
 const serverTableColumnVisibility = ref<Record<string, boolean>>({ id: false })
 const serverTableColumnSizing = ref<Record<string, number>>({})
+const serverTableColumnPinning = ref<DataTableColumnPinning>({ name: 'left', actions: 'right' })
 const serverSelectedKeys = ref<(string | number)[]>([])
 const batchActionResult = ref('尚未执行批量操作')
 async function applyServerTableSearch(): Promise<void> {
@@ -620,7 +627,7 @@ function sseItemData(item: unknown): unknown {
                         <span class="text-xs font-medium text-muted-foreground">渠道（SelectBox）</span>
                         <SelectBox
                             v-model="selectedProvider"
-                            :options="providerOptions"
+                            :options="hierarchicalProviderOptions"
                             allow-clear
                             placeholder="选择渠道"
                         />
@@ -639,9 +646,9 @@ function sseItemData(item: unknown): unknown {
                         <span class="text-xs font-medium text-muted-foreground">可搜索渠道（SearchSelect）</span>
                         <SearchSelect
                             v-model="searchedProvider"
-                            :options="providerOptions"
+                            :options="hierarchicalProviderOptions"
                             search-placeholder="搜索渠道名称"
-                            placeholder="搜索并选择渠道"
+                            placeholder="搜索并选择层级渠道"
                         />
                         <span class="text-xs text-muted-foreground">当前值：{{ searchedProvider ?? '未选择' }}</span>
                         </label>
@@ -798,6 +805,8 @@ function sseItemData(item: unknown): unknown {
                                 v-model:column-visibility="serverTableColumnVisibility"
                                 v-model:column-sizing="serverTableColumnSizing"
                                 column-sizing-storage-key="playwright-channel-table-sizing"
+                                v-model:column-pinning="serverTableColumnPinning"
+                                column-pinning-storage-key="playwright-channel-table-pinning"
                                 :columns="serverTableColumns"
                                 :data="serverTable.rows.value"
                                 :loading="serverTable.loading.value"
@@ -815,6 +824,7 @@ function sseItemData(item: unknown): unknown {
                                 @update:page-size="serverTable.setPageSize"
                                 @retry="serverTable.retry"
                             >
+                                <template #cell-name="{ value }"><TruncatedText :text="String(value)" max-width="max-w-40" /></template>
                                 <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
                                 <template #actions="{ row }">
                                     <DataTableRowActions :row="row" :actions="[{ key: 'view', label: '查看', icon: 'lucide:eye', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" :dropdown-actions="[{ key: 'copy', label: '复制 ID', icon: 'lucide:copy', onSelect: () => { batchActionResult = `复制记录 ${String(row.id)}` } }]" />

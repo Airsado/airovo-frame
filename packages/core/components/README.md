@@ -17,7 +17,7 @@ selection and Vue DOM identity stable when sorting or replacing data.
 
 Use the optional `toolbar` slot for controls above the table and the `actions`
 slot for a per-row action column. The toolbar exposes `selectedKeys`, `loading`,
-`error`, `retry`, `sort`, `page` and `pageSize`; row actions expose `row`,
+`error`, `retry`, `sort`, `columnPinning`, `setColumnPinning`, `page` and `pageSize`; row actions expose `row`,
 `index` and `rowKey`; the singular `action` slot name is accepted as an alias.
 The action column and its loading/empty/error colspan are omitted when no
 action slot is supplied.
@@ -40,6 +40,17 @@ callback. `DataTablePage` provides separate `table` and `mobile` slots so the
 same query, pagination and selection state can render as a desktop table and a
 mobile card list. Channel fields, API calls and edit dialogs remain application
 code.
+
+`DataTable` also accepts `columnPinning` as a record keyed by column id/key:
+
+```ts
+const columnPinning = { name: 'left', actions: 'right' } as const
+```
+
+Pinned headers and cells use sticky offsets calculated from visible columns.
+The special `selection` and `actions` ids can pin the built-in checkbox and
+row-action columns. `columnPinningStorageKey` restores and persists the
+uncontrolled state; mobile card slots do not apply pinning.
 
 ## LiveLog and follow-tail
 
@@ -68,6 +79,27 @@ invalid raw draft without discarding it. It can be passed as a component object
 in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
 while `JsonField` owns JSON serialization and visual editing.
 
+## Select option hierarchy
+
+`SelectBox` and `SearchSelect` accept recursive options:
+
+```ts
+const options: SelectOption[] = [
+  {
+    label: '云服务',
+    children: [
+      { label: 'OpenAI', value: 'openai' },
+      { label: 'Claude', value: 'claude' },
+    ],
+  },
+]
+```
+
+A node with `children` is rendered as a non-selectable group label. Only leaf
+nodes with `value` can be selected, so the selected value and form backfill
+remain stable. Nested labels are indented by depth; `SearchSelect` searches
+the rendered descendant labels. Existing flat options keep their behavior.
+=======
 ## DataTable column sizing
 
 DataTable columns can opt into resizing with `resizable`, `minSize`, and
@@ -84,3 +116,10 @@ provides retry/action events and slots with an alert role. `LoadingState`
 supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
 and `aria-busy`/`aria-live` attributes. These components render state only and
 do not fetch data or own retry logic.
+=======
+## TruncatedCell
+
+`TruncatedCell` and `TruncatedText` provide the new-api DataTable long-text
+pattern: a constrained `truncate` container, keyboard focus, and a Tooltip
+with the full text. Pass `tooltipContent` when the displayed slot is a badge
+or custom rendering; empty text does not create an empty tooltip.

@@ -31,6 +31,11 @@ export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
 
 export type DataTableColumnVisibility = Record<string, boolean>
 
+export type DataTablePinSide = 'left' | 'right'
+
+/** Pinning state keyed by the stable column id (or column key). */
+export type DataTableColumnPinning = Record<string, DataTablePinSide>
+
 export interface DataTableFilterOption {
     label: string
     value: string
