@@ -242,3 +242,8 @@ and retry behavior belongs to framework compositions such as `EmptyState`.
 `Slider` wraps Reka UI's accessible slider root with track, range and one or
 more thumbs. It forwards min/max/step, orientation, disabled and controlled or
 uncontrolled values; callers own form binding and persistence.
+## Spinner
+
+`Spinner` is the shared loading indicator with `role="status"`, an accessible
+label, `animate-spin` and configurable `strokeWidth`/class. Loading state
+ownership and cancellation remain with the caller.
