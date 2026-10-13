@@ -592,7 +592,7 @@ function sseItemData(item: unknown): unknown {
 
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">CommandMenu 框架组合</h2>
-                <p class="text-sm text-muted-foreground">业务只提供分组和命令数据，路由和执行逻辑由调用方接收 select 事件。</p>
+                <p class="text-sm text-muted-foreground">业务只提供分组和命令数据；new-api 风格 Dialog surface、搜索、快捷键和选择逻辑由框架组合提供，路由由调用方接收 select 事件。</p>
                 <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
                     <Button size="sm" @click="commandMenuOpen = true">打开命令面板</Button>
                     <span class="text-sm text-muted-foreground">最近选择：{{ selectedCommand }}</span>
