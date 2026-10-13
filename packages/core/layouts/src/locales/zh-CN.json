@@ -1,4 +1,7 @@
 {
+    "navigation": {
+        "back": "返回"
+    },
     "sidebar": {
         "navigation": "导航"
     },
