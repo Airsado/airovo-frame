@@ -148,6 +148,18 @@ describe('DataTable', () => {
         localStorage.removeItem('data-table-sizing-migration')
     })
 
+    it('migrates persisted pinning to current columns and sides', async () => {
+        localStorage.setItem('data-table-pinning-migration', '{"name":"left","removed":"right","bad":"middle"}')
+        const wrapper = mountTable({
+            columns: [{ key: 'name', title: '名称', width: '180px' }],
+            columnPinningStorageKey: 'data-table-pinning-migration',
+        })
+        await nextTick()
+        expect(wrapper.find('thead th[data-column-id="name"]').attributes('style')).toContain('left: 0px')
+        expect(JSON.parse(localStorage.getItem('data-table-pinning-migration') ?? '{}')).toEqual({ name: 'left' })
+        localStorage.removeItem('data-table-pinning-migration')
+    })
+
     it('pins visible headers and cells with cumulative left/right offsets', async () => {
         const wrapper = mountTable({
             columns: [
@@ -170,7 +182,7 @@ describe('DataTable', () => {
         expect(wrapper.find('thead th[data-column-id="name"]').exists()).toBe(false)
     })
 
-    it('restores uncontrolled pinning state from localStorage', () => {
+    it('restores uncontrolled pinning state from localStorage', async () => {
         localStorage.setItem('data-table-pinning-test', '{"name":"left","actions":"right"}')
         const wrapper = mountTable({
             columns: [
@@ -179,6 +191,7 @@ describe('DataTable', () => {
             ],
             columnPinningStorageKey: 'data-table-pinning-test',
         }, { actions: '操作' })
+        await nextTick()
 
         expect(wrapper.find('thead th[data-column-id="name"]').attributes('style')).toContain('left: 0px')
         expect(wrapper.find('thead th[data-column-id="actions"]').attributes('style')).toContain('right: 0px')

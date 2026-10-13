@@ -79,7 +79,7 @@ const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
 const internalColumnSizing = ref<Record<string, number>>(normalizeDataTableColumnSizing(props.columns, props.columnSizing))
 const resizing = ref<{ id: string; startX: number; startWidth: number; min: number; max?: number }>()
-const internalColumnPinning = ref<DataTableColumnPinning>(readStoredColumnPinning(props.columnPinningStorageKey))
+const internalColumnPinning = ref<DataTableColumnPinning>({})
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 function columnId(column: DataTableColumn): string {
@@ -226,9 +226,16 @@ function persistColumnPinning(value: DataTableColumnPinning): void {
 }
 
 watch(currentColumnPinning, persistColumnPinning, { deep: true })
+function loadColumnPinning(): void {
+    if (!props.columnPinningStorageKey || typeof window === 'undefined' || props.columnPinning !== undefined) return
+    const normalized = normalizeDataTableColumnPinning(pinningColumns.value, readStoredColumnPinning(props.columnPinningStorageKey))
+    internalColumnPinning.value = normalized
+    persistColumnPinning(normalized)
+}
+
 watch(() => props.columnPinningStorageKey, (key, previousKey) => {
     if (props.columnPinning !== undefined || key === previousKey) return
-    internalColumnPinning.value = readStoredColumnPinning(key)
+    loadColumnPinning()
 }, { flush: 'post' })
 
 function displayValue(row: DataTableRow, column: DataTableColumn, index: number): unknown {
@@ -344,7 +351,10 @@ function loadColumnSizing(): void {
     } catch { /* invalid persisted state falls back to defaults */ }
 }
 
-onMounted(loadColumnSizing)
+onMounted(() => {
+    loadColumnSizing()
+    loadColumnPinning()
+})
 onBeforeUnmount(stopResize)
 watch(() => props.columnSizing, value => { internalColumnSizing.value = normalizeDataTableColumnSizing(props.columns, value) }, { deep: true })
 watch(() => props.columns, columns => {
