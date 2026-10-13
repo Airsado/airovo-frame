@@ -299,8 +299,9 @@ percentages across reloads; panel content remains caller-owned.
 `Carousel`, `CarouselContent`, `CarouselItem`, `CarouselPrevious` and
 `CarouselNext` provide a native scroll-snap carousel with horizontal/vertical
 orientation, keyboard navigation and accessible slide controls. Pass `loop` to
-wrap previous/next and keyboard navigation at the ends; Embla plugins and
-autoplay remain separate follow-up concerns.
+wrap previous/next and keyboard navigation at the ends. `autoplayInterval`
+adds optional looped autoplay and pauses on hover/focus or reduced motion;
+third-party plugins remain separate follow-up concerns.
 
 ## ContextMenu
 
