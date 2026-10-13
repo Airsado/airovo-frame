@@ -7,6 +7,13 @@ describe('DrawerApi', () => {
         expect(new DrawerApi({ side: 'right' }).side).toBe('right')
     })
 
+    it('inherits modal layout options for drawer hosts', () => {
+        const api = new DrawerApi({ side: 'right', contentHeight: '30rem', initialFocus: '#drawer-input', bodyClass: 'drawer-body' })
+        expect(api.state.contentHeight).toBe('30rem')
+        expect(api.state.initialFocus).toBe('#drawer-input')
+        expect(api.state.bodyClass).toBe('drawer-body')
+    })
+
     it('shares the typed payload/result contract with ModalApi', async () => {
         const api = new DrawerApi<{ id: string }, { saved: boolean }>()
         api.open({ id: 'drawer-1' })

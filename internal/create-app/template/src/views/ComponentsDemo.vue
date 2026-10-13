@@ -218,6 +218,9 @@ const [DemoDrawer, demoDrawerApi] = useDrawer<DemoDrawerData, DemoDrawerResult>(
     side: 'right',
     title: '编辑渠道（typed Drawer）',
     description: 'DrawerApi 和 ModalApi 共享 payload/result/close reason 契约。',
+    contentHeight: '28rem',
+    initialFocus: '#typed-drawer-input',
+    bodyClass: 'bg-muted/10',
     onConfirm: async (data, api) => {
         const name = typedDrawerName.value.trim()
         if (!name) {
@@ -857,7 +860,7 @@ function sseItemData(item: unknown): unknown {
                                     <p class="text-xs text-muted-foreground">payload：渠道 #{{ data?.channelId ?? '—' }}</p>
                                     <label class="grid gap-1.5 text-sm">
                                         <span class="text-xs font-medium text-muted-foreground">渠道名称</span>
-                                        <Input v-model="typedDrawerName" />
+                                        <Input id="typed-drawer-input" v-model="typedDrawerName" />
                                     </label>
                                 </div>
                             </template>

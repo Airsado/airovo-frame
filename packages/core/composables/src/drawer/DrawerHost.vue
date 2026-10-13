@@ -87,6 +87,21 @@ function onOutside(event: Event) {
     }
 }
 
+function onOpenAutoFocus(event: Event): void {
+    const selector = props.api.state.initialFocus
+    if (!selector) return
+    let target: HTMLElement | null = null
+    try {
+        const root = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined
+        target = root?.querySelector<HTMLElement>(selector) ?? document.querySelector<HTMLElement>(selector)
+    } catch {
+        return
+    }
+    if (!target) return
+    event.preventDefault()
+    requestAnimationFrame(() => target?.focus())
+}
+
 async function confirm() {
     try {
         await props.api.confirm()
@@ -119,17 +134,21 @@ async function cancel() {
                         : 'inset-x-0 bottom-0 max-h-[80vh] rounded-t-xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
                     api.state.contentClass,
                 ]"
-                :style="stackHandle ? { zIndex: stackHandle.zIndex.value } : undefined"
+                :style="{
+                    ...(stackHandle ? { zIndex: stackHandle.zIndex.value } : {}),
+                    ...(api.state.contentHeight !== undefined ? { height: typeof api.state.contentHeight === 'number' ? `${api.state.contentHeight}px` : api.state.contentHeight } : {}),
+                }"
                 @escape-key-down="onEscape"
                 @pointer-down-outside="onOutside"
+                @open-auto-focus="onOpenAutoFocus"
                 @animation-end="finishTransition"
             >
                 <div v-if="api.side === 'bottom'" class="bg-muted mx-auto mt-3 h-1 w-24 shrink-0 rounded-full" />
                 <div class="flex shrink-0 items-start justify-between gap-3 px-4 py-3 sm:px-5">
-                    <DialogHeader class="min-w-0 flex-1 text-left">
-                        <DialogTitle v-if="api.state.title" class="text-base font-semibold">{{ api.state.title }}</DialogTitle>
-                        <DialogTitle v-else class="sr-only">抽屉</DialogTitle>
-                        <DialogDescription v-if="api.state.description" class="text-sm">{{ api.state.description }}</DialogDescription>
+                    <DialogHeader :class="['min-w-0 flex-1 text-left', api.state.headerClass]">
+                        <DialogTitle v-if="api.state.title" :class="['text-base font-semibold', api.state.titleClass]">{{ api.state.title }}</DialogTitle>
+                        <DialogTitle v-else :class="['sr-only', api.state.titleClass]">抽屉</DialogTitle>
+                        <DialogDescription v-if="api.state.description" :class="['text-sm', api.state.descriptionClass]">{{ api.state.description }}</DialogDescription>
                     </DialogHeader>
                     <Button
                         v-if="api.state.showCloseButton"
@@ -146,12 +165,12 @@ async function cancel() {
                     </Button>
                 </div>
 
-                <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 sm:px-5" :aria-busy="api.state.loading">
+                <div :class="['min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 sm:px-5', api.state.bodyClass]" :aria-busy="api.state.loading">
                     <slot :api="api" :data="api.getData()" />
                     <p v-if="api.state.error" role="alert" class="mt-3 text-sm text-destructive">{{ api.state.error }}</p>
                 </div>
 
-                <DialogFooter v-if="api.state.footer" class="mt-auto shrink-0 border-t px-4 py-3 sm:px-5">
+                <DialogFooter v-if="api.state.footer" :class="['mt-auto shrink-0 border-t px-4 py-3 sm:px-5', api.state.footerClass]">
                     <slot name="footer" :api="api" :data="api.getData()">
                         <Button v-if="api.state.showCancel" type="button" variant="outline" :disabled="api.state.loading" @click="cancel">
                             {{ api.state.cancelText }}
