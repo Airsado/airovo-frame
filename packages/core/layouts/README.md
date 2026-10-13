@@ -21,19 +21,29 @@ views. A matching view replaces the root menu, renders a back affordance, and
 keeps the same grouping, ordering, active-state and collapsed-dropdown rules:
 
 ```ts
-import type { SidebarView } from '@airovo/layouts'
+import type { SidebarView } from "@airovo/layouts";
 
 const sidebarViews: SidebarView[] = [
   {
-    id: 'settings',
+    id: "settings",
     pathPattern: /^\/settings(?:\/|$)/,
-    parent: { title: 'Dashboard', url: '/' },
+    parent: { title: "Dashboard", url: "/" },
     menus: [
-      { title: 'Profile', url: '/settings/profile', group: 'Settings', order: 10 },
-      { title: 'Security', url: '/settings/security', group: 'Settings', order: 20 },
+      {
+        title: "Profile",
+        url: "/settings/profile",
+        group: "Settings",
+        order: 10,
+      },
+      {
+        title: "Security",
+        url: "/settings/security",
+        group: "Settings",
+        order: 20,
+      },
     ],
   },
-]
+];
 ```
 
 Pass the registry through `AppShell` or `BasicLayoutHost`:
@@ -63,6 +73,12 @@ The Playwright demo and create-app template include a disabled entry in the
 contextual view fixture. Their mobile sidebar is opened through the standard
 Sidebar trigger so outside dismissal and focus behavior can be checked without
 using business routes.
+
+For a repeatable browser pass, start the demo with `pnpm dev` and run
+`pnpm verify:sidebar`. Set `SIDEBAR_MATRIX_URL`, `SIDEBAR_MATRIX_USERNAME`,
+`SIDEBAR_MATRIX_PASSWORD`, or `SIDEBAR_MATRIX_BROWSER` when the demo is served
+elsewhere or a specific browser executable is required. The script reports the
+desktop, theme, reduced-motion and mobile assertions as one JSON result.
 
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 
