@@ -252,6 +252,10 @@ caller-owned.
 `PageFooter` into the page's stable footer host, keeping it outside the content
 scroll container. Direct `SectionPage` `footer` slots remain supported.
 
+`SectionPage` keeps the existing sticky title behavior while matching the
+new-api title weight (`font-bold`), responsive action spacing and content
+padding. It does not add a second tabs offset or business-specific border.
+
 ## ChartCard tooltip
 
 `ChartCard` accepts optional `tooltipLabel`/`tooltipItems` and a `tooltip` slot;

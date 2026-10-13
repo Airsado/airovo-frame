@@ -31,13 +31,13 @@ withDefaults(defineProps<{
             <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4" :class="stackActionsOnMobile && 'max-sm:items-start'">
                 <div class="min-w-0 flex-1" :class="stackActionsOnMobile && 'max-sm:basis-full'">
                     <slot name="title">
-                        <h1 class="truncate text-base font-semibold tracking-tight sm:text-lg">{{ t('common.untitledPage') }}</h1>
+                        <h1 class="truncate text-base font-bold tracking-tight sm:text-lg">{{ t('common.untitledPage') }}</h1>
                     </slot>
                     <p v-if="$slots.description" class="mt-1 text-xs text-muted-foreground sm:text-sm">
                         <slot name="description" />
                     </p>
                 </div>
-                <div v-if="$slots.actions" class="flex shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+                <div v-if="$slots.actions" class="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-x-4">
                     <slot name="actions" />
                 </div>
             </div>
