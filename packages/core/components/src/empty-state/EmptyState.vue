@@ -11,14 +11,14 @@ const props = withDefaults(defineProps<{
     bordered?: boolean
     size?: 'sm' | 'md' | 'lg'
     class?: string
-}>(), { size: 'md', bordered: false })
+}>(), { icon: 'lucide:database', title: '暂无数据', size: 'sm', bordered: false })
 
 const emit = defineEmits<{ (event: 'action', ev: MouseEvent): void }>()
 const mediaSize = computed(() => ({ sm: 'size-8', md: 'size-12', lg: 'size-16' })[props.size])
 </script>
 
 <template>
-    <Empty :class="[props.bordered ? 'border' : 'border-0', 'min-h-48 px-4 py-8 md:py-10', props.class]">
+    <Empty :class="[props.bordered ? 'border' : 'border-0', 'min-h-[300px] px-4 py-8 md:py-10', props.class]">
         <EmptyHeader>
             <EmptyMedia v-if="props.icon" variant="icon" :class="mediaSize"><Icon :icon="props.icon" class="size-1/2" /></EmptyMedia>
             <EmptyTitle v-if="props.title">{{ props.title }}</EmptyTitle>

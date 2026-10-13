@@ -6,6 +6,14 @@ import ErrorState from './ErrorState.vue'
 import LoadingState from './LoadingState.vue'
 
 describe('status state components', () => {
+    it('matches the new-api default empty state density and content', () => {
+        const wrapper = mount(EmptyState)
+
+        expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('暂无数据')
+        expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain('size-8')
+        expect(wrapper.classes()).toContain('min-h-[300px]')
+    })
+
     it('keeps EmptyState action behavior and supports bordered/action slot', async () => {
         const wrapper = mount(EmptyState, {
             props: { title: '空', bordered: true, actionText: '新增' },
