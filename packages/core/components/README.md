@@ -134,7 +134,9 @@ overflow badge, and an `empty` slot. It owns only layout and display limits;
 the caller owns the item meaning and actions.
 
 `EmptyState` keeps its existing `actionText`/`action` event and `actions` slot;
-`bordered` and the singular `action` slot are optional additions. `ErrorState`
+it follows the new-api default Database icon, “暂无数据” title and 300px
+minimum height while retaining `bordered`, `size`, and the singular `action`
+slot. `ErrorState`
 provides retry/action events and slots with an alert role. `LoadingState`
 supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
 and `aria-busy`/`aria-live` attributes. These components render state only and

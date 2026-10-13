@@ -1266,6 +1266,9 @@ function sseItemData(item: unknown): unknown {
                             size="lg"
                         />
                     </div>
+                    <div class="rounded-lg border bg-card">
+                        <EmptyState />
+                    </div>
                 </div>
             </section>
 
