@@ -65,6 +65,11 @@ transition, backdrop, border and rounded surface classes; the clear control
 also exposes a tooltip. Escape and arrow/Home/End keys operate on the toolbar
 buttons without taking ownership of the batch operation itself.
 
+`DataTableRowActions` accepts `iconOnly` and `ariaLabel` for the new-api
+static row-action pattern. Icon-only actions use the `icon-sm` ghost button
+contract; dropdown actions preserve `permission`, `visible`, `loading` and
+`variant="destructive"` state ownership with the caller.
+
 ## LiveLog and follow-tail
 
 The useFollowTail composable and LiveLog component keep auto-scroll in the

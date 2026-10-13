@@ -29,6 +29,27 @@ describe('DataTableRowActions', () => {
         expect(callback).toHaveBeenCalledWith({ id: 1 })
     })
 
+    it('renders new-api icon-only actions with an accessible label', () => {
+        const wrapper = mount(DataTableRowActions, {
+            props: { row: { id: 1 }, actions: [{ key: 'edit', label: '编辑', icon: 'lucide:pencil', iconOnly: true, ariaLabel: '编辑渠道' }] },
+        })
+        const button = wrapper.get('[data-slot="data-table-row-action"]')
+        expect(button.attributes('aria-label')).toBe('编辑渠道')
+        expect(button.attributes('data-size')).toBe('icon-sm')
+        expect(button.text()).toBe('')
+        expect(button.find('svg').classes()).toContain('size-4')
+    })
+
+    it('marks destructive dropdown actions for the new-api destructive menu styling', async () => {
+        const wrapper = mount(DataTableRowActions, {
+            props: { row: { id: 1 }, dropdownActions: [{ key: 'delete', label: '删除', variant: 'destructive', onSelect: vi.fn() }] },
+            attachTo: document.body,
+        })
+        await wrapper.get('[data-slot="dropdown-menu-trigger"]').trigger('click')
+        expect(document.body.querySelector('[data-action-key="delete"]')?.getAttribute('data-variant')).toBe('destructive')
+        wrapper.unmount()
+    })
+
     it('forwards dropdown configuration and emits open changes', async () => {
         const wrapper = mount(DataTableRowActions, {
             props: {

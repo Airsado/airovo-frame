@@ -28,15 +28,15 @@ function select(action: DataTableRowAction<T>): void { if (!state(action.disable
 
 <template>
   <div class="flex items-center justify-end gap-1">
-    <Button v-for="action in visibleActions" :key="action.key" type="button" data-slot="data-table-row-action" :data-action-key="action.key" :aria-busy="loading(action) || undefined" :variant="action.variant ?? 'ghost'" size="sm" class="gap-1.5" :disabled="state(action.disabled) || loading(action)" @click="select(action)">
-      <Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" class="size-3.5" :class="loading(action) && 'animate-spin'" />{{ action.label }}
+    <Button v-for="action in visibleActions" :key="action.key" type="button" data-slot="data-table-row-action" :data-action-key="action.key" :aria-label="action.iconOnly ? (action.ariaLabel ?? action.label) : undefined" :aria-busy="loading(action) || undefined" :variant="action.variant ?? 'ghost'" :size="action.iconOnly ? 'icon-sm' : 'sm'" :class="[action.iconOnly ? 'shrink-0' : 'gap-1.5', action.iconOnly && 'data-popup-open:bg-muted']" :disabled="state(action.disabled) || loading(action)" @click="select(action)">
+      <Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" :class="[action.iconOnly ? 'size-4' : 'size-3.5', loading(action) && 'animate-spin']" /><span v-if="!action.iconOnly">{{ action.label }}</span>
     </Button>
     <DropdownMenu v-if="visibleDropdownActions.length" :modal="props.dropdownModal" @update:open="(open) => emit('dropdown-open-change', open)">
       <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="data-popup-open:bg-muted size-8" :aria-label="props.dropdownAriaLabel"><Icon icon="lucide:ellipsis" class="size-4" /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end" :class="['w-48', props.dropdownContentClass]">
         <template v-for="(action, index) in visibleDropdownActions" :key="action.key">
           <DropdownMenuSeparator v-if="index > 0" />
-          <DropdownMenuItem :data-action-key="action.key" :aria-busy="loading(action) || undefined" :disabled="state(action.disabled) || loading(action)" @select="select(action)"><Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" class="size-4" :class="loading(action) && 'animate-spin'" />{{ action.label }}</DropdownMenuItem>
+          <DropdownMenuItem :data-action-key="action.key" :data-variant="action.variant === 'destructive' ? 'destructive' : 'default'" :aria-busy="loading(action) || undefined" :disabled="state(action.disabled) || loading(action)" @select="select(action)"><Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" class="size-4" :class="loading(action) && 'animate-spin'" />{{ action.label }}</DropdownMenuItem>
         </template>
       </DropdownMenuContent>
     </DropdownMenu>
