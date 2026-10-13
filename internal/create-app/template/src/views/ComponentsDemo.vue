@@ -33,6 +33,8 @@ import {
     StatusBadge,
     StatusBadgeList,
     UserCard,
+    FrameworkPopover,
+    FrameworkTooltip,
     type DataTableColumn,
     type DataTableColumnPinning,
     type DataTableFilterGroup,
@@ -40,6 +42,7 @@ import {
     type DataTableQuery,
     type DataTableQueryState,
 } from '@airovo/components'
+
 import { PermissionButton } from '@airovo/permission'
 import {
     Badge,
@@ -146,6 +149,8 @@ import { ServiceHealthCard } from '@airovo/app-ui'
 import OverlaySelectExample from './_examples/OverlaySelectExample.vue'
 import OverlayDatePickerExample from './_examples/OverlayDatePickerExample.vue'
 import { getDemoEventsUrl } from '../api/core/events'
+
+const frameworkPopoverOpen = ref(false)
 
 function onAdd() {
     globalThis.alert('新增')
@@ -562,6 +567,20 @@ function sseItemData(item: unknown): unknown {
                 <AspectRatio :ratio="16 / 9" class="max-w-md rounded-lg bg-muted p-4 text-center text-sm">
                     16:9 preview
                 </AspectRatio>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-lg font-semibold">Tooltip / Popover 框架组合</h2>
+                <p class="text-sm text-muted-foreground">复用 Reka primitive，统一 new-api surface、尺寸、箭头、focus 和 outside 行为。</p>
+                <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
+                    <FrameworkTooltip content="这是统一的 tooltip surface" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
+                        <template #trigger>悬停查看 Tooltip</template>
+                    </FrameworkTooltip>
+                    <FrameworkPopover v-model:open="frameworkPopoverOpen" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
+                        <template #trigger>打开 Popover</template>
+                        <div class="space-y-1"><p class="text-sm font-medium">Popover 内容</p><p class="text-xs text-muted-foreground">支持 Escape、outside 和键盘焦点恢复。</p></div>
+                    </FrameworkPopover>
+                </div>
             </section>
 
             <section class="space-y-4">
