@@ -2,6 +2,7 @@ import {
     computed,
     getCurrentInstance,
     onBeforeUnmount,
+    onScopeDispose,
     ref,
     shallowRef,
     watch,
@@ -34,6 +35,8 @@ export type DataTableQueryState = Partial<Pick<DataTableQuery, 'page' | 'pageSiz
 export interface DataTableQuerySync {
     read?: () => DataTableQueryState | undefined
     write?: (query: DataTableQuery) => void
+    /** Subscribe to application-owned route/history changes. Return cleanup when provided. */
+    subscribe?: (listener: () => void) => void | (() => void)
 }
 
 export interface UseDataTableReturn<T extends DataTableRow = DataTableRow> {
@@ -99,6 +102,8 @@ export function useDataTable<T extends DataTableRow = DataTableRow>(
     const error = ref<unknown>()
     let controller: AbortController | undefined
     let requestSequence = 0
+    let skipQueryWrite = false
+    let unsubscribeQuerySync: (() => void) | undefined
 
     const query = computed<DataTableQuery>(() => ({
         page: page.value,
@@ -109,6 +114,10 @@ export function useDataTable<T extends DataTableRow = DataTableRow>(
 
     if (options.querySync?.write) {
         watch(query, (value) => {
+            if (skipQueryWrite) {
+                skipQueryWrite = false
+                return
+            }
             try {
                 options.querySync?.write?.({
                     page: value.page,
@@ -166,6 +175,25 @@ export function useDataTable<T extends DataTableRow = DataTableRow>(
         }
     }
 
+    function applyExternalQueryState(): void {
+        const syncedState = readQueryState(options.querySync)
+        const nextPage = normalizePage(syncedState.page, page.value)
+        const nextPageSize = normalizePageSize(syncedState.pageSize, pageSize.value)
+        const nextSort = normalizeSort(syncedState.sort)
+        const nextFilters = { ...(options.filters ?? {}), ...(syncedState.filters ?? {}) }
+        const changed = nextPage !== page.value
+            || nextPageSize !== pageSize.value
+            || JSON.stringify(nextSort) !== JSON.stringify(sort.value)
+            || JSON.stringify(nextFilters) !== JSON.stringify(filters.value)
+        if (!changed) return
+        if (options.querySync?.write) skipQueryWrite = true
+        page.value = nextPage
+        pageSize.value = nextPageSize
+        sort.value = nextSort
+        filters.value = nextFilters
+        void reload()
+    }
+
     async function setPage(value: number): Promise<void> {
         page.value = normalizePage(value)
         await reload()
@@ -189,8 +217,19 @@ export function useDataTable<T extends DataTableRow = DataTableRow>(
         await reload()
     }
 
+    if (options.querySync?.subscribe) {
+        try {
+            unsubscribeQuerySync = options.querySync.subscribe(applyExternalQueryState) ?? undefined
+        } catch {
+            unsubscribeQuerySync = undefined
+        }
+    }
     if (options.immediate !== false) void reload()
     if (getCurrentInstance()) onBeforeUnmount(cancel)
+    onScopeDispose(() => {
+        cancel()
+        unsubscribeQuerySync?.()
+    })
 
     return {
         rows,

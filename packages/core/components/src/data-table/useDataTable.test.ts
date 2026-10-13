@@ -131,4 +131,33 @@ describe('useDataTable', () => {
         expect(api.sort.value).toEqual({ key: 'fallback', direction: 'asc' })
         scope.stop()
     })
+
+    it('applies external query changes through subscribe without writing them back', async () => {
+        let notify: (() => void) | undefined
+        const cleanup = vi.fn()
+        const writes: unknown[] = []
+        let state: { page?: number; pageSize?: number; filters?: Record<string, unknown> } = { page: 1, pageSize: 20 }
+        const fetcher = vi.fn(async () => ({ data: [], total: 0 }))
+        const scope = effectScope()
+        const api = scope.run(() => useDataTable<Row>({
+            fetcher,
+            immediate: false,
+            querySync: {
+                read: () => state,
+                write: (query) => writes.push(query),
+                subscribe: (listener) => { notify = listener; return cleanup },
+            },
+        }))!
+
+        state = { page: 3, pageSize: 50, filters: { status: 'ready' } }
+        notify?.()
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(api.page.value).toBe(3)
+        expect(api.pageSize.value).toBe(50)
+        expect(api.filters.value).toEqual({ status: 'ready' })
+        expect(fetcher).toHaveBeenCalledWith({ page: 3, pageSize: 50, sort: undefined, filters: { status: 'ready' } }, expect.anything())
+        expect(writes).toHaveLength(0)
+        scope.stop()
+        expect(cleanup).toHaveBeenCalledOnce()
+    })
 })
