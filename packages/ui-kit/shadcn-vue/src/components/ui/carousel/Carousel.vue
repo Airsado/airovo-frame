@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'
-import { computed, nextTick, onMounted, provide, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { cn } from '@/lib/utils'
 import { carouselContextKey, type CarouselOrientation } from './context'
 
-const props = withDefaults(defineProps<{ class?: HTMLAttributes['class']; orientation?: CarouselOrientation; loop?: boolean }>(), { orientation: 'horizontal', loop: false })
+const props = withDefaults(defineProps<{ class?: HTMLAttributes['class']; orientation?: CarouselOrientation; loop?: boolean; autoplayInterval?: number }>(), { orientation: 'horizontal', loop: false, autoplayInterval: 0 })
 const orientation = ref(props.orientation)
 const loop = ref(props.loop)
 const viewport = ref<HTMLElement | null>(null)
+const root = ref<HTMLElement | null>(null)
+const paused = ref(false)
+let autoplayTimer: ReturnType<typeof setInterval> | undefined
 const currentIndex = ref(0)
 const count = ref(0)
 const canScrollPrev = computed(() => loop.value ? count.value > 1 : currentIndex.value > 0)
@@ -23,6 +26,7 @@ function scrollTo(index: number): void {
     const offset = orientation.value === 'horizontal' ? item.offsetLeft : item.offsetTop
     viewport.value.scrollTo({ [orientation.value === 'horizontal' ? 'left' : 'top']: offset, behavior: 'smooth' })
     currentIndex.value = nextIndex
+    restartAutoplay()
 }
 function onScroll(): void {
     if (!viewport.value || !count.value) return
@@ -37,8 +41,27 @@ function onKeydown(event: KeyboardEvent): void {
     event.preventDefault()
     scrollTo(currentIndex.value + (next ? 1 : -1))
 }
+function clearAutoplay(): void {
+    if (autoplayTimer) clearInterval(autoplayTimer)
+    autoplayTimer = undefined
+}
+function prefersReducedMotion(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+}
+function restartAutoplay(): void {
+    clearAutoplay()
+    if (!props.loop || !props.autoplayInterval || props.autoplayInterval <= 0 || prefersReducedMotion()) return
+    autoplayTimer = setInterval(() => {
+        if (!paused.value) scrollTo(currentIndex.value + 1)
+    }, props.autoplayInterval)
+}
+function onFocusOut(event: FocusEvent): void {
+    if (!root.value?.contains(event.relatedTarget as Node | null)) paused.value = false
+}
 provide(carouselContextKey, { orientation, loop, currentIndex, count, canScrollPrev, canScrollNext, setViewport, refresh, scrollTo })
-onMounted(() => nextTick(refresh))
+onMounted(() => nextTick(() => { refresh(); restartAutoplay() }))
+watch(() => [props.loop, props.autoplayInterval] as const, restartAutoplay)
+onBeforeUnmount(clearAutoplay)
 </script>
 
-<template><div role="region" aria-roledescription="carousel" data-slot="carousel" :class="cn('relative', props.class)" @keydown="onKeydown"><slot /></div></template>
+<template><div ref="root" role="region" aria-roledescription="carousel" data-slot="carousel" :data-current-index="currentIndex" :class="cn('relative', props.class)" @keydown="onKeydown" @mouseenter="paused = true" @mouseleave="paused = false" @focusin="paused = true" @focusout="onFocusOut"><slot /></div></template>

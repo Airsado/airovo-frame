@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@airovo/uikit-shadcnui'
 
 describe('Carousel public exports', () => {
@@ -41,5 +41,25 @@ describe('Carousel public exports', () => {
         await nextTick()
         expect((wrapper.get('[data-slot="carousel-previous"]').element as HTMLButtonElement).disabled).toBe(false)
         expect((wrapper.get('[data-slot="carousel-next"]').element as HTMLButtonElement).disabled).toBe(false)
+    })
+
+    it('autoplays looped slides and pauses while hovered', async () => {
+        vi.useFakeTimers()
+        const wrapper = mount(Carousel, {
+            props: { loop: true, autoplayInterval: 100 },
+            slots: { default: () => h(CarouselContent, null, () => [h(CarouselItem, null, () => 'One'), h(CarouselItem, null, () => 'Two')]) },
+        })
+        await nextTick()
+        await nextTick()
+        await vi.advanceTimersByTimeAsync(100)
+        expect(wrapper.attributes('data-current-index')).toBe('1')
+        await wrapper.trigger('mouseenter')
+        await vi.advanceTimersByTimeAsync(200)
+        expect(wrapper.attributes('data-current-index')).toBe('1')
+        await wrapper.trigger('mouseleave')
+        await vi.advanceTimersByTimeAsync(100)
+        expect(wrapper.attributes('data-current-index')).toBe('0')
+        wrapper.unmount()
+        vi.useRealTimers()
     })
 })
