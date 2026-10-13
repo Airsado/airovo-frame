@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
 import { Icon } from '@airovo/shared/icons'
-import { Badge, Button, Separator } from '@airovo/uikit-shadcnui'
+import { Badge, Button, Separator, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@airovo/uikit-shadcnui'
 
 defineOptions({ name: 'DataTableBulkActions' })
 
@@ -70,7 +70,7 @@ function handleKeydown(event: KeyboardEvent): void {
       tabindex="-1"
       :class="[
         props.placement === 'floating'
-          ? 'fixed bottom-6 left-1/2 z-50 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2'
+          ? 'fixed bottom-6 left-1/2 z-50 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-xl transition-all delay-100 duration-300 ease-out hover:scale-105'
           : 'w-full',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
         props.class,
@@ -78,17 +78,24 @@ function handleKeydown(event: KeyboardEvent): void {
       @keydown="handleKeydown"
     >
       <div class="flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 p-2 shadow-xl supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:backdrop-blur-lg">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          class="size-7"
-          aria-label="清除选择"
-          title="清除选择（Escape）"
-          @click="clearSelection"
-        >
-          <Icon icon="lucide:x" class="size-4" />
-        </Button>
+        <TooltipProvider :delay-duration="0">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                class="size-7"
+                aria-label="清除选择"
+                title="清除选择（Escape）"
+                @click="clearSelection"
+              >
+                <Icon icon="lucide:x" class="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>清除选择（Escape）</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <Separator orientation="vertical" class="h-5" aria-hidden="true" />
         <div :id="descriptionId" class="flex items-center gap-1 text-sm">
           <Badge variant="default" class="min-w-8 justify-center rounded-lg" :aria-label="`${props.selectedCount} 项已选择`">

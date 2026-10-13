@@ -17,9 +17,18 @@ describe('DataTableBulkActions', () => {
         expect(wrapper.get('[role="toolbar"]').attributes('aria-describedby')).toBeTruthy()
         expect(wrapper.text()).toContain('3')
         expect(wrapper.text()).toContain('渠道')
+        expect(wrapper.get('[role="toolbar"]').classes()).not.toContain('fixed')
         await wrapper.get('button[aria-label="清除选择"]').trigger('click')
         await wrapper.get('[role="toolbar"]').trigger('keydown', { key: 'Escape' })
         expect(wrapper.emitted('clear-selection')).toHaveLength(2)
+    })
+
+    it('matches the new-api floating toolbar transition and hover treatment', () => {
+        const wrapper = mount(DataTableBulkActions, { props: { selectedCount: 2 } })
+        const toolbar = wrapper.get('[role="toolbar"]')
+        expect(toolbar.classes()).toContain('fixed')
+        expect(toolbar.classes()).toContain('transition-all')
+        expect(toolbar.classes()).toContain('hover:scale-105')
     })
 
     it('moves focus across enabled action buttons with Home, End and arrows', async () => {
