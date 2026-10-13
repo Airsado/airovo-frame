@@ -199,8 +199,12 @@ open state and business actions.
 
 `Combobox` is the generic single-value searchable selector. It accepts the
 same option shape as `SelectBox`, supports disabled options and an optional
-`allowCustomValue` Enter path; multi-select chips remain a separate future
-composition.
+`allowCustomValue` Enter path. Options can also provide `description` and
+`icon`; search matches both labels and values, `openOnFocus` controls whether
+focus opens the popup, and `showSelectedIcon` controls the selected check mark.
+`popupClass`, `id`, `name` and the aria props are forwarded to the public
+trigger contract. Escape restores the current model value; multi-select chips
+remain a separate future composition.
 
 ## Tabs
 
