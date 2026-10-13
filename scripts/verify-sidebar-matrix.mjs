@@ -86,6 +86,13 @@ try {
     '[data-sidebar-menu-kind="collapsed-child"]',
   );
   assert.ok(await collapsedChildren.count());
+  await collapsedChildren.first().focus();
+  assert.equal(
+    await collapsedChildren
+      .first()
+      .evaluate((element) => document.activeElement === element),
+    true,
+  );
   await page.keyboard.press("Escape");
   await page.waitForTimeout(200);
   assert.equal(await collapsedChildren.count(), 0);

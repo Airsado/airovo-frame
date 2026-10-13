@@ -80,6 +80,12 @@ For a repeatable browser pass, start the demo with `pnpm dev` and run
 elsewhere or a specific browser executable is required. The script reports the
 desktop, theme, reduced-motion and mobile assertions as one JSON result.
 
+The visible implementation differences from new-api are intentional: Vue uses
+the framework's `SidebarView` prop registry instead of React context hooks,
+`<Transition>` instead of `motion.div`, and the existing Reka Sheet/Dropdown
+primitives instead of copying React primitives. The semantic tokens, menu
+states, back affordance and route-driven replacement remain aligned.
+
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 
 ```vue
