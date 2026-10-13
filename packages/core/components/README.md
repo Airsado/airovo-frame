@@ -60,7 +60,9 @@ uncontrolled state; mobile card slots do not apply pinning.
 when `selectedCount` is greater than zero, emits `clear-selection`, and accepts
 the action buttons through the `actions` or default slot. `placement="floating"`
 shows the new-api-style bottom toolbar; `placement="inline"` keeps it in the
-normal layout flow. Escape and arrow/Home/End keys operate on the toolbar
+normal layout flow. The floating toolbar uses the new-api hover scale,
+transition, backdrop, border and rounded surface classes; the clear control
+also exposes a tooltip. Escape and arrow/Home/End keys operate on the toolbar
 buttons without taking ownership of the batch operation itself.
 
 ## LiveLog and follow-tail
