@@ -18,7 +18,7 @@ Agent 先阅读 [AGENTS.md](AGENTS.md) 与 CLAUDE.md。通过 API 创建 Issue �
 
 1. 在 Issue 中说明通用复现步骤、影响范围和预期行为。
 2. 从最新 `dev` 创建短期分支，例如 `codex/fix-form-context`。
-3. 先补能够复现问题的回归测试，再做最小修复，执行相关包的测试、lint 和类型检查。涉及字段渲染、遮挡、焦点或键盘行为时，还需要真实浏览器验收。
+3. 先补能够复现问题的回归测试，再做最小修复，执行相关包的测试、lint 和类型检查。涉及字段渲染、遮挡、焦点或键盘行为时，还需要真实浏览器验收。new-api 对照的 UI 组件还必须报告颜色 token、尺寸、圆角、间距、hover/active/focus/disabled、light/dark 和 desktop/mobile 的视觉对齐结果；未验证的维度明确写“未验证”。
 4. 按内容提交，例如 `fix(forms): isolate form instance contexts`。提交信息可使用 `Refs #6` 关联问题。
 5. 创建以 `dev` 为目标的 PR，写明触发条件、修复行为、验证结果和限制，并使用 `Closes #6` 等关键字关联 Issue。
 6. 在对应 Issue 评论中补充 PR 链接、实现方案和测试结果。修复完成以 PR 合并为准，不因本地测试通过而提前关闭 Issue。

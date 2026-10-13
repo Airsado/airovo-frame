@@ -44,6 +44,25 @@
 
 ## 迁移规则
 
+## 视觉对齐契约
+
+后续每个组件迁移都必须同时对照 new-api 的 DOM 结构和视觉类。功能行为通过不代表组件迁移完成；以下维度必须有源码依据、组件测试或真实浏览器证据：
+
+- 颜色 token、文字色、背景色、边框、ring 和图标颜色；
+- 尺寸、圆角、间距、对齐、最大宽度和内容密度；
+- hover、active、selected、focus-visible、disabled、loading、empty、error；
+- light/dark、主题 preset、desktop/mobile 和窄容器响应式布局；
+- 键盘焦点、Escape/outside、ARIA 状态和视觉反馈之间的对应关系。
+
+实现时应优先复用 new-api 对应的语义 token 和状态类。框架已有样式只有在源码对照后才能保留；如果 Vue/Reka UI 的实现需要不同结构，必须记录可见差异和原因。每个 PR 的验证部分要区分“功能通过”和“视觉已验证”，未运行的主题、浏览器或视口必须明确写未验证。
+
+组件停止点新增：
+
+- [ ] 默认、交互、禁用和错误状态的视觉类已对照 new-api；
+- [ ] light/dark 或主题 preset 至少完成一组真实渲染验证；
+- [ ] desktop/mobile 或窄容器至少完成一组真实渲染验证；
+- [ ] 剩余视觉差异已写入 Issue/PR，不以功能测试通过代替视觉完成。
+
 ## 当前基线（2026-10-13）
 
 `dev` 已合并 ContextMenu 高级组合、DatePicker 秒级时间、TruncatedCell
