@@ -34,11 +34,13 @@ const emit = defineEmits<{
 const internalOpen = ref(props.defaultOpen)
 const isOpen = computed(() => props.open ?? internalOpen.value)
 
+/** Update the dialog visibility while preserving the controlled v-model contract. */
 function updateOpen(value: boolean): void {
     if (props.open === undefined) internalOpen.value = value
     emit('update:open', value)
 }
 
+/** Emit the selected business item and optionally close the command palette. */
 function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
     emit('select', item, group)
     if (props.closeOnSelect) updateOpen(false)

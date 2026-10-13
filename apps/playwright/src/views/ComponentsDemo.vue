@@ -213,6 +213,7 @@ function resetChannelFilters(): void {
     selectedChannelTypes.value = []
 }
 
+/** Store the selected demo command; real applications own the command action. */
 function onCommandSelect(item: { label: string }): void {
     selectedCommand.value = item.label
 }
