@@ -119,6 +119,7 @@ function closeSidebarOnNavigate(): void {
     if (isMobile.value) setOpenMobile(false)
 }
 
+/** Navigate from a contextual view back to its registered parent surface. */
 function backToRoot(event: MouseEvent, view: SidebarView): void {
     navigateLink(event, { url: view.parent.url, external: false })
     closeSidebarOnNavigate()
@@ -128,6 +129,7 @@ function linkHref(item: SidebarMenuItemType): string {
     return item.external ? item.url : router.resolve(item.url).href
 }
 
+/** Preserve browser modifier-click behavior while routing ordinary clicks internally. */
 function navigateLink(event: MouseEvent, item: Pick<SidebarMenuItemType, 'url' | 'external'>): void {
     if (item.external || event.defaultPrevented || event.button !== 0
         || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return

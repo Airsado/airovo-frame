@@ -14,6 +14,7 @@ export interface SidebarView {
     menus: MenuItem[]
 }
 
+/** Return the first contextual view whose path pattern matches the current route. */
 export function resolveSidebarView(pathname: string, views: readonly SidebarView[]): SidebarView | null {
     return views.find((view) => {
         view.pathPattern.lastIndex = 0
