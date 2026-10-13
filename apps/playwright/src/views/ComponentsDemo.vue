@@ -1109,6 +1109,7 @@ function sseItemData(item: unknown): unknown {
                         <template #tooltip="{ label, items }"><div class="mt-3 rounded-md border bg-card px-2.5 py-1.5 text-xs"><strong>{{ label }}</strong> · {{ items.length }} 个指标</div></template>
                     </ChartCard>
                     <ChartCard title="暂无数据示例" description="没有数据时不渲染误导性图形" empty />
+                    <ChartCard title="默认 tooltip 样式" description="未提供自定义 slot 时使用框架统一 tooltip" type="bar" :data="demoChartData" tooltip-label="周二" :tooltip-items="[{ color: 'var(--color-chart-2)', name: '成功量', value: 2280 }]" />
                 </div>
             </section>
 
