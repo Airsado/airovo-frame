@@ -206,6 +206,15 @@ classes match new-api's foreground/popover surfaces, arrow, rounded corners,
 padding, width and ring while primitive focus, Escape and outside behavior
 stays owner-controlled.
 
+## FrameworkCalendar
+
+`FrameworkCalendar` wraps the Reka/shadcn Calendar with a new-api aligned
+surface (`bg-background`, compact padding and cell radius/size tokens). It
+forwards CalendarRoot date props, `update:modelValue` and
+`update:placeholder`, plus `calendar-heading`, `calendar-prev-icon` and
+`calendar-next-icon` slots. Date range, disabled and keyboard semantics remain
+owned by the Calendar primitive.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit

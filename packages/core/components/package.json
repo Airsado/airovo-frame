@@ -23,7 +23,8 @@
         "./chart": "./src/chart/index.ts",
         "./json-field": "./src/json-field/index.ts",
         "./command-menu": "./src/command-menu/index.ts",
-        "./overlay": "./src/overlay/index.ts"
+        "./overlay": "./src/overlay/index.ts",
+        "./calendar": "./src/calendar/index.ts"
     },
     "license": "MIT",
     "scripts": {
