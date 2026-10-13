@@ -14,11 +14,11 @@
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 主要缺口 | 优先级 | 验证方式 |
 |---|---|---|---|---|---|---|
-| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | URL/query subscribe 与更完整的移动/批量交互矩阵；TruncatedCell slot 文本与 ResponsiveCardList selection 已补 | P0 | router/component tests、demo、desktop/mobile browser |
+| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | 更完整的移动/批量交互矩阵；querySync subscribe、TruncatedCell slot 文本与 ResponsiveCardList selection 已补 | P0 | router/component tests、demo、desktop/mobile browser |
 | `components/json-editor.tsx` | JsonField / JsonEditor | `packages/core/components/src/json-field/*` | 已存在但行为不完整 | 已有双模式和回填；需要 FormFieldSchema 组合验证、复杂嵌套编辑和更完整 raw editor | P0 | component tests、MyFormDemo、form submit/reset browser |
 | `components/json-code-editor.tsx` | JsonCodeEditor | `packages/core/components/src/json-field/JsonCodeEditor.vue` | 已存在但行为不完整 | FormField 组合、错误保留、光标/缩进、ARIA 和大文本 browser 矩阵 | P1 | utility/component tests、keyboard browser |
 | `components/layout/components/section-page-layout.tsx` | SectionPageLayout | `packages/core/components/src/section-page/SectionPage.vue` | 已存在但行为不完整 | sticky 标题和 PageFooterPortal 已补；仍需 tabs/scroll 组合验证 | P0 | component tests、scroll browser |
-| `components/ui/drawer.tsx`、`components/drawer-layout.ts` | Drawer / DrawerLayout | `packages/core/components/src/drawer/*`、`packages/core/composables/src/drawer/*` | 已存在但行为不完整 | right side 已支持；需补 layout composition、focus、nested、mobile 和 result contract 矩阵 | P0 | overlay tests、browser focus/escape |
+| `components/ui/drawer.tsx`、`components/drawer-layout.ts` | Drawer / DrawerLayout | `packages/core/components/src/drawer/*`、`packages/core/composables/src/drawer/*` | 已存在但行为不完整 | right side、layout contract 已补；仍需 nested、mobile 和 result contract 矩阵 | P0 | overlay tests、browser focus/escape |
 | `components/ui/dialog.tsx`、`components/dialog.tsx` | Dialog / Modal | ui-kit dialog、`packages/core/composables/src/modal/*` | 已存在但行为不完整 | Modal layout class、contentHeight、initialFocus 已补；仍需 close/outside/focus/stack 的完整跨层矩阵 | P1 | overlay tests、browser |
 | `components/date-picker.tsx`、`components/datetime-picker.tsx` | DatePicker / DateTimePicker | `packages/core/components/src/date-picker/*` | 已存在但行为不完整 | range、keyboard、disabled/validation 和 form reset 组合；本轮已补 locale 文本、秒级时间和非原地 Date 合并 | P1 | date-picker tests、browser keyboard |
 | `components/status-badge.tsx` | StatusBadge | `packages/core/components/src/status-badge/*` | 已存在且行为一致 | 补 auto-color、copyable 等 new-api 业务差异时另立 Issue | P1 | component tests、theme browser |
@@ -46,8 +46,9 @@
 
 `dev` 已合并 ContextMenu 高级组合、DatePicker 秒级时间、TruncatedCell
 slot 文本提取、RowActions/ViewOptions dropdown API、collapsed Sidebar
-parent active、PageFooterPortal、ChartCard 空 dataset 状态、Modal layout/
-initialFocus，以及 ResponsiveCardList mobile selection 等后续增量。
+parent active、PageFooterPortal、ChartCard 空 dataset 状态、Modal/Drawer layout/
+initialFocus、ResponsiveCardList mobile selection、Resizable storageKey、
+Carousel loop/autoplay 和 DataTable querySync subscribe 等后续增量。
 这些能力已有组件测试、demo/template 和部分 Chrome 证据，但完整的
 desktop/mobile、light/dark、focus、nested overlay 和业务组合矩阵仍未完成。
 未完成差异继续按本表和独立 Issue 管理，不将当前增量宣称为完整迁移。
@@ -62,7 +63,13 @@ desktop/mobile、light/dark、focus、nested overlay 和业务组合矩阵仍未
 [#181](https://github.com/Airsado/airovo-frame/pull/181)、
 [#183](https://github.com/Airsado/airovo-frame/pull/183)、
 [#185](https://github.com/Airsado/airovo-frame/pull/185)、
-[#187](https://github.com/Airsado/airovo-frame/pull/187)。
+[#187](https://github.com/Airsado/airovo-frame/pull/187)、
+[#189](https://github.com/Airsado/airovo-frame/pull/189)、
+[#191](https://github.com/Airsado/airovo-frame/pull/191)、
+[#193](https://github.com/Airsado/airovo-frame/pull/193)、
+[#195](https://github.com/Airsado/airovo-frame/pull/195)、
+[#197](https://github.com/Airsado/airovo-frame/pull/197)、
+[#199](https://github.com/Airsado/airovo-frame/pull/199)。
 
 1. 每个组件族先引用本表中的 new-api 源文件，再创建独立 Issue。
 2. 只迁移跨业务可复用的 props、slots、events、状态和组合；渠道、用户、权限、统计接口留在应用层。
