@@ -292,8 +292,8 @@ business actions remain caller-owned.
 
 `ResizablePanelGroup`, `ResizablePanel` and `ResizableHandle` provide a small
 pointer/keyboard-adjustable split layout. Direction, default/min/max sizes and
-separator focus are framework concerns; persistence and panel content remain
-caller-owned.
+separator focus are framework concerns. Pass `storageKey` to persist panel
+percentages across reloads; panel content remains caller-owned.
 ## Carousel
 
 `Carousel`, `CarouselContent`, `CarouselItem`, `CarouselPrevious` and

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { h } from 'vue'
+import { h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@airovo/uikit-shadcnui'
@@ -31,5 +31,18 @@ describe('Resizable primitives', () => {
 
         expect(wrapper.get('[data-slot="resizable-handle"]').attributes('aria-orientation')).toBe('horizontal')
         expect(wrapper.get('[data-slot="resizable-handle"]').attributes('tabindex')).toBe('0')
+    })
+
+    it('restores panel sizes from storageKey', async () => {
+        localStorage.setItem('resizable-test', '[30,70]')
+        const wrapper = mount(ResizablePanelGroup, {
+            props: { storageKey: 'resizable-test' },
+            slots: { default: () => [h(ResizablePanel, { defaultSize: 40 }, () => 'left'), h(ResizableHandle), h(ResizablePanel, { defaultSize: 60 }, () => 'right')] },
+        })
+        await nextTick()
+        const panels = wrapper.findAll('[data-slot="resizable-panel"]')
+        expect(panels[0]!.attributes('style')).toContain('flex-basis: 30%')
+        expect(panels[1]!.attributes('style')).toContain('flex-basis: 70%')
+        localStorage.removeItem('resizable-test')
     })
 })
