@@ -19,4 +19,5 @@ export * from './live-log'
 export * from './chart'
 export * from './json-field'
 export * from './command-menu'
+export * from './overlay'
 /// <reference path="./shims.d.ts" />

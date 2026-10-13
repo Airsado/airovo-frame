@@ -194,6 +194,18 @@ stable data-slot and aria labels for keyboard and screen-reader tests.
 The menu follows new-api's grouped 150px ViewOptions surface, keeps the
 outline trigger compact, and exposes a keyboard-focusable reset menu item.
 
+## FrameworkTooltip / FrameworkPopover
+
+`FrameworkTooltip` and `FrameworkPopover` provide business-neutral overlay
+compositions around the existing Reka/shadcn primitives. Both expose a
+content-only `trigger` slot and optional `triggerClass`; Tooltip accepts
+`content` or a `content` slot plus `side`, `sideOffset`, `delayDuration` and
+`disabled`; Popover exposes default content, `open`/`defaultOpen`,
+`update:open`, `modal`, `side`, `align`, offsets and `disabled`. Their content
+classes match new-api's foreground/popover surfaces, arrow, rounded corners,
+padding, width and ring while primitive focus, Escape and outside behavior
+stays owner-controlled.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit
