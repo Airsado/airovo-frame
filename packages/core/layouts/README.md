@@ -16,6 +16,35 @@
 </BasicLayoutHost>
 ```
 
+For new-api-style contextual navigation, register optional path-driven sidebar
+views. A matching view replaces the root menu, renders a back affordance, and
+keeps the same grouping, ordering, active-state and collapsed-dropdown rules:
+
+```ts
+import type { SidebarView } from '@airovo/layouts'
+
+const sidebarViews: SidebarView[] = [
+  {
+    id: 'settings',
+    pathPattern: /^\/settings(?:\/|$)/,
+    parent: { title: 'Dashboard', url: '/' },
+    menus: [
+      { title: 'Profile', url: '/settings/profile', group: 'Settings', order: 10 },
+      { title: 'Security', url: '/settings/security', group: 'Settings', order: 20 },
+    ],
+  },
+]
+```
+
+Pass the registry through `AppShell` or `BasicLayoutHost`:
+
+```vue
+<AppShell :sidebar-views="sidebarViews" />
+```
+
+The view transition respects `prefers-reduced-motion`; applications that do
+not register views continue to render the root `menus` tree unchanged.
+
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 
 ```vue

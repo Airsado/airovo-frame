@@ -20,10 +20,11 @@ import {
 } from '@airovo/uikit-shadcnui'
 import { useAppContext } from './context'
 import type { AppShellAuthHandlers } from './AppShell.types'
+import type { SidebarView } from '@airovo/layouts'
 
 defineOptions({ name: 'AppShell' })
 
-const props = defineProps<{ auth?: AppShellAuthHandlers }>()
+const props = defineProps<{ auth?: AppShellAuthHandlers; sidebarViews?: SidebarView[] }>()
 const context = useAppContext()
 const menus = context.menus
 const progress = context.progress
@@ -100,6 +101,7 @@ async function logout() {
     <BasicLayoutHost
         v-if="showLayout"
         :menus="menus"
+        :sidebar-views="props.sidebarViews"
         :site-title="preferences.preferences.app.title || preferences.preferences.app.name"
         :site-logo="preferences.preferences.app.logo"
         :show-search="preferences.preferences.header.showSearch"

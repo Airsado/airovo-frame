@@ -5,12 +5,14 @@ import { usePreferencesStore } from '@airovo/stores/preferences'
 import BasicHeader from '../header/header.vue'
 import BasicSidebar from '../sidebar/sidebar.vue'
 import type { SidebarMenuItemType } from '../sidebar/types'
+import type { SidebarView } from '../sidebar/sidebarViews'
 import { useTabScroll } from '../useTabScroll'
 
 defineOptions({ name: 'BasicLayoutMix' })
 
 const props = withDefaults(defineProps<{
     menus?: SidebarMenuItemType[]
+    sidebarViews?: SidebarView[]
     siteTitle?: string
     siteLogo?: string
     showSearch?: boolean
@@ -25,6 +27,7 @@ const props = withDefaults(defineProps<{
     onLogout?: () => void | Promise<void>
 }>(), {
     menus: () => [],
+    sidebarViews: () => [] as SidebarView[],
     siteTitle: 'Framework',
     showSearch: true,
     showMessages: true,
@@ -67,8 +70,8 @@ useTabScroll(contentScroll)
                 </BasicHeader>
             </slot>
             <div class="flex min-h-0 flex-1">
-                <slot v-if="!props.maximized" name="sidebar" :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible">
-                    <BasicSidebar :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible" />
+                <slot v-if="!props.maximized" name="sidebar" :menus="menus" :sidebar-views="sidebarViews" :variant="effectiveVariant" :collapsible="effectiveCollapsible">
+                    <BasicSidebar :menus="menus" :sidebar-views="sidebarViews" :variant="effectiveVariant" :collapsible="effectiveCollapsible" />
                 </slot>
                 <SidebarInset class="@container/content relative min-h-0 min-w-0 overflow-hidden md:h-[calc(100svh-var(--app-header-height))]">
                     <main class="flex min-h-0 flex-1 flex-col overflow-hidden">

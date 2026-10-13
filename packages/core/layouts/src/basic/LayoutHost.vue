@@ -14,6 +14,7 @@ import BasicLayout from './layout.vue'
 import BasicLayoutMix from './layouts/mix.vue'
 import BasicLayoutFullContent from './layouts/full-content.vue'
 import type { SidebarMenuItemType } from './sidebar/types'
+import type { SidebarView } from './sidebar/sidebarViews'
 
 defineOptions({ name: 'BasicLayoutHost', inheritAttrs: false })
 
@@ -21,6 +22,7 @@ const route = useRoute()
 const preferences = usePreferencesStore()
 const props = withDefaults(defineProps<{
     menus?: SidebarMenuItemType[]
+    sidebarViews?: SidebarView[]
     siteTitle?: string
     siteLogo?: string
     showSearch?: boolean

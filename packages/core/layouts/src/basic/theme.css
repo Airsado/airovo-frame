@@ -434,6 +434,31 @@ body:has([data-layout-shell]) {
   cursor: pointer;
 }
 
+/* Contextual sidebar views use the same short slide/fade transition as
+ * new-api's motion wrapper. The reduced-motion rule keeps navigation instant
+ * for users who opt out of movement. */
+.sidebar-view-enter-active,
+.sidebar-view-leave-active {
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.sidebar-view-enter-from {
+  opacity: 0;
+  transform: translateX(0.5rem);
+}
+
+.sidebar-view-leave-to {
+  opacity: 0;
+  transform: translateX(-0.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-view-enter-active,
+  .sidebar-view-leave-active {
+    transition: none;
+  }
+}
+
 /* Sheet/scroll-dialog primitives omit a close slot; their close control is
  * the direct absolute button. This also survives settings slot overrides. */
 :is([data-slot='dialog-close'], [role='dialog'] > button.absolute) {
