@@ -29,13 +29,15 @@ describe('DatePicker boundaries', () => {
         expect(calendar.attributes('data-locale')).toBe('zh-CN')
     })
 
-    it('formats the trigger label with the requested locale', () => {
+    it('uses the stable new-api YYYY-MM-DD trigger format across locales', () => {
         const value = new Date(2024, 0, 2, 12)
         const wrapper = mount(DatePicker, {
             props: { modelValue: value, locale: 'en-US' },
             global: { stubs },
         })
-        expect(wrapper.get('button').attributes('aria-label')).toBe(new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(value))
+        expect(wrapper.get('button').attributes('aria-label')).toBe('2024-01-02')
+        const zh = mount(DatePicker, { props: { modelValue: value, locale: 'zh-CN' }, global: { stubs } })
+        expect(zh.get('button').attributes('aria-label')).toBe('2024-01-02')
     })
 
     it('keeps an invalid or reversed boundary configuration renderable', () => {
