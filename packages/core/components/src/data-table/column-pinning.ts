@@ -12,6 +12,15 @@ export interface ResolvedDataTablePinnedColumn {
     edge: boolean
 }
 
+/** Keep persisted pinning entries aligned with the current visible schema. */
+export function normalizeDataTableColumnPinning(
+    columns: readonly DataTablePinningColumn[],
+    pinning: DataTableColumnPinning = {},
+): DataTableColumnPinning {
+    const ids = new Set(columns.map(column => column.id))
+    return Object.fromEntries(Object.entries(pinning).filter(([id, side]) => ids.has(id) && (side === 'left' || side === 'right')))
+}
+
 /**
  * Resolve sticky offsets from the current DOM order. Hidden columns should be
  * omitted by the caller so they do not leave gaps in the fixed region.
