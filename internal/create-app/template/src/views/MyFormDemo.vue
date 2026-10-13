@@ -13,7 +13,7 @@
 import { computed, defineComponent, h, ref, type PropType } from 'vue'
 import { z } from 'zod'
 import { useForm, type FormFieldSchema } from '@airovo/forms'
-import { DatePickerField, JsonField } from '@airovo/components'
+import { DatePickerField, JsonCodeEditor, JsonField } from '@airovo/components'
 import { SectionPage } from '@airovo/components'
 import { useModal } from '@airovo/composables'
 import {
@@ -89,6 +89,7 @@ const controllerDisabled = ref(false)
 const controllerLoading = ref(false)
 const snapshotJson = ref('点击“读取快照”查看 getValueSnapshot() 返回值')
 const jsonFieldValue = ref('{\n  "endpoint": "/v1/chat/completions",\n  "timeout": 30,\n  "headers": { "x-request-id": "demo" }\n}')
+const jsonCodeEditorValue = ref('{\n  "model": "gpt-4o-mini",\n  "stream": true\n}')
 const selectedDialogResult = ref('尚未保存 Dialog 子表单')
 
 /**
@@ -651,6 +652,11 @@ async function openTagDialog(): Promise<void> {
                 <p class="mt-1 text-sm text-muted-foreground">表单只绑定 JSON 字符串，用户可以用键值行编辑或切换原始 JSON 模式。</p>
                 <JsonField v-model="jsonFieldValue" class="mt-4" :template="{ endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'demo' } }" value-type="any" nested />
                 <pre class="mt-3 max-h-40 overflow-auto rounded-lg bg-muted/60 p-3 text-xs">{{ jsonFieldValue }}</pre>
+                <div class="mt-6 border-t border-border/70 pt-5">
+                    <h3 class="text-base font-medium">JsonCodeEditor 原始 JSON</h3>
+                    <p class="mt-1 text-sm text-muted-foreground">工具栏间距、格式化和复制反馈与 new-api 对齐；复制失败时编辑草稿保持不变。</p>
+                    <JsonCodeEditor v-model="jsonCodeEditorValue" class="mt-3" />
+                </div>
             </section>
 
             <section class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
