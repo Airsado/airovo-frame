@@ -141,7 +141,9 @@ not create an empty tooltip.
 
 `useDataTable` accepts an optional `querySync` adapter. Its `read()` method can
 restore page, pageSize, sort and filters; its `write(query)` method receives
-normalized changes. The adapter belongs to the application and may wrap
+normalized changes. Its optional `subscribe(listener)` method lets the
+application feed browser history/router changes back into the table and is
+cleaned up with the composable scope. The adapter belongs to the application and may wrap
 vue-router, URLSearchParams or another state store. The framework does not
 depend on vue-router or choose URL parameter names.
 
