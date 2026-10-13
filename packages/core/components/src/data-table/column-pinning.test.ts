@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseStoredDataTableColumnPinning, resolveDataTableColumnPinning } from './column-pinning'
+import { normalizeDataTableColumnPinning, parseStoredDataTableColumnPinning, resolveDataTableColumnPinning } from './column-pinning'
 
 describe('data table column pinning', () => {
     it('computes cumulative left and right offsets in visible order', () => {
@@ -21,5 +21,12 @@ describe('data table column pinning', () => {
             .toEqual({ name: 'left', actions: 'right' })
         expect(parseStoredDataTableColumnPinning('invalid')).toEqual({})
         expect(parseStoredDataTableColumnPinning(null)).toEqual({})
+    })
+
+    it('drops pinning entries for removed columns during schema migration', () => {
+        expect(normalizeDataTableColumnPinning([
+            { id: 'name', width: 180 },
+            { id: 'actions', width: 96 },
+        ], { name: 'left', removed: 'right', actions: 'right' })).toEqual({ name: 'left', actions: 'right' })
     })
 })

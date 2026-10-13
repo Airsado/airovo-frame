@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import DataTable from './DataTable.vue'
@@ -133,6 +134,18 @@ describe('DataTable', () => {
         window.dispatchEvent(new PointerEvent('pointermove', { clientX: 350 }))
         expect(wrapper.emitted('update:columnSizing')?.at(-1)?.[0]).toEqual({ name: 220 })
         window.dispatchEvent(new PointerEvent('pointerup', { clientX: 350 }))
+    })
+
+    it('migrates persisted sizing to the current schema and bounds', async () => {
+        localStorage.setItem('data-table-sizing-migration', '{"name":400,"removed":180}')
+        const wrapper = mountTable({
+            columns: [{ key: 'name', title: '名称', resizable: true, minSize: 100, maxSize: 220 }],
+            columnSizingStorageKey: 'data-table-sizing-migration',
+        })
+        await nextTick()
+        expect(wrapper.find('thead th[data-column-id="name"]').attributes('style')).toContain('width: 220px')
+        expect(JSON.parse(localStorage.getItem('data-table-sizing-migration') ?? '{}')).toEqual({ name: 220 })
+        localStorage.removeItem('data-table-sizing-migration')
     })
 
     it('pins visible headers and cells with cumulative left/right offsets', async () => {

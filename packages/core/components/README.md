@@ -125,7 +125,10 @@ DataTable columns can opt into resizing with `resizable`, `minSize`, and
 `maxSize`. Bind `v-model:column-sizing` for a controlled map keyed by column
 id/key and pass `column-sizing-storage-key` to persist widths. Resizing is
 desktop table behavior; mobile card slots continue to use the same rows and
-selection state.
+selection state. Persisted sizing is migrated against the current column
+schema and min/max bounds; removed columns and invalid widths are discarded
+and written back. Column pinning storage follows the same current-schema
+filtering for left/right sticky offsets.
 
 ## Status states
 

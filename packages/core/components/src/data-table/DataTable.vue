@@ -3,7 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Skeleton } from '@airovo/uikit-shadcnui'
-import { parseStoredDataTableColumnPinning, resolveDataTableColumnPinning, type ResolvedDataTablePinnedColumn } from './column-pinning'
+import { normalizeDataTableColumnPinning, parseStoredDataTableColumnPinning, resolveDataTableColumnPinning, type ResolvedDataTablePinnedColumn } from './column-pinning'
+import { normalizeDataTableColumnSizing } from './column-sizing'
 import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import DataTablePagination from './DataTablePagination.vue'
 
@@ -76,7 +77,7 @@ const { t } = useI18n({ useScope: 'global' })
 const slots = useSlots()
 const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
-const internalColumnSizing = ref<Record<string, number>>({ ...props.columnSizing })
+const internalColumnSizing = ref<Record<string, number>>(normalizeDataTableColumnSizing(props.columns, props.columnSizing))
 const resizing = ref<{ id: string; startX: number; startWidth: number; min: number; max?: number }>()
 const internalColumnPinning = ref<DataTableColumnPinning>(readStoredColumnPinning(props.columnPinningStorageKey))
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
@@ -102,7 +103,7 @@ const columnStyle = (column: DataTableColumn): Record<string, string> => {
         maxWidth: column.maxWidth ?? (column.maxSize ? `${column.maxSize}px` : ''),
     }
 }
-const currentColumnPinning = computed(() => props.columnPinning ?? internalColumnPinning.value)
+const currentColumnPinning = computed(() => normalizeDataTableColumnPinning(pinningColumns.value, props.columnPinning ?? internalColumnPinning.value))
 const currentSort = computed(() => props.sort ?? internalSort.value)
 const hasToolbar = computed(() => Boolean(slots.toolbar))
 const hasActions = computed(() => Boolean(slots.actions || slots.action))
@@ -200,7 +201,7 @@ function pinnedStyle(id: string, kind: 'header' | 'cell'): Record<string, string
 }
 
 function setColumnPinning(value: DataTableColumnPinning): void {
-    const next = { ...value }
+    const next = normalizeDataTableColumnPinning(pinningColumns.value, value)
     if (props.columnPinning === undefined) internalColumnPinning.value = next
     emit('update:columnPinning', next)
 }
@@ -218,7 +219,7 @@ function persistColumnPinning(value: DataTableColumnPinning): void {
     const key = props.columnPinningStorageKey
     if (!key || typeof window === 'undefined') return
     try {
-        window.localStorage.setItem(key, JSON.stringify(value))
+        window.localStorage.setItem(key, JSON.stringify(normalizeDataTableColumnPinning(pinningColumns.value, value)))
     } catch {
         // Storage is optional and can be unavailable in private/embedded contexts.
     }
@@ -296,11 +297,12 @@ function initialColumnSize(column: DataTableColumn): number {
 }
 
 function updateColumnSizing(next: Record<string, number>): void {
-    if (props.columnSizing === undefined) internalColumnSizing.value = next
+    const normalized = normalizeDataTableColumnSizing(props.columns, next)
+    if (props.columnSizing === undefined) internalColumnSizing.value = normalized
     if (props.columnSizingStorageKey && typeof window !== 'undefined') {
-        try { window.localStorage.setItem(props.columnSizingStorageKey, JSON.stringify(next)) } catch { /* optional storage */ }
+        try { window.localStorage.setItem(props.columnSizingStorageKey, JSON.stringify(normalized)) } catch { /* optional storage */ }
     }
-    emit('update:columnSizing', next)
+    emit('update:columnSizing', normalized)
 }
 
 function startResize(event: PointerEvent, column: DataTableColumn): void {
@@ -335,13 +337,23 @@ function loadColumnSizing(): void {
     if (!props.columnSizingStorageKey || typeof window === 'undefined' || props.columnSizing !== undefined) return
     try {
         const raw = window.localStorage.getItem(props.columnSizingStorageKey)
-        if (raw) internalColumnSizing.value = { ...internalColumnSizing.value, ...JSON.parse(raw) }
+        if (raw) {
+            internalColumnSizing.value = normalizeDataTableColumnSizing(props.columns, JSON.parse(raw) as Record<string, number>)
+            window.localStorage.setItem(props.columnSizingStorageKey, JSON.stringify(internalColumnSizing.value))
+        }
     } catch { /* invalid persisted state falls back to defaults */ }
 }
 
 onMounted(loadColumnSizing)
 onBeforeUnmount(stopResize)
-watch(() => props.columnSizing, value => { internalColumnSizing.value = { ...value } }, { deep: true })
+watch(() => props.columnSizing, value => { internalColumnSizing.value = normalizeDataTableColumnSizing(props.columns, value) }, { deep: true })
+watch(() => props.columns, columns => {
+    const normalized = normalizeDataTableColumnSizing(columns, currentColumnSizing.value)
+    if (props.columnSizing === undefined) internalColumnSizing.value = normalized
+    if (props.columnSizingStorageKey && typeof window !== 'undefined') {
+        try { window.localStorage.setItem(props.columnSizingStorageKey, JSON.stringify(normalized)) } catch { /* optional storage */ }
+    }
+}, { deep: true })
 
 function retry(): void {
     emit('retry')
