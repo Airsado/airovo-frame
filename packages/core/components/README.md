@@ -247,9 +247,10 @@ scroll container. Direct `SectionPage` `footer` slots remain supported.
 ## ChartCard tooltip
 
 `ChartCard` accepts optional `tooltipLabel`/`tooltipItems` and a `tooltip` slot;
-the slot receives the normalized label/items model and is only rendered for a
-loaded non-empty chart. Chart.js options and actual hover wiring remain
-caller-owned.
+without a custom slot it renders the shared ui-kit `ChartTooltip` composition
+with the new-api border, rounded surface, indicator colors and shadow. The slot
+receives the normalized label/items model and is only rendered for a loaded
+non-empty chart. Chart.js options and actual hover wiring remain caller-owned.
 ## Accordion
 
 `Accordion`, `AccordionItem`, `AccordionHeader`, `AccordionTrigger` and

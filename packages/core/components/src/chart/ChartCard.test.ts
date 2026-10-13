@@ -21,6 +21,21 @@ describe('ChartCard', () => {
         expect(loading.text()).not.toContain('隐藏')
     })
 
+    it('uses the shared new-api tooltip composition when no custom slot is supplied', () => {
+        const wrapper = mount(ChartCard, {
+            props: {
+                title: '趋势',
+                data: { labels: ['一'], datasets: [{ label: '请求', data: [1] }] },
+                tooltipLabel: '周一',
+                tooltipItems: [{ color: '#123456', name: '请求量', value: 2400 }],
+            },
+        })
+
+        expect(wrapper.text()).toContain('周一')
+        expect(wrapper.text()).toContain('请求量')
+        expect(wrapper.find('.mt-3').classes()).toContain('shadow-xl')
+    })
+
     it('renders retry and empty states without a misleading chart', async () => {
         const errorWrapper = mount(ChartCard, { props: { title: '调用趋势', error: new Error('failed') } })
         expect(errorWrapper.get('[role="alert"]').text()).toContain('图表加载失败')

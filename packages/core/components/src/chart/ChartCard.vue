@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Icon } from '@airovo/shared/icons'
-import { ChartContainer, ChartLegend, Button, Skeleton } from '@airovo/uikit-shadcnui'
+import { ChartContainer, ChartLegend, ChartTooltip, Button, Skeleton } from '@airovo/uikit-shadcnui'
 import type { ChartLegendItem, ChartTooltipItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
 
 defineOptions({ name: 'ChartCard' })
@@ -63,6 +63,7 @@ const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [
             <ChartContainer class="mt-4" :type="type" :data="chartData" :options="options" :height="height" :aria-label="title" role="img" />
             <ChartLegend v-if="legend?.length" class="mt-3" :items="legend" />
             <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems ?? []" />
+            <ChartTooltip v-else-if="tooltipLabel || tooltipItems?.length" class="mt-3 border-border/50 bg-background shadow-xl" :label="tooltipLabel" :payload="tooltipItems" />
         </template>
         <slot name="footer" />
     </section>
