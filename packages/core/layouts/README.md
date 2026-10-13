@@ -45,6 +45,25 @@ Pass the registry through `AppShell` or `BasicLayoutHost`:
 The view transition respects `prefers-reduced-motion`; applications that do
 not register views continue to render the root `menus` tree unchanged.
 
+Menu entries may be kept visible but unavailable with `disabled: true`. The
+framework preserves that state in sorted copies of the menu tree, exposes
+`aria-disabled`, removes disabled anchors from the tab order, prevents route
+navigation, and applies the primitive disabled opacity in expanded and
+collapsed rendering:
+
+```ts
+{
+  title: 'Restricted settings',
+  url: '/settings/restricted',
+  disabled: true,
+}
+```
+
+The Playwright demo and create-app template include a disabled entry in the
+contextual view fixture. Their mobile sidebar is opened through the standard
+Sidebar trigger so outside dismissal and focus behavior can be checked without
+using business routes.
+
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 
 ```vue

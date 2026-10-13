@@ -48,4 +48,18 @@ describe('sidebar menu ordering', () => {
         expect(groups.map(group => group.titleKey)).toEqual(['first', 'second'])
         expect(groups.map(group => group.items[0]!.url)).toEqual(['/main', '/other'])
     })
+
+    it('preserves disabled state while copying and sorting the menu tree', () => {
+        const input: SidebarMenuItemType[] = [{
+            title: 'Workspace', url: '/workspace', order: 10, children: [
+                { title: 'Unavailable', url: '/workspace/unavailable', order: 20, disabled: true },
+                { title: 'Available', url: '/workspace/available', order: 10 },
+            ],
+        }]
+        const groups = groupSidebarMenus(input)
+        const children = groups[0]!.items[0]!.children!
+        expect(children.map(menu => menu.url)).toEqual(['/workspace/available', '/workspace/unavailable'])
+        expect(children[1]!.disabled).toBe(true)
+        expect(input[0]!.children![0]!.url).toBe('/workspace/unavailable')
+    })
 })

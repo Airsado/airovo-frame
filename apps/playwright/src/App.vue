@@ -11,6 +11,7 @@ const sidebarViews = [
         menus: [
             { title: '导航总览', url: '/dashboard/navigation-tree/overview', group: '导航工作区', order: 10 },
             { title: '布局演示', url: '/dashboard/navigation-tree/layout', group: '导航工作区', order: 20 },
+            { title: '受限设置', url: '/dashboard/navigation-tree/restricted', group: '导航工作区', order: 30, disabled: true },
         ],
     },
 ] satisfies SidebarView[]
