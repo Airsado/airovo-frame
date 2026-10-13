@@ -25,7 +25,7 @@ const emit = defineEmits<{
 
 <template>
     <div role="alert">
-        <Empty :class="['min-h-56 border-0 rounded-none px-4 py-8', props.class]">
+        <Empty :class="['min-h-[300px] border-0 px-4 py-8', props.class]">
             <EmptyHeader>
                 <EmptyMedia variant="icon"><Icon :icon="props.icon" class="size-6 text-destructive" /></EmptyMedia>
                 <EmptyTitle>{{ props.title }}</EmptyTitle>
