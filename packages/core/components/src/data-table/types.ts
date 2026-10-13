@@ -56,6 +56,9 @@ export interface DataTableRowAction<T extends DataTableRow = DataTableRow> {
     key: string
     label: string
     icon?: string
+    /** Render an icon-only button; provide ariaLabel or label is used as fallback. */
+    iconOnly?: boolean
+    ariaLabel?: string
     variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
     permission?: string | string[]
     visible?: boolean | ((row: T) => boolean)
