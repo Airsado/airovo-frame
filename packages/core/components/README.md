@@ -191,6 +191,8 @@ It normalizes persisted visibility against the current
 column schema, drops unknown/non-boolean entries, and keeps at least one
 configurable column visible. Its trigger, menu and restore action expose
 stable data-slot and aria labels for keyboard and screen-reader tests.
+The menu follows new-api's grouped 150px ViewOptions surface, keeps the
+outline trigger compact, and exposes a keyboard-focusable reset menu item.
 
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
