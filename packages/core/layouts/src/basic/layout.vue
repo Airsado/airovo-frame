@@ -4,12 +4,14 @@ import { SidebarInset, SidebarProvider } from '@airovo/uikit-shadcnui'
 import { usePreferencesStore } from '@airovo/stores'
 import { BasicHeader, BasicSidebar } from './index'
 import type { SidebarMenuItemType } from './sidebar/types'
+import type { SidebarView } from './sidebar/sidebarViews'
 import { useTabScroll } from './useTabScroll'
 
 defineOptions({ name: 'BasicLayout' })
 
 const props = withDefaults(defineProps<{
     menus?: SidebarMenuItemType[]
+    sidebarViews?: SidebarView[]
     siteTitle?: string
     siteLogo?: string
     showSearch?: boolean
@@ -26,6 +28,7 @@ const props = withDefaults(defineProps<{
     onLogout?: () => void | Promise<void>
 }>(), {
     menus: () => [] as SidebarMenuItemType[],
+    sidebarViews: () => [] as SidebarView[],
     siteTitle: 'Framework',
     siteLogo: '',
     showSearch: true,
@@ -79,8 +82,8 @@ useTabScroll(contentScroll)
                 </BasicHeader>
             </slot>
             <div class="flex min-h-0 w-full flex-1">
-                <slot v-if="!props.maximized" name="sidebar" :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible">
-                    <BasicSidebar :menus="menus" :variant="effectiveVariant" :collapsible="effectiveCollapsible" />
+                <slot v-if="!props.maximized" name="sidebar" :menus="menus" :sidebar-views="sidebarViews" :variant="effectiveVariant" :collapsible="effectiveCollapsible">
+                    <BasicSidebar :menus="menus" :sidebar-views="sidebarViews" :variant="effectiveVariant" :collapsible="effectiveCollapsible" />
                 </slot>
                 <SidebarInset
                     class="@container/content relative min-h-0 min-w-0 overflow-hidden"

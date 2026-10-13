@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {
     Sidebar,
+    SidebarHeader,
     SidebarContent,
     SidebarGroup,
     SidebarGroupLabel,
@@ -33,15 +34,19 @@ import { useI18n } from 'vue-i18n'
 import type { SidebarMenuItemType } from './types'
 import { activeMenuPath, containsActiveMenu, isActiveMenu } from './menuActive'
 import { groupSidebarMenus } from './menuGroups'
+import type { SidebarView } from './sidebarViews'
+import { resolveSidebarView } from './sidebarViews'
 
 defineOptions({ name: 'BasicSidebar' })
 
 export interface SideBarPropsType extends SidebarProps {
     menus: SidebarMenuItemType[]
+    sidebarViews?: SidebarView[]
 }
 
 const props = withDefaults(defineProps<SideBarPropsType>(), {
     collapsible: 'icon',
+    sidebarViews: () => [],
 })
 
 const { t, te } = useI18n({ useScope: 'global' })
@@ -49,13 +54,15 @@ function label(key: string | undefined, fallback: string): string {
     return key && te(key) ? t(key) : fallback
 }
 
-const groupedMenus = computed(() => groupSidebarMenus(props.menus))
-
 const route = useRoute()
 const router = useRouter()
 const { state, isMobile, setOpenMobile } = useSidebar()
 
 const selectedPath = computed(() => activeMenuPath(route))
+const activeView = computed(() => resolveSidebarView(route.path, props.sidebarViews))
+const visibleMenus = computed(() => activeView.value?.menus ?? props.menus)
+const groupedMenus = computed(() => groupSidebarMenus(visibleMenus.value))
+const sidebarViewKey = computed(() => activeView.value?.id ?? '__root')
 
 // ─── helpers ───
 
@@ -112,11 +119,16 @@ function closeSidebarOnNavigate(): void {
     if (isMobile.value) setOpenMobile(false)
 }
 
+function backToRoot(event: MouseEvent, view: SidebarView): void {
+    navigateLink(event, { url: view.parent.url, external: false })
+    closeSidebarOnNavigate()
+}
+
 function linkHref(item: SidebarMenuItemType): string {
     return item.external ? item.url : router.resolve(item.url).href
 }
 
-function navigateLink(event: MouseEvent, item: SidebarMenuItemType): void {
+function navigateLink(event: MouseEvent, item: Pick<SidebarMenuItemType, 'url' | 'external'>): void {
     if (item.external || event.defaultPrevented || event.button !== 0
         || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
@@ -139,13 +151,32 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
         :variant="props.variant"
         :collapsible="props.collapsible"
     >
+        <SidebarHeader v-if="activeView" data-sidebar-view-header class="border-sidebar-border border-b px-2 py-2">
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton
+                        as="a"
+                        :href="router.resolve(activeView.parent.url).href"
+                        :tooltip="label(activeView.parent.titleKey, activeView.parent.title)"
+                        :aria-label="`${t('navigation.back', '返回')} ${label(activeView.parent.titleKey, activeView.parent.title)}`"
+                        class="gap-1.5 font-medium text-muted-foreground hover:text-foreground"
+                        @click="backToRoot($event, activeView)"
+                    >
+                        <Icon icon="lucide:chevron-left" class="size-4 shrink-0" />
+                        <span class="truncate">{{ label(activeView.parent.titleKey, activeView.parent.title) }}</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarHeader>
         <SidebarContent class="py-2">
-            <SidebarGroup v-for="group in groupedMenus" :key="group.titleKey ?? group.title" class="px-2 py-1">
-                <SidebarGroupLabel class="px-2 text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase">
-                    {{ label(group.titleKey, group.title) }}
-                </SidebarGroupLabel>
-                <SidebarMenu>
-                    <template v-for="item in group.items" :key="item.url">
+            <Transition name="sidebar-view" mode="out-in" :css="true">
+                <div :key="sidebarViewKey" data-sidebar-view class="flex min-h-0 flex-col">
+                    <SidebarGroup v-for="group in groupedMenus" :key="group.titleKey ?? group.title" class="px-2 py-1">
+                        <SidebarGroupLabel class="px-2 text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase">
+                            {{ label(group.titleKey, group.title) }}
+                        </SidebarGroupLabel>
+                        <SidebarMenu>
+                            <template v-for="item in group.items" :key="item.url">
                         <!-- ── Leaf item (no children) ── -->
                         <SidebarMenuItem v-if="!hasChildren(item)">
                             <SidebarMenuButton
@@ -276,9 +307,11 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </SidebarMenuItem>
-                    </template>
-                </SidebarMenu>
-            </SidebarGroup>
+                            </template>
+                        </SidebarMenu>
+                    </SidebarGroup>
+                </div>
+            </Transition>
         </SidebarContent>
         <SidebarRail />
     </Sidebar>

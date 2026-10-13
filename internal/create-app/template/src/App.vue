@@ -1,10 +1,23 @@
 <script setup lang="ts">
 import { AppShell } from '@airovo/app'
+import type { SidebarView } from '@airovo/layouts'
 import { handleReauthenticate, logout } from './auth/handlers'
+
+const sidebarViews = [
+    {
+        id: 'navigation-workspace',
+        pathPattern: /^\/dashboard\/navigation-tree(?:\/|$)/,
+        parent: { title: 'Dashboard', url: '/dashboard/overview' },
+        menus: [
+            { title: '导航总览', url: '/dashboard/navigation-tree/overview', group: '导航工作区', order: 10 },
+            { title: '布局演示', url: '/dashboard/navigation-tree/layout', group: '导航工作区', order: 20 },
+        ],
+    },
+] satisfies SidebarView[]
 </script>
 
 <template>
-    <AppShell :auth="{ reauthenticate: handleReauthenticate, logout }">
+    <AppShell :auth="{ reauthenticate: handleReauthenticate, logout }" :sidebar-views="sidebarViews">
         <template #business>
             <span class="text-sm font-medium text-muted-foreground">__APP_TITLE__</span>
         </template>
