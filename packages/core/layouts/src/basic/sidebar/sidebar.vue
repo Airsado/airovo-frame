@@ -28,7 +28,7 @@ import {
 } from '@airovo/uikit-shadcnui'
 
 import { Icon } from '@airovo/shared/icons'
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { SidebarMenuItemType } from './types'
@@ -56,7 +56,7 @@ function label(key: string | undefined, fallback: string): string {
 
 const route = useRoute()
 const router = useRouter()
-const { state, isMobile, setOpenMobile } = useSidebar()
+const { state, isMobile, openMobile, setOpenMobile } = useSidebar()
 
 const selectedPath = computed(() => activeMenuPath(route))
 const activeView = computed(() => resolveSidebarView(route.path, props.sidebarViews))
@@ -81,6 +81,11 @@ function isExactMatch(item: SidebarMenuItemType): boolean {
 /** True when the item (or any of its children) is the current page. */
 function isActiveScope(item: SidebarMenuItemType): boolean {
     return containsActiveMenu(item, selectedPath.value)
+}
+
+/** Keep unavailable entries visible while preventing focus and navigation. */
+function isDisabled(item: SidebarMenuItemType): boolean {
+    return item.disabled === true
 }
 
 // ─── open state (accordion — single open) ───
@@ -119,6 +124,21 @@ function closeSidebarOnNavigate(): void {
     if (isMobile.value) setOpenMobile(false)
 }
 
+/** Close the mobile sheet when Escape originates inside the active sidebar. */
+function onSidebarKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape' || !isMobile.value || !openMobile.value) return
+    const target = event.target
+    const sidebar = target instanceof Node
+        ? (target as Element).closest('[data-sidebar="sidebar"][data-mobile="true"]')
+        : null
+    if (!sidebar) return
+    event.preventDefault()
+    setOpenMobile(false)
+}
+
+onMounted(() => document.addEventListener('keydown', onSidebarKeydown))
+onBeforeUnmount(() => document.removeEventListener('keydown', onSidebarKeydown))
+
 /** Navigate from a contextual view back to its registered parent surface. */
 function backToRoot(event: MouseEvent, view: SidebarView): void {
     navigateLink(event, { url: view.parent.url, external: false })
@@ -130,7 +150,11 @@ function linkHref(item: SidebarMenuItemType): string {
 }
 
 /** Preserve browser modifier-click behavior while routing ordinary clicks internally. */
-function navigateLink(event: MouseEvent, item: Pick<SidebarMenuItemType, 'url' | 'external'>): void {
+function navigateLink(event: MouseEvent, item: Pick<SidebarMenuItemType, 'url' | 'external' | 'disabled'>): void {
+    if (item.disabled) {
+        event.preventDefault()
+        return
+    }
     if (item.external || event.defaultPrevented || event.button !== 0
         || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
@@ -185,10 +209,13 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 as="a"
                                 :tooltip="label(item.titleKey, item.title)"
                                 :is-active="isExactMatch(item)"
+                                :disabled="isDisabled(item)"
                                 :href="linkHref(item)"
                                 data-sidebar-menu-kind="leaf"
                                 :data-menu-url="item.url"
                                 :aria-current="isExactMatch(item) ? 'page' : undefined"
+                                :aria-disabled="isDisabled(item) ? 'true' : undefined"
+                                :tabindex="isDisabled(item) ? -1 : undefined"
                                 class="app-sidebar-nav-item"
                                 :data-app-sidebar-active="isExactMatch(item) ? 'true' : 'false'"
                                 :target="item.external ? '_blank' : undefined"
@@ -210,12 +237,14 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                             @update:open="(v) => onParentToggle(item, v)"
                         >
                             <SidebarMenuItem>
-                                <CollapsibleTrigger as-child>
+                                <CollapsibleTrigger as-child :disabled="isDisabled(item)">
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
                                         data-sidebar-menu-kind="parent"
                                         :data-menu-url="item.url"
                                         :aria-label="label(item.titleKey, item.title)"
+                                        :disabled="isDisabled(item)"
+                                        :aria-disabled="isDisabled(item) ? 'true' : undefined"
                                         class="app-sidebar-nav-item"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
@@ -236,10 +265,13 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                             <SidebarMenuSubButton
                                                 as="a"
                                                 :is-active="isExactMatch(subItem)"
+                                                :disabled="isDisabled(subItem)"
                                                 :href="linkHref(subItem)"
                                                 data-sidebar-menu-kind="child"
                                                 :data-menu-url="subItem.url"
                                                 :aria-current="isExactMatch(subItem) ? 'page' : undefined"
+                                                :aria-disabled="isDisabled(subItem) ? 'true' : undefined"
+                                                :tabindex="isDisabled(subItem) ? -1 : undefined"
                                                 class="app-sidebar-nav-item data-[active=true]:font-medium"
                                                 :data-app-sidebar-active="isExactMatch(subItem) ? 'true' : 'false'"
                                                 :target="subItem.external ? '_blank' : undefined"
@@ -259,10 +291,11 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                         <!-- ── Parent with children (collapsed desktop) ── -->
                         <SidebarMenuItem v-else>
                             <DropdownMenu>
-                                <DropdownMenuTrigger as-child class="group/dropdown-trigger">
+                                <DropdownMenuTrigger as-child :disabled="isDisabled(item)" class="group/dropdown-trigger">
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
                                         :is-active="isActiveScope(item)"
+                                        :disabled="isDisabled(item)"
                                         data-sidebar-menu-kind="parent-collapsed"
                                         :data-menu-url="item.url"
                                         :aria-label="label(item.titleKey, item.title)"
@@ -287,6 +320,7 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                             v-for="subItem in item.children"
                                             :key="subItem.url"
                                             as-child
+                                            :disabled="isDisabled(subItem)"
                                             :data-sidebar-nav-active="isExactMatch(subItem) ? 'true' : 'false'"
                                             data-sidebar-menu-kind="collapsed-child"
                                             :data-menu-url="subItem.url"
@@ -297,6 +331,8 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                                 :href="linkHref(subItem)"
                                                 class="app-sidebar-nav-item cursor-pointer"
                                                 :data-app-sidebar-active="isExactMatch(subItem) ? 'true' : 'false'"
+                                                :aria-disabled="isDisabled(subItem) ? 'true' : undefined"
+                                                :tabindex="isDisabled(subItem) ? -1 : undefined"
                                                 :target="subItem.external ? '_blank' : undefined"
                                                 :rel="subItem.external ? 'noopener noreferrer' : undefined"
                                                 @click="handleMenuClick($event, subItem)">

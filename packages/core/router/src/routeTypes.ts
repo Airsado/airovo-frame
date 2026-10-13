@@ -91,6 +91,8 @@ export interface MenuItem {
     /** Optional stable sidebar sort order; lower values render first. */
     order?: number
     badge?: string | number
+    /** Render the menu entry as unavailable without removing it from the tree. */
+    disabled?: boolean
     isActive?: boolean
     /** Stable route name, when supplied by a backend menu adapter. */
     name?: string

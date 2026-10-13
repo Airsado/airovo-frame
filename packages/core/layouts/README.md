@@ -21,19 +21,29 @@ views. A matching view replaces the root menu, renders a back affordance, and
 keeps the same grouping, ordering, active-state and collapsed-dropdown rules:
 
 ```ts
-import type { SidebarView } from '@airovo/layouts'
+import type { SidebarView } from "@airovo/layouts";
 
 const sidebarViews: SidebarView[] = [
   {
-    id: 'settings',
+    id: "settings",
     pathPattern: /^\/settings(?:\/|$)/,
-    parent: { title: 'Dashboard', url: '/' },
+    parent: { title: "Dashboard", url: "/" },
     menus: [
-      { title: 'Profile', url: '/settings/profile', group: 'Settings', order: 10 },
-      { title: 'Security', url: '/settings/security', group: 'Settings', order: 20 },
+      {
+        title: "Profile",
+        url: "/settings/profile",
+        group: "Settings",
+        order: 10,
+      },
+      {
+        title: "Security",
+        url: "/settings/security",
+        group: "Settings",
+        order: 20,
+      },
     ],
   },
-]
+];
 ```
 
 Pass the registry through `AppShell` or `BasicLayoutHost`:
@@ -44,6 +54,37 @@ Pass the registry through `AppShell` or `BasicLayoutHost`:
 
 The view transition respects `prefers-reduced-motion`; applications that do
 not register views continue to render the root `menus` tree unchanged.
+
+Menu entries may be kept visible but unavailable with `disabled: true`. The
+framework preserves that state in sorted copies of the menu tree, exposes
+`aria-disabled`, removes disabled anchors from the tab order, prevents route
+navigation, and applies the primitive disabled opacity in expanded and
+collapsed rendering:
+
+```ts
+{
+  title: 'Restricted settings',
+  url: '/settings/restricted',
+  disabled: true,
+}
+```
+
+The Playwright demo and create-app template include a disabled entry in the
+contextual view fixture. Their mobile sidebar is opened through the standard
+Sidebar trigger so outside dismissal and focus behavior can be checked without
+using business routes.
+
+For a repeatable browser pass, start the demo with `pnpm dev` and run
+`pnpm verify:sidebar`. Set `SIDEBAR_MATRIX_URL`, `SIDEBAR_MATRIX_USERNAME`,
+`SIDEBAR_MATRIX_PASSWORD`, or `SIDEBAR_MATRIX_BROWSER` when the demo is served
+elsewhere or a specific browser executable is required. The script reports the
+desktop, theme, reduced-motion and mobile assertions as one JSON result.
+
+The visible implementation differences from new-api are intentional: Vue uses
+the framework's `SidebarView` prop registry instead of React context hooks,
+`<Transition>` instead of `motion.div`, and the existing Reka Sheet/Dropdown
+primitives instead of copying React primitives. The semantic tokens, menu
+states, back affordance and route-driven replacement remain aligned.
 
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 
