@@ -202,6 +202,8 @@ a desktop DataTable. It owns responsive layout, stable row keys, loading and
 empty slots, and optional page/persistent row selection. In selectable mode the
 `card` slot receives `selected`, `toggleRow`, and `rowKey`; the default card
 renders row checkboxes and a current-page select-all control.
+Page scope clears selected keys that leave the current rows; persistent scope
+keeps them across row replacement, matching DataTable selection semantics.
 
 ## PageFooter
 

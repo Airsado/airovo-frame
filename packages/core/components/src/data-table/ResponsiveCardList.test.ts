@@ -33,4 +33,23 @@ describe('ResponsiveCardList', () => {
         await rows[0]!.setValue(true)
         expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[1, 2]])
     })
+
+    it('preserves persistent selected keys when rows change', async () => {
+        const wrapper = mount(ResponsiveCardList, {
+            props: { selectable: true, selectionScope: 'persistent', selectedKeys: [1], rows: [{ id: 2, name: 'two' }] },
+        })
+        await wrapper.findAll('input[type="checkbox"]').at(-1)!.setValue(true)
+        expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[1, 2]])
+        await wrapper.setProps({ rows: [{ id: 3, name: 'three' }] })
+        expect(wrapper.emitted('update:selectedKeys')).toHaveLength(1)
+    })
+
+    it('clears page-scoped selected keys when rows change', async () => {
+        const wrapper = mount(ResponsiveCardList, {
+            props: { selectable: true, selectedKeys: [1], rows: [{ id: 1, name: 'one' }] },
+        })
+        await wrapper.setProps({ rows: [{ id: 2, name: 'two' }] })
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[]])
+    })
 })
