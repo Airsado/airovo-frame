@@ -223,6 +223,11 @@ non-selectable group labels, leaf entries keep their depth/description/icon/
 disabled state, and searching a leaf retains the matching parent path. Only
 leaf values enter the v-model contract.
 
+Run `pnpm dev` followed by `pnpm verify:primitives` for the repeatable
+Calendar/Command/Combobox browser matrix. `PRIMITIVE_MATRIX_URL`,
+`PRIMITIVE_MATRIX_USERNAME`, `PRIMITIVE_MATRIX_PASSWORD`, and
+`PRIMITIVE_MATRIX_BROWSER` can override the demo URL, test account, and browser.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit
