@@ -682,7 +682,7 @@ function sseItemData(item: unknown): unknown {
                     </ContextMenuContent>
                 </ContextMenu>
                 <h2 class="text-lg font-semibold">Resizable primitive</h2>
-                <ResizablePanelGroup class="h-24 max-w-xl rounded-lg border" aria-label="可调整面板">
+                <ResizablePanelGroup storage-key="playwright-resizable-demo" class="h-24 max-w-xl rounded-lg border" aria-label="可调整面板">
                     <ResizablePanel :default-size="40" :min-size="20" class="p-3 text-sm">左侧面板</ResizablePanel>
                     <ResizableHandle with-handle />
                     <ResizablePanel :default-size="60" :max-size="80" class="p-3 text-sm">右侧面板</ResizablePanel>

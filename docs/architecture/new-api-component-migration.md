@@ -37,7 +37,7 @@
 | Select / NativeSelect / Dialog / Drawer / Sheet / Tooltip / Popover / Command / ScrollArea | 已存在 | 对照 keyboard、focus、outside、mobile |
 | Accordion / Alert / AlertDialog / AspectRatio / Card / Checkbox / Empty / Pagination / Progress / RadioGroup / Slider / Spinner / Switch / Table / Tabs / Toggle / ToggleGroup | 已存在但行为不完整 | 已有公开 API、测试、Demo 和模板；继续补 light/dark、mobile、visual regression 和组合验证 |
 | ButtonGroup / ContextMenu / InputGroup / Kbd / Menubar / TagsInput / InputOTP / NumberField | 已存在但行为不完整 | 已有公开 API和基础测试；继续补 keyboard/focus、主题和 browser matrix |
-| Carousel / Resizable | 已存在但行为不完整 | 核心 scroll-snap/pointer contract 已有；继续补 loop/plugin、多 panel 持久化和 mobile matrix |
+| Carousel / Resizable | 已存在但行为不完整 | Carousel 仍需 loop/plugin；Resizable 已补 `storageKey` 多 panel 持久化，仍需 mobile matrix |
 | Calendar / Chart / Field / Form / Item / NativeSelect / Stepper | 已存在或已有近似 | 补框架组合和主题/可访问性验证 |
 
 ## 迁移规则

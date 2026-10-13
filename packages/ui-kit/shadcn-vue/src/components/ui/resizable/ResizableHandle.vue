@@ -47,7 +47,7 @@ function startDrag(event: PointerEvent): void {
     pair[1].dataset.startSize = String(pair[1].getBoundingClientRect()[size])
     const start = event[axis]
     const move = (moveEvent: PointerEvent) => resize(moveEvent[axis] - start, total)
-    const stop = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', stop); cleanup = undefined }
+    const stop = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', stop); cleanup = undefined; context?.persist?.() }
     document.addEventListener('pointermove', move)
     document.addEventListener('pointerup', stop, { once: true })
     cleanup = stop
@@ -65,6 +65,7 @@ function onKeydown(event: KeyboardEvent): void {
     const total = pair[0].parentElement?.getBoundingClientRect()[size] ?? 100
     const current = pair[0].getBoundingClientRect()[size]
     resize(increase ? total * 0.05 : -total * 0.05, total)
+    context?.persist?.()
     event.preventDefault()
     void current
 }
