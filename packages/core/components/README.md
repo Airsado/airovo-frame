@@ -122,6 +122,17 @@ selection state.
 
 ## Status states
 
+`StatusBadge` follows the new-api status-badge contract. Use `variant` with
+`type="badge" | "text" | "underline"`, `size="sm" | "md" | "lg"`,
+`label`/`icon`, `showDot`, `pulse`, `copyable`, `copyText`, or `autoColor`.
+The legacy `status`/`text` props remain supported and use the same new-api
+color and sizing classes. Copyable badges expose a `copy` event after the
+clipboard write succeeds and can be activated with Enter or Space.
+
+`StatusBadgeList` renders a bounded list of badge slots, a neutral `+N`
+overflow badge, and an `empty` slot. It owns only layout and display limits;
+the caller owns the item meaning and actions.
+
 `EmptyState` keeps its existing `actionText`/`action` event and `actions` slot;
 `bordered` and the singular `action` slot are optional additions. `ErrorState`
 provides retry/action events and slots with an alert role. `LoadingState`

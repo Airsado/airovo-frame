@@ -31,6 +31,7 @@ import {
     SectionPage,
     StatCard,
     StatusBadge,
+    StatusBadgeList,
     UserCard,
     type DataTableColumn,
     type DataTableColumnPinning,
@@ -1206,6 +1207,14 @@ function sseItemData(item: unknown): unknown {
                     <StatusBadge status="info" />
                     <StatusBadge status="neutral" />
                     <StatusBadge status="warning" text="需注意" />
+                </div>
+                <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
+                    <StatusBadge variant="blue" label="纯文字" type="text" :copyable="false" />
+                    <StatusBadge variant="warning" label="下划线" type="underline" :copyable="false" />
+                    <StatusBadge variant="green" label="可复制" show-dot />
+                    <StatusBadgeList :items="['OpenAI', 'Claude', 'Ollama']" :max="2">
+                        <template #item="{ item }"><StatusBadge variant="neutral" :label="String(item)" :copyable="false" /></template>
+                    </StatusBadgeList>
                 </div>
             </section>
 
