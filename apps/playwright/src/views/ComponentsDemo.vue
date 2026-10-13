@@ -172,8 +172,8 @@ const searchedProvider = ref<string | undefined>()
 const selectedChannelStatus = ref<string | undefined>()
 const selectedChannelTypes = ref<string[]>([])
 const providerOptions = [
-    { label: 'OpenAI 主渠道', value: 'openai' },
-    { label: 'Claude 备用渠道', value: 'claude' },
+    { label: 'OpenAI 主渠道', value: 'openai', description: '默认模型供应商', icon: 'lucide:cloud' },
+    { label: 'Claude 备用渠道', value: 'claude', description: '备用模型供应商', icon: 'lucide:server' },
     { label: '本地 Ollama（禁用）', value: 'ollama', disabled: true },
 ]
 const hierarchicalProviderOptions = [
@@ -991,7 +991,7 @@ function sseItemData(item: unknown): unknown {
                         </label>
                         <label class="flex flex-col gap-1.5 text-sm">
                         <span class="text-xs font-medium text-muted-foreground">通用 Combobox</span>
-                        <Combobox v-model="selectedCombobox" :options="providerOptions" allow-custom-value placeholder="搜索或输入渠道" />
+                        <Combobox v-model="selectedCombobox" :options="providerOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
                         <span class="text-xs text-muted-foreground">当前值：{{ selectedCombobox ?? '未选择' }}</span>
                         </label>
                     </div>

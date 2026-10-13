@@ -1,6 +1,8 @@
 export interface SelectOption {
     label: string
     value?: string
+    description?: string
+    icon?: string
     disabled?: boolean
     children?: SelectOption[]
 }

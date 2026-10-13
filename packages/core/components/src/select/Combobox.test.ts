@@ -8,7 +8,7 @@ const stubs = {
     PopoverTrigger: { template: '<div><slot /></div>' },
     PopoverContent: { template: '<div><slot /></div>' },
     Command: { template: '<div><slot /></div>' },
-    CommandInput: { emits: ['keydown'], template: '<input data-slot="command-input" @keydown="$emit(\'keydown\', $event)" />' },
+    CommandInput: { emits: ['keydown', 'update:modelValue'], props: ['modelValue'], template: '<input data-slot="command-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" @keydown="$emit(\'keydown\', $event)" />' },
     CommandList: { template: '<div><slot /></div>' },
     CommandEmpty: { template: '<div><slot /></div>' },
     CommandGroup: { template: '<div><slot /></div>' },
@@ -42,5 +42,45 @@ describe('Combobox', () => {
         expect(wrapper.findAll('button')).toHaveLength(2)
         expect(wrapper.text()).toContain('OpenAI')
         expect(wrapper.text()).not.toContain('Cloud')
+    })
+
+    it('searches labels and values, renders descriptions/icons, and restores selection on Escape', async () => {
+        const wrapper = mount(Combobox, {
+            props: {
+                modelValue: 'openai',
+                options: [
+                    { label: 'OpenAI', value: 'openai', icon: 'lucide:cloud' },
+                    { label: 'Google', value: 'gemini', description: '备用渠道', icon: 'lucide:cloud' },
+                ],
+                showSelectedIcon: true,
+                ariaLabel: '提供商',
+                id: 'provider',
+                name: 'provider',
+            },
+            global: { stubs },
+        })
+
+        expect(wrapper.get('[role="combobox"]').attributes('aria-label')).toBe('提供商')
+        expect(wrapper.get('[role="combobox"]').attributes('id')).toBe('provider')
+        expect(wrapper.get('[data-slot="combobox-selected-icon"]')).toBeTruthy()
+        await wrapper.get('[role="combobox"]').trigger('click')
+        const input = wrapper.get('[data-slot="command-input"]')
+        await input.setValue('gemini')
+        expect(wrapper.text()).toContain('Google')
+        expect(wrapper.text()).toContain('备用渠道')
+        expect(wrapper.findAll('button').filter((button) => !button.attributes('role')).map((button) => button.text())).not.toContain('OpenAI')
+        await input.trigger('keydown', { key: 'Escape' })
+        expect(wrapper.get('[role="combobox"]').text()).toContain('OpenAI')
+        expect(wrapper.get('[role="combobox"]').attributes('aria-expanded')).toBe('false')
+    })
+
+    it('does not open on focus by default and opens when requested', async () => {
+        const closed = mount(Combobox, { props: { options: [{ label: 'A', value: 'a' }] }, global: { stubs } })
+        await closed.get('[role="combobox"]').trigger('focus')
+        expect(closed.get('[role="combobox"]').attributes('aria-expanded')).toBe('false')
+
+        const open = mount(Combobox, { props: { openOnFocus: true, options: [{ label: 'A', value: 'a' }] }, global: { stubs } })
+        await open.get('[role="combobox"]').trigger('focus')
+        expect(open.get('[role="combobox"]').attributes('aria-expanded')).toBe('true')
     })
 })
