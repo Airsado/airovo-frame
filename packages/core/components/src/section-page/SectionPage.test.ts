@@ -24,6 +24,12 @@ describe('SectionPage', () => {
         expect(header.classes()).toContain('top-0')
         expect(header.classes()).toContain('z-20')
         expect(header.classes()).toContain('bg-background/95')
+        const defaultWrapper = mount(SectionPage, {
+            global: {
+                plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
+            },
+        })
+        expect(defaultWrapper.get('h1').classes()).toContain('font-bold')
     })
 
     it('teleports PageFooterPortal into the SectionPage footer host', async () => {
