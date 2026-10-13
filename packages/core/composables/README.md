@@ -27,3 +27,5 @@ controller contract; applications need no custom host or popup z-index.
 `titleClass`,
 `descriptionClass`, `bodyClass`, and `footerClass`. `ModalHost` keeps the
 header/footer fixed while the body remains the scroll container.
+`DrawerApi` inherits the same layout and initial-focus options for bottom and
+right-side DrawerHost instances.
