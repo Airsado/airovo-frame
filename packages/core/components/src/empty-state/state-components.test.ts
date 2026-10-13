@@ -52,6 +52,7 @@ describe('status state components', () => {
         await buttons[1]!.trigger('click')
         expect(wrapper.emitted('retry')).toHaveLength(1)
         expect(wrapper.emitted('action')).toHaveLength(1)
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('min-h-[300px]')
     })
 
     it('supports block and inline loading sizes', () => {
@@ -59,6 +60,7 @@ describe('status state components', () => {
         expect(block.attributes('aria-busy')).toBe('true')
         expect(block.attributes('role')).toBe('status')
         expect(block.attributes('aria-label')).toBe('加载中…')
+        expect(block.classes()).toContain('min-h-[200px]')
         expect(block.find('.size-8').exists()).toBe(true)
         const inline = mount(LoadingState, { props: { inline: true, message: '保存中', size: 'sm' } })
         expect(inline.element.tagName).toBe('SPAN')
