@@ -40,6 +40,8 @@ describe('CommandMenu', () => {
         expect(document.body.textContent).toContain('概览')
         expect(document.body.textContent).toContain('G O')
         expect(document.body.querySelector('[data-slot="command-item"][data-disabled]')).toBeTruthy()
+        expect(document.body.querySelector('[data-slot="dialog-content"]')?.className).toContain('rounded-xl')
+        expect(document.body.querySelector('[data-slot="dialog-content"]')?.className).toContain('top-1/3')
         wrapper.unmount()
     })
 

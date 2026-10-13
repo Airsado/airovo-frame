@@ -1,13 +1,18 @@
 <script lang="ts" setup>
 import { computed, ref, type PropType } from 'vue'
 import {
-    CommandDialog,
+    Command,
     CommandEmpty,
     CommandGroup,
     CommandInput,
     CommandItem,
     CommandList,
     CommandShortcut,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from '@airovo/uikit-shadcnui'
 import type { CommandMenuGroup, CommandMenuItem, CommandMenuProps } from './types'
 
@@ -48,35 +53,37 @@ function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
 </script>
 
 <template>
-    <CommandDialog
-        :open="isOpen"
-        :title="props.title"
-        :description="props.description"
-        :class="props.contentClass"
-        @update:open="updateOpen"
-    >
-        <CommandInput :placeholder="props.placeholder" />
-        <CommandList>
-            <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
-            <template v-for="(group, groupIndex) in props.groups" :key="group.id">
-                <slot name="group" :group="group" :index="groupIndex">
-                    <CommandGroup :heading="group.label">
-                        <CommandItem
-                            v-for="item in group.items"
-                            :key="item.id"
-                            :value="item.value ?? item.label"
-                            :disabled="item.disabled"
-                            @select="selectItem(item, group)"
-                        >
-                            <slot name="item" :item="item" :group="group">
-                                {{ item.label }}
-                            </slot>
-                            <CommandShortcut v-if="item.shortcut">{{ item.shortcut }}</CommandShortcut>
-                        </CommandItem>
-                    </CommandGroup>
-                </slot>
-            </template>
-            <slot />
-        </CommandList>
-    </CommandDialog>
+    <Dialog :open="isOpen" @update:open="updateOpen">
+        <DialogContent :show-close-button="false" :class="['top-1/3 translate-y-0 overflow-hidden rounded-xl p-0', props.contentClass]">
+            <DialogHeader class="sr-only">
+                <DialogTitle>{{ props.title }}</DialogTitle>
+                <DialogDescription>{{ props.description }}</DialogDescription>
+            </DialogHeader>
+            <Command>
+                <CommandInput :placeholder="props.placeholder" />
+                <CommandList>
+                    <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
+                    <template v-for="(group, groupIndex) in props.groups" :key="group.id">
+                        <slot name="group" :group="group" :index="groupIndex">
+                            <CommandGroup :heading="group.label">
+                                <CommandItem
+                                    v-for="item in group.items"
+                                    :key="item.id"
+                                    :value="item.value ?? item.label"
+                                    :disabled="item.disabled"
+                                    @select="selectItem(item, group)"
+                                >
+                                    <slot name="item" :item="item" :group="group">
+                                        {{ item.label }}
+                                    </slot>
+                                    <CommandShortcut v-if="item.shortcut">{{ item.shortcut }}</CommandShortcut>
+                                </CommandItem>
+                            </CommandGroup>
+                        </slot>
+                    </template>
+                    <slot />
+                </CommandList>
+            </Command>
+        </DialogContent>
+    </Dialog>
 </template>
