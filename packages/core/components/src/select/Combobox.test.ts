@@ -142,6 +142,22 @@ describe("Combobox", () => {
     expect(wrapper.text()).not.toContain("文章");
   });
 
+  it("keeps leaf indentation, empty feedback, and normal selection", async () => {
+    const wrapper = mount(Combobox, {
+      props: {
+        options: [{ label: "内容", children: [{ label: "文章", value: "articles" }] }],
+        emptyText: "没有匹配渠道",
+      },
+      global: { stubs },
+    });
+    await wrapper.get('[role="combobox"]').trigger("click");
+    expect(wrapper.find('[data-depth="1"]').attributes("style")).toContain("padding-left");
+    await wrapper.get('[data-slot="command-input"]').setValue("不存在");
+    expect(wrapper.text()).toContain("没有匹配渠道");
+    await wrapper.get('[data-slot="command-input"]').setValue("文章");
+    expect(wrapper.text()).toContain("文章");
+  });
+
   it("does not open on focus by default and opens when requested", async () => {
     const closed = mount(Combobox, {
       props: { options: [{ label: "A", value: "a" }] },
