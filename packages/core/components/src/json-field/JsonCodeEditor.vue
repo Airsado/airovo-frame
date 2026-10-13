@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Textarea } from '@airovo/uikit-shadcnui'
+import { toast } from 'vue-sonner'
 import { applyJsonSmartEnter, formatJsonDraft, getCursorLocation, getJsonValidationState } from './json-code-editor-utils'
 
 defineOptions({ name: 'JsonCodeEditor' })
@@ -58,7 +59,12 @@ function format(): void {
 }
 async function copy(): Promise<void> {
     if (!draft.value || typeof navigator === 'undefined' || !navigator.clipboard) return
-    await navigator.clipboard.writeText(draft.value)
+    try {
+        await navigator.clipboard.writeText(draft.value)
+        toast.success('已复制 JSON')
+    } catch {
+        toast.error('复制失败')
+    }
 }
 </script>
 
@@ -66,7 +72,7 @@ async function copy(): Promise<void> {
     <div class="overflow-hidden rounded-lg border border-input bg-background focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
         <div class="flex h-8 items-center justify-between border-b bg-muted/30 px-2">
             <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon icon="lucide:braces" class="size-3.5" /> JSON <span class="font-mono text-muted-foreground/70">{{ cursor.line }}:{{ cursor.column }}</span></div>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2">
                 <span :class="['flex items-center gap-1 text-xs', status.isValid ? 'text-emerald-600' : 'text-destructive']"><Icon :icon="status.isValid ? 'lucide:circle-check' : 'lucide:circle-alert'" class="size-3.5" />{{ status.message }}</span>
                 <Button type="button" variant="ghost" size="sm" class="h-6 px-2 text-xs" :disabled="disabled || !draft" @click="copy"><Icon icon="lucide:copy" class="mr-1 size-3.5" />复制</Button>
                 <Button type="button" variant="ghost" size="sm" class="h-6 px-2 text-xs" :disabled="disabled || !status.isValid || !draft.trim()" @click="format"><Icon icon="lucide:code-2" class="mr-1 size-3.5" />格式化</Button>

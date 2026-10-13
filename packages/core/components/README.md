@@ -200,6 +200,9 @@ lifecycle; JsonField owns JSON parsing and draft preservation.
 notation and array entries use bracket indexes; switching to JSON mode still
 edits the same draft string, and serialization reconstructs the nested object.
 
+`JsonCodeEditor` follows the new-api header spacing and reports clipboard
+success/failure through the framework toaster without discarding the draft.
+
 `DataTableRowActions` exposes a stable `data-action-key` for each inline and
 dropdown action. A loading action is disabled, announces `aria-busy`, and
 shows a spinner even when the caller did not provide an icon; callback and

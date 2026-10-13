@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import JsonCodeEditor from './JsonCodeEditor.vue'
+
+vi.mock('vue-sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 describe('JsonCodeEditor', () => {
     it('renders status, line numbers and formatting control', async () => {
@@ -37,5 +39,14 @@ describe('JsonCodeEditor', () => {
         expect(textarea.attributes('aria-describedby')).toBe('config-help')
         expect(textarea.attributes('data-form-root')).toBe('settings-form')
         expect(textarea.attributes('aria-invalid')).toBe('false')
+    })
+
+    it('keeps the header actions at new-api spacing and reports clipboard success', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+        const wrapper = mount(JsonCodeEditor, { props: { modelValue: '{"a":1}' } })
+        expect(wrapper.findAll('.gap-2').length).toBeGreaterThan(0)
+        await wrapper.findAll('button').find(button => button.text() === '复制')?.trigger('click')
+        expect(writeText).toHaveBeenCalledWith('{"a":1}')
     })
 })
