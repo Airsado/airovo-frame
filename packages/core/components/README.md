@@ -215,6 +215,11 @@ forwards CalendarRoot date props, `update:modelValue` and
 `calendar-next-icon` slots. Date range, disabled and keyboard semantics remain
 owned by the Calendar primitive.
 
+`Combobox` accepts nested `SelectOption.children`. Parent entries render as
+non-selectable group labels, leaf entries keep their depth/description/icon/
+disabled state, and searching a leaf retains the matching parent path. Only
+leaf values enter the v-model contract.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit

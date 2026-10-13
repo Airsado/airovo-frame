@@ -1017,7 +1017,7 @@ function sseItemData(item: unknown): unknown {
                         </label>
                         <label class="flex flex-col gap-1.5 text-sm">
                         <span class="text-xs font-medium text-muted-foreground">通用 Combobox</span>
-                        <Combobox v-model="selectedCombobox" :options="providerOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
+                        <Combobox v-model="selectedCombobox" :options="hierarchicalProviderOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
                         <span class="text-xs text-muted-foreground">当前值：{{ selectedCombobox ?? '未选择' }}</span>
                         </label>
                     </div>
