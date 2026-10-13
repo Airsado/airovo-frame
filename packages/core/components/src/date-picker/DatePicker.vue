@@ -59,11 +59,10 @@ watch(() => props.modelValue, (value) => {
 
 const label = computed(() => {
   if (!props.modelValue) return props.placeholder
-  try {
-    return new Intl.DateTimeFormat(props.locale ?? 'zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(props.modelValue)
-  } catch {
-    return props.modelValue.toISOString().slice(0, 10)
-  }
+  const year = props.modelValue.getFullYear()
+  const month = String(props.modelValue.getMonth() + 1).padStart(2, '0')
+  const day = String(props.modelValue.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 })
 
 function selectDate(value: DateValue | undefined): void {
