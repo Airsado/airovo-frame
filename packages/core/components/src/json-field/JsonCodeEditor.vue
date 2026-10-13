@@ -58,7 +58,11 @@ function format(): void {
     if (result.didFormat) publish(result.value)
 }
 async function copy(): Promise<void> {
-    if (!draft.value || typeof navigator === 'undefined' || !navigator.clipboard) return
+    if (!draft.value) return
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        toast.error('复制失败')
+        return
+    }
     try {
         await navigator.clipboard.writeText(draft.value)
         toast.success('已复制 JSON')
