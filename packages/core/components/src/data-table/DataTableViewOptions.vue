@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
-import { Button, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@airovo/uikit-shadcnui'
+import { Button, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@airovo/uikit-shadcnui'
 import { normalizeDataTableColumnVisibility } from './column-visibility'
 import type { DataTableColumn, DataTableColumnVisibility } from './types'
 
@@ -12,11 +12,13 @@ const props = withDefaults(defineProps<{
   modelValue?: DataTableColumnVisibility
   storageKey?: string
   label?: string
+  resetLabel?: string
   modal?: boolean
   dropdownContentClass?: string
 }>(), {
   modelValue: () => ({}),
   label: '列显示',
+  resetLabel: '恢复默认列',
   modal: false,
 })
 
@@ -65,16 +67,19 @@ onMounted(() => {
 <template>
   <DropdownMenu :modal="props.modal" @update:open="(open) => emit('dropdown-open-change', open)">
     <DropdownMenuTrigger as-child>
-      <Button type="button" variant="outline" size="sm" class="gap-1.5" data-slot="data-table-view-options-trigger" :aria-label="label"><Icon icon="lucide:columns-3" class="size-4" />{{ label }}</Button>
+      <Button type="button" variant="outline" size="sm" class="shrink-0 gap-1.5" data-slot="data-table-view-options-trigger" :aria-label="label"><Icon icon="lucide:columns-3" class="size-4" />{{ label }}</Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" :class="['min-w-48', props.dropdownContentClass]" data-slot="data-table-view-options-menu">
-      <DropdownMenuLabel>{{ label }}</DropdownMenuLabel>
+    <DropdownMenuContent align="end" :class="['w-[150px]', props.dropdownContentClass]" data-slot="data-table-view-options-menu">
+      <DropdownMenuGroup aria-label="列显示选项" data-slot="data-table-view-options-group">
+        <DropdownMenuLabel>{{ label }}</DropdownMenuLabel>
+        <DropdownMenuCheckboxItem v-for="column in configurableColumns" :key="columnId(column)" :model-value="isVisible(column)" class="capitalize" @update:model-value="(value) => setVisible(column, value === true)">
+          {{ column.title }}
+        </DropdownMenuCheckboxItem>
+      </DropdownMenuGroup>
       <DropdownMenuSeparator />
-      <DropdownMenuCheckboxItem v-for="column in configurableColumns" :key="columnId(column)" :model-value="isVisible(column)" @update:model-value="(value) => setVisible(column, value === true)">
-        {{ column.title }}
-      </DropdownMenuCheckboxItem>
-      <DropdownMenuSeparator />
-      <button type="button" data-slot="data-table-view-options-reset" aria-label="恢复默认列" class="w-full rounded-sm px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent hover:text-foreground" @click="restoreDefaults">恢复默认列</button>
+      <DropdownMenuItem as-child data-slot="data-table-view-options-reset" :aria-label="resetLabel">
+        <button type="button" class="w-full text-left text-xs text-muted-foreground" @click="restoreDefaults">{{ resetLabel }}</button>
+      </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>
