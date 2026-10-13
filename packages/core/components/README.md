@@ -208,7 +208,9 @@ permission ownership remain with the caller. The dropdown accepts
 `dropdown-open-change` so callers can coordinate focus or overlay state.
 
 `DrawerLayout` composes the existing Drawer primitive with a fixed header,
-scrollable body and optional footer. It accepts `bottom`/`right` side, title,
+scrollable body and optional footer. Its right-side layout follows the
+new-api side-drawer surface (`h-dvh`, no extra shadow, backdrop-blurred
+header/footer, overscroll-contained body). It accepts `bottom`/`right` side, title,
 description, `actions`/`footer` slots and class overrides; callers still own
 open state and business actions.
 
