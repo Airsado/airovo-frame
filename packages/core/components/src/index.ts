@@ -18,4 +18,5 @@ export * from './toast'
 export * from './live-log'
 export * from './chart'
 export * from './json-field'
+export * from './command-menu'
 /// <reference path="./shims.d.ts" />

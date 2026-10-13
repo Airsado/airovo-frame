@@ -28,6 +28,7 @@
 | `components/layout/components/app-sidebar.tsx`、`nav-group.tsx`、`nav-link-item.tsx` | Sidebar / NavGroup | `packages/core/layouts/src/basic/sidebar/*` | 已存在但行为不完整 | order 已支持；collapsed parent active 已补，仍需 view drill-in、motion、expanded/collapsed browser 矩阵 | P0 | layout tests、browser |
 | `components/data-table/toolbar/view-options.tsx` | ViewOptions / ColumnVisibility | `DataTableViewOptions.vue` | 已存在但行为不完整 | 列宽、固定列、持久化 schema 迁移和无障碍菜单；non-modal dropdown API 已补齐 | P1 | component tests、browser |
 | `components/ui/context-menu.tsx`、`tooltip.tsx`、`popover.tsx`、`command.tsx`、`combobox.tsx`、`calendar.tsx` | ContextMenu / Tooltip / Popover / Command / Combobox / Calendar | `packages/ui-kit/shadcn-vue/src/components/ui/*` | ContextMenu 基础与高级 primitive 已存在且已完成 Chrome 右键/键盘/submenu 验证，其余只有 primitive | Tooltip / Popover / Command / Combobox / Calendar 仍需 new-api keyboard/focus/mobile behavior 和业务无关组合 API | P1 | primitive tests、keyboard browser |
+| `components/ui/command.tsx` | CommandMenu | `packages/core/components/src/command-menu/*` | 已存在但行为不完整 | 先补业务无关分组、受控打开、搜索、快捷键、选择和键盘组合；异步命令与第三方插件另立 Issue | P1 | component tests、demo/template、keyboard browser |
 
 ## Primitive 对照
 

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import {
     DataPanel,
+    CommandMenu,
     DataTable,
     ResponsiveCardList,
     TruncatedCell,
@@ -157,6 +158,8 @@ const showDialog = ref(false)
 const showAlertDialog = ref(false)
 const showDrawer = ref(false)
 const showRightDrawer = ref(false)
+const commandMenuOpen = ref(false)
+const selectedCommand = ref('尚未选择')
 const contextMenuPinned = ref(true)
 const contextMenuDensity = ref('compact')
 const selectedDate = ref<Date>()
@@ -176,6 +179,24 @@ const hierarchicalProviderOptions = [
     { label: '云服务', children: providerOptions.slice(0, 2) },
     { label: '本地服务', children: [providerOptions[2]!] },
 ]
+const commandMenuGroups = [
+    {
+        id: 'navigation',
+        label: '导航',
+        items: [
+            { id: 'overview', label: '运营概览', shortcut: 'G O' },
+            { id: 'channels', label: '渠道管理', shortcut: 'G C' },
+        ],
+    },
+    {
+        id: 'actions',
+        label: '操作',
+        items: [
+            { id: 'refresh', label: '刷新数据' },
+            { id: 'disabled', label: '禁用操作', disabled: true },
+        ],
+    },
+] as const
 const channelStatusOptions = [
     { label: '运行中', value: 'enabled', count: 24 },
     { label: '已停用', value: 'disabled', count: 3 },
@@ -190,6 +211,11 @@ const channelTypeOptions = [
 function resetChannelFilters(): void {
     selectedChannelStatus.value = undefined
     selectedChannelTypes.value = []
+}
+
+/** Store the selected demo command; real applications own the command action. */
+function onCommandSelect(item: { label: string }): void {
+    selectedCommand.value = item.label
 }
 const [DemoModal, demoModalApi] = useModal({
     title: '保存设置',
@@ -535,6 +561,22 @@ function sseItemData(item: unknown): unknown {
                 <AspectRatio :ratio="16 / 9" class="max-w-md rounded-lg bg-muted p-4 text-center text-sm">
                     16:9 preview
                 </AspectRatio>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-lg font-semibold">CommandMenu 框架组合</h2>
+                <p class="text-sm text-muted-foreground">业务只提供分组和命令数据，路由和执行逻辑由调用方接收 select 事件。</p>
+                <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
+                    <Button size="sm" @click="commandMenuOpen = true">打开命令面板</Button>
+                    <span class="text-sm text-muted-foreground">最近选择：{{ selectedCommand }}</span>
+                </div>
+                <CommandMenu
+                    v-model:open="commandMenuOpen"
+                    :groups="commandMenuGroups"
+                    title="框架命令面板"
+                    description="搜索并选择一个演示命令"
+                    @select="onCommandSelect"
+                />
             </section>
 
             <section class="space-y-4">
