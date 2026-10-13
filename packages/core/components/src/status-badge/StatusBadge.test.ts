@@ -38,9 +38,11 @@ describe('StatusBadge', () => {
 
         await badge.trigger('click')
         await badge.trigger('keydown', { key: 'Enter' })
+        await badge.trigger('keydown', { key: ' ' })
 
         expect(writeText).toHaveBeenCalledWith('渠道')
-        expect(wrapper.emitted('copy')).toEqual([['渠道'], ['渠道']])
+        expect(writeText).toHaveBeenCalledTimes(3)
+        expect(wrapper.emitted('copy')).toEqual([['渠道'], ['渠道'], ['渠道']])
     })
 
     it('derives a stable text color from autoColor', () => {
