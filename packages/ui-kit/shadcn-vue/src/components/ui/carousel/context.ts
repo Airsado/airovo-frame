@@ -3,6 +3,7 @@ import type { ComputedRef, InjectionKey, Ref } from 'vue'
 export type CarouselOrientation = 'horizontal' | 'vertical'
 export interface CarouselContext {
     orientation: Ref<CarouselOrientation>
+    loop: Ref<boolean>
     currentIndex: Ref<number>
     count: Ref<number>
     canScrollPrev: ComputedRef<boolean>
