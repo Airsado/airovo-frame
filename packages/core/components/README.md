@@ -154,6 +154,11 @@ keeps `HH:mm:ss` precision, accepts legacy `HH:mm` input as `:00`, clones
 dates before merging the selected day and time, and resets the time to
 `00:00:00` when cleared. Disabled state prevents date, time, and clear edits.
 
+`DatePickerField` is the FormFieldSchema-friendly wrapper. Set `type="date"`
+or `type="datetime"`; it forwards date constraints, locale, disabled state,
+v-model and form attributes such as `id`, `name`, `aria-describedby`, and
+`aria-invalid`.
+
 `DataTableViewOptions` uses a non-modal dropdown by default, exposes an
 optional `modal`/`dropdownContentClass` API and emits `dropdown-open-change`.
 It normalizes persisted visibility against the current

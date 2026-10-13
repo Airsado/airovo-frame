@@ -12,6 +12,10 @@ const props = withDefaults(defineProps<{
   minDate?: Date
   maxDate?: Date
   locale?: string
+  id?: string
+  name?: string
+  ariaDescribedby?: string
+  ariaInvalid?: boolean | string
   class?: string
 }>(), { placeholder: '选择日期和时间' })
 const emit = defineEmits<{ 'update:modelValue': [Date | undefined] }>()
@@ -54,7 +58,7 @@ function clear(): void {
 <template>
   <div :class="cn('flex items-center gap-2', props.class)">
     <!-- Override DatePicker's standalone width so this row can shrink in forms. -->
-    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="props.placeholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
+    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="props.placeholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
     <label class="relative flex h-8 shrink-0 items-center">
       <CalendarClock class="pointer-events-none absolute left-2 opacity-60" />
       <input type="time" step="1" :value="time" aria-label="时间" :disabled="props.disabled || !props.modelValue" class="h-8 w-[7.5rem] rounded-lg border border-input bg-background pl-8 pr-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50" @input="updateTime">

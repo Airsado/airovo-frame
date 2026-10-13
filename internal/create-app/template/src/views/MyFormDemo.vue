@@ -13,7 +13,7 @@
 import { computed, defineComponent, h, ref, type PropType } from 'vue'
 import { z } from 'zod'
 import { useForm, type FormFieldSchema } from '@airovo/forms'
-import { JsonField } from '@airovo/components'
+import { DatePickerField, JsonField } from '@airovo/components'
 import { SectionPage } from '@airovo/components'
 import { useModal } from '@airovo/composables'
 import {
@@ -157,6 +157,13 @@ const schema: FormFieldSchema[] = [
             allowClear: true,
         },
         rules: 'required',
+    },
+    {
+        component: DatePickerField,
+        label: '生效日期时间',
+        fieldName: 'effectiveAt',
+        defaultValue: () => new Date(2025, 0, 2, 9, 30),
+        componentProps: { type: 'datetime', locale: 'zh-CN' },
     },
     {
         component: 'Select',

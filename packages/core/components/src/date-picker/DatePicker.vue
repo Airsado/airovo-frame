@@ -21,6 +21,10 @@ const props = withDefaults(defineProps<{
   minDate?: Date
   maxDate?: Date
   locale?: string
+    id?: string
+    name?: string
+    ariaDescribedby?: string
+    ariaInvalid?: boolean | string
   class?: string
 }>(), { placeholder: '选择日期' })
 
@@ -77,6 +81,10 @@ function selectDate(value: DateValue | undefined): void {
         variant="outline"
         :disabled="props.disabled"
         :data-empty="!props.modelValue"
+        :id="props.id"
+        :name="props.name"
+        :aria-describedby="props.ariaDescribedby"
+        :aria-invalid="props.ariaInvalid"
         :class="cn('w-[240px] justify-start text-start font-normal', !props.modelValue && 'text-muted-foreground', props.class)"
         :aria-label="label"
       >
