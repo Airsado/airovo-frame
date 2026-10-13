@@ -1,61 +1,102 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type PropType } from 'vue'
 import { Icon } from '@airovo/shared/icons'
 import {
+    STATUS_DOT_COLOR,
     STATUS_PRESET_LABEL,
-    STATUS_PRESET_ICON,
-    type StatusPreset,
+    STATUS_TEXT_COLOR,
+    type StatusBadgeSize,
+    type StatusBadgeType,
+    type StatusVariant,
 } from './types'
 
-const TONE_CLASS: Record<StatusPreset, string> = {
-    success: 'bg-success/15 text-success ring-success/30',
-    error: 'bg-destructive/15 text-destructive ring-destructive/30',
-    warning: 'bg-warning/15 text-warning ring-warning/30',
-    processing: 'bg-info/15 text-info ring-info/30',
-    pending: 'bg-warning/15 text-warning ring-warning/30',
-    disabled: 'bg-neutral/10 text-neutral ring-neutral/20',
-    info: 'bg-info/15 text-info ring-info/30',
-    neutral: 'bg-neutral/10 text-neutral ring-neutral/20',
+defineOptions({ name: 'StatusBadge' })
+
+const props = defineProps({
+    status: { type: String as PropType<StatusVariant>, default: undefined },
+    variant: { type: String as PropType<StatusVariant | null>, default: undefined },
+    label: { type: String, default: undefined },
+    text: { type: String, default: undefined },
+    icon: { type: String, default: undefined },
+    pulse: { type: Boolean, default: false },
+    showDot: { type: Boolean, default: false },
+    copyable: { type: Boolean, default: true },
+    copyText: { type: String, default: undefined },
+    autoColor: { type: String, default: undefined },
+    type: { type: String as PropType<StatusBadgeType>, default: 'badge' },
+    size: { type: String as PropType<StatusBadgeSize>, default: 'sm' },
+    class: { type: String, default: undefined },
+})
+
+const emit = defineEmits<{ (event: 'copy', value: string): void }>()
+
+const SIZE_CLASS: Record<StatusBadgeSize, string> = {
+    sm: 'h-5 gap-1 px-1.5 text-sm leading-none',
+    md: 'h-5 gap-1 px-1.5 text-sm leading-none',
+    lg: 'h-6 gap-1.5 px-2 text-sm leading-none',
+}
+const TEXT_SIZE_CLASS: Record<StatusBadgeSize, string> = {
+    sm: 'gap-1 text-sm leading-none',
+    md: 'gap-1 text-sm leading-none',
+    lg: 'gap-1.5 text-sm leading-none',
+}
+const COLOR_VARIANTS: StatusVariant[] = [
+    'success', 'warning', 'danger', 'info', 'neutral', 'purple', 'amber', 'blue', 'cyan', 'green',
+    'grey', 'indigo', 'light-blue', 'light-green', 'lime', 'orange', 'pink', 'red', 'teal', 'violet', 'yellow',
+]
+
+const variant = computed<StatusVariant>(() => {
+    if (props.autoColor) {
+        let hash = 0
+        for (const character of props.autoColor) hash = (hash * 31 + character.charCodeAt(0)) | 0
+        return COLOR_VARIANTS[Math.abs(hash) % COLOR_VARIANTS.length] ?? 'neutral'
+    }
+    return props.variant ?? props.status ?? 'neutral'
+})
+const label = computed(() => props.label ?? props.text ?? STATUS_PRESET_LABEL[variant.value] ?? variant.value)
+const iconName = computed(() => props.icon)
+const copyValue = computed(() => props.copyText ?? label.value)
+const isCopyable = computed(() => props.copyable && copyValue.value.length > 0)
+const typeClass = computed(() => props.type === 'badge' ? SIZE_CLASS[props.size] : TEXT_SIZE_CLASS[props.size])
+
+async function copy(): Promise<void> {
+    if (!isCopyable.value || typeof navigator === 'undefined' || !navigator.clipboard) return
+    try {
+        await navigator.clipboard.writeText(copyValue.value)
+        emit('copy', copyValue.value)
+    } catch {
+        // Clipboard permissions are caller/browser state; a denied copy must not break the badge.
+    }
 }
 
-const props = withDefaults(
-    defineProps<{
-        status: StatusPreset
-        text?: string
-        pulse?: boolean
-        class?: string
-    }>(),
-    {
-        pulse: false,
-    },
-)
-
-const label = computed(() => props.text ?? STATUS_PRESET_LABEL[props.status])
-const iconName = computed(() => STATUS_PRESET_ICON[props.status])
-const isProcessing = computed(() => props.status === 'processing')
-const showPulse = computed(
-    () =>
-        props.pulse &&
-        (props.status === 'processing' || props.status === 'warning'),
-)
+function onKeydown(event: KeyboardEvent): void {
+    if (!isCopyable.value || (event.key !== 'Enter' && event.key !== ' ')) return
+    event.preventDefault()
+    void copy()
+}
 </script>
 
 <template>
     <span
+        data-slot="status-badge"
         :class="[
-            'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
-            TONE_CLASS[status],
+            'inline-flex w-fit max-w-full min-w-0 shrink items-center font-medium tracking-normal whitespace-nowrap transition-colors',
+            props.type === 'badge' ? 'rounded-4xl' : props.type === 'underline' && 'border-b border-current pb-px',
+            typeClass,
+            STATUS_TEXT_COLOR[variant],
+            props.pulse && 'animate-pulse',
+            isCopyable && 'cursor-copy hover:brightness-95 active:scale-95 dark:hover:brightness-110',
             props.class,
         ]"
+        :title="isCopyable ? `Click to copy: ${copyValue}` : label"
+        :role="isCopyable ? 'button' : undefined"
+        :tabindex="isCopyable ? 0 : undefined"
+        @click="copy"
+        @keydown="onKeydown"
     >
-        <span
-            v-if="showPulse"
-            class="size-1.5 rounded-full bg-current animate-pulse"
-        />
-        <Icon
-            :icon="iconName"
-            :class="['size-3', isProcessing && 'animate-spin']"
-        />
-        <slot>{{ label }}</slot>
+        <span v-if="props.showDot" :class="['inline-block size-1.5 shrink-0 rounded-full', STATUS_DOT_COLOR[variant]]" aria-hidden="true" />
+        <Icon v-if="iconName" :icon="iconName" class="size-3.5 shrink-0" />
+        <span v-if="label" class="min-w-0 truncate leading-normal"><slot>{{ label }}</slot></span>
+        <slot v-else />
     </span>
 </template>
