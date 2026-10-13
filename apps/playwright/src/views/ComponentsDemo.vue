@@ -35,6 +35,7 @@ import {
     UserCard,
     FrameworkPopover,
     FrameworkTooltip,
+    FrameworkCalendar,
     type DataTableColumn,
     type DataTableColumnPinning,
     type DataTableFilterGroup,
@@ -567,6 +568,12 @@ function sseItemData(item: unknown): unknown {
                 <AspectRatio :ratio="16 / 9" class="max-w-md rounded-lg bg-muted p-4 text-center text-sm">
                     16:9 preview
                 </AspectRatio>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-lg font-semibold">FrameworkCalendar</h2>
+                <p class="text-sm text-muted-foreground">统一 new-api calendar surface、日期 cell 状态和 heading slot；行为由 Reka Calendar primitive 提供。</p>
+                <FrameworkCalendar class="w-fit rounded-lg border" />
             </section>
 
             <section class="space-y-4">

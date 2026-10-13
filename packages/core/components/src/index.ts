@@ -20,4 +20,5 @@ export * from './chart'
 export * from './json-field'
 export * from './command-menu'
 export * from './overlay'
+export * from './calendar'
 /// <reference path="./shims.d.ts" />
