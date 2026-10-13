@@ -41,6 +41,15 @@ describe('DateTimePicker time and controlled state', () => {
         expect(wrapper.get('button[aria-label="清除日期时间"]').attributes('disabled')).toBeDefined()
     })
 
+    it('uses the new-api time and clear control visual contract', () => {
+        const wrapper = mount(DateTimePicker, { props: { modelValue: new Date(2024, 0, 2, 3, 4, 5) }, global })
+        const input = wrapper.get('input[type="time"]')
+        expect(input.classes()).toContain('w-32')
+        expect(input.classes()).toContain('appearance-none')
+        expect(wrapper.get('button[aria-label="清除日期时间"]').attributes('data-variant')).toBe('outline')
+        expect(wrapper.get('button[aria-label="清除日期时间"]').classes()).toContain('shrink-0')
+    })
+
     it('combines a picked date with the current time without mutating the picked Date', async () => {
         const wrapper = mount(DateTimePicker, {
             props: { modelValue: new Date(2024, 0, 2, 6, 7, 8) },

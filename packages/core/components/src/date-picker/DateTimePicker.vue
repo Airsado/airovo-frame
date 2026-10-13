@@ -2,6 +2,7 @@
 import { CalendarClock, X } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { cn } from '@airovo/uikit-shadcnui'
+import { Input } from '@airovo/uikit-shadcnui/components/ui/input'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
 import DatePicker from './DatePicker.vue'
 
@@ -41,8 +42,10 @@ function updateDate(value: Date | undefined): void {
   next.setHours(hours, minutes, seconds, 0)
   emit('update:modelValue', next)
 }
-function updateTime(event: Event): void {
-  const value = (event.target as HTMLInputElement).value
+function updateTime(valueOrEvent: string | number | Event): void {
+  const value = typeof valueOrEvent === 'string' || typeof valueOrEvent === 'number'
+    ? String(valueOrEvent)
+    : (valueOrEvent.target as HTMLInputElement).value
   if (!value) return
   const [hours, minutes, seconds] = parseTime(value)
   time.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
@@ -61,9 +64,9 @@ function clear(): void {
     <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="props.placeholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
     <label class="relative flex h-8 shrink-0 items-center">
       <CalendarClock class="pointer-events-none absolute left-2 opacity-60" />
-      <input type="time" step="1" :value="time" aria-label="时间" :disabled="props.disabled || !props.modelValue" class="h-8 w-[7.5rem] rounded-lg border border-input bg-background pl-8 pr-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50" @input="updateTime">
+      <Input type="time" step="1" :model-value="time" aria-label="时间" :disabled="props.disabled || !props.modelValue" class="w-32 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" @update:model-value="updateTime" />
     </label>
-    <Button v-if="props.modelValue" type="button" variant="ghost" size="icon" aria-label="清除日期时间" :disabled="props.disabled" @click="clear">
+      <Button v-if="props.modelValue" type="button" variant="outline" size="icon" class="shrink-0" aria-label="清除日期时间" :disabled="props.disabled" @click="clear">
       <X />
     </Button>
   </div>

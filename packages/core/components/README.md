@@ -179,6 +179,11 @@ or `type="datetime"`; it forwards date constraints, locale, disabled state,
 v-model and form attributes such as `id`, `name`, `aria-describedby`, and
 `aria-invalid`.
 
+`DateTimePicker` follows the new-api date/time row visuals: a flexible date
+trigger, a `w-32` seconds-aware time input with the browser picker indicator
+hidden, and an outline clear icon button that remains shrink-0. Its value
+merge, disabled, locale and FormField contracts remain caller-owned.
+
 `DataTableViewOptions` uses a non-modal dropdown by default, exposes an
 optional `modal`/`dropdownContentClass` API and emits `dropdown-open-change`.
 It normalizes persisted visibility against the current
