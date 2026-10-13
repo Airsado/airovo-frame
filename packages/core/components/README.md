@@ -323,3 +323,27 @@ third-party plugins remain separate follow-up concerns.
 `update:modelValue` contracts for checkbox/radio state, while `inset` and
 `variant="destructive"` provide the new-api menu styling. Menu content and
 business actions remain owned by the caller.
+
+## CommandMenu
+
+`CommandMenu` composes the ui-kit command primitives into a reusable command
+palette. It accepts business-neutral groups and items, supports controlled or
+uncontrolled `open` state, search, empty results, shortcut labels and disabled
+items, and emits the selected item and group through `select`.
+
+```ts
+const groups = [
+  {
+    id: 'navigation',
+    label: '导航',
+    items: [{ id: 'overview', label: '运营概览', shortcut: 'G O' }],
+  },
+] satisfies CommandMenuGroup[]
+```
+
+Use `v-model:open` when the caller owns visibility. `closeOnSelect` defaults to
+`true`; set it to `false` when a selection should leave the palette open. The
+`item` slot receives `{ item, group }`, the `group` slot can replace a complete
+group, and the default slot can append additional ui-kit command content. The
+component does not know about routing, permissions, i18n, API requests or
+application stores.

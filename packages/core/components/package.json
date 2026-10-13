@@ -21,7 +21,8 @@
         "./toast": "./src/toast/index.ts",
         "./live-log": "./src/live-log/index.ts",
         "./chart": "./src/chart/index.ts",
-        "./json-field": "./src/json-field/index.ts"
+        "./json-field": "./src/json-field/index.ts",
+        "./command-menu": "./src/command-menu/index.ts"
     },
     "license": "MIT",
     "scripts": {
