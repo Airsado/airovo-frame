@@ -11,8 +11,11 @@ const props = withDefaults(defineProps<{
     side?: 'top' | 'bottom' | 'left' | 'right'
     tabIndex?: number
     class?: string
+    cellClassName?: string
     contentClass?: string
+    contentClassName?: string
     tooltipClass?: string
+    tooltipClassName?: string
 }>(), {
     side: 'top',
     tabIndex: 0,
@@ -31,14 +34,14 @@ const content = computed(() => props.tooltipContent !== undefined
     <TooltipProvider v-if="content" :delay-duration="0">
         <Tooltip>
             <TooltipTrigger as-child>
-                <div :class="['block min-w-0 max-w-full truncate', props.class]" :tabindex="tabIndex">
-                    <div :class="['truncate', props.contentClass]"><slot>{{ text }}</slot></div>
+                <div :class="['block min-w-0 max-w-full truncate', props.class, props.cellClassName]" :tabindex="tabIndex">
+                    <div :class="['truncate', props.contentClass, props.contentClassName]"><slot>{{ text }}</slot></div>
                 </div>
             </TooltipTrigger>
-            <TooltipContent :side="side" :class="['max-w-xs break-all', props.tooltipClass]">{{ content }}</TooltipContent>
+            <TooltipContent :side="side" :class="['max-w-xs break-all', props.tooltipClass, props.tooltipClassName]">{{ content }}</TooltipContent>
         </Tooltip>
     </TooltipProvider>
-    <div v-else :class="['block min-w-0 max-w-full truncate', props.class]" :tabindex="tabIndex">
-        <div :class="['truncate', props.contentClass]"><slot>{{ text }}</slot></div>
+    <div v-else :class="['block min-w-0 max-w-full truncate', props.class, props.cellClassName]" :tabindex="tabIndex">
+        <div :class="['truncate', props.contentClass, props.contentClassName]"><slot>{{ text }}</slot></div>
     </div>
 </template>

@@ -25,6 +25,15 @@ describe('TruncatedCell', () => {
         expect(wrapper.find('.content-style').text()).toBe('display')
     })
 
+    it('accepts new-api class name aliases for cell, content and tooltip surfaces', () => {
+        const wrapper = mount(TruncatedCell, {
+            props: { text: 'display', cellClassName: 'cell-style', contentClassName: 'content-alias', tooltipClassName: 'tooltip-alias' },
+        })
+        expect(wrapper.find('.cell-style').exists()).toBe(true)
+        expect(wrapper.find('.content-alias').text()).toBe('display')
+        expect(wrapper.exists()).toBe(true)
+    })
+
     it('creates a tooltip trigger from custom slot text when text is omitted', () => {
         const wrapper = mount(TruncatedCell, {
             slots: { default: () => [h('span', 'first'), h('strong', ' second')] },

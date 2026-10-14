@@ -15,5 +15,5 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-    <TruncatedCell :text="text" :side="side" :class="[maxWidth, $props.class].filter(Boolean).join(' ')" />
+    <TruncatedCell :text="text" :side="side" :cell-class-name="[maxWidth, $props.class].filter(Boolean).join(' ')" />
 </template>

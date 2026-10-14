@@ -169,7 +169,10 @@ pattern: a constrained `truncate` container, keyboard focus, and a Tooltip
 with the full text. `TruncatedCell` extracts text from string, number, array,
 and ordinary VNode slots when `text` is omitted; pass `tooltipContent` to
 override the extracted value for badges or custom rendering. Empty text does
-not create an empty tooltip.
+not create an empty tooltip. The new-api `cellClassName`, `contentClassName`
+and `tooltipClassName` names are also accepted as aliases for the Vue `class`,
+`contentClass` and `tooltipClass` props; aliases are merged rather than
+replacing existing Vue props.
 ## Query state synchronization
 
 `useDataTable` accepts an optional `querySync` adapter. Its `read()` method can
