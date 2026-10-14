@@ -64,6 +64,8 @@
         "selectEmpty": "No matching options",
         "datePickerPlaceholder": "Pick a date",
         "dateTimePickerPlaceholder": "Pick a date and time",
+        "copiedJson": "JSON copied",
+        "copyFailed": "Copy failed",
         "errorLoading": "Failed to load",
         "reset": "Reset",
         "refresh": "Refresh",
