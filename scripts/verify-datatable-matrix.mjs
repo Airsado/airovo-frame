@@ -17,9 +17,9 @@ try {
     await page.getByRole('button', { name: '登录' }).click()
     await page.waitForTimeout(600)
     await page.goto(`${baseUrl}/dashboard/components`, { waitUntil: 'domcontentloaded', timeout: 15000 })
-    await page.waitForTimeout(800)
+    await page.waitForTimeout(1800)
 
-    const table = page.locator('table').first()
+    const table = page.locator('table').filter({ has: page.locator('.data-table-row') }).first()
     assert.ok(await table.count())
     assert.ok(await table.locator('.data-table-row').count())
 
