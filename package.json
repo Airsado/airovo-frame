@@ -13,7 +13,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "verify:sidebar": "node scripts/verify-sidebar-matrix.mjs",
     "verify:primitives": "node scripts/verify-command-combobox-calendar.mjs",
-    "verify:datatable": "node scripts/verify-datatable-matrix.mjs"
+    "verify:datatable": "node scripts/verify-datatable-matrix.mjs",
+    "verify:sectionpage": "node scripts/verify-sectionpage-matrix.mjs"
   },
   "devDependencies": {
     "anymatch": "^3.1.3",
