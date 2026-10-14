@@ -40,6 +40,15 @@ describe('DataTable', () => {
         expect(row.attributes('data-state')).toBe('selected')
     })
 
+    it('uses the new-api compact header and cell density', () => {
+        const wrapper = mountTable({ selectable: true }, { actions: '操作' })
+        expect(wrapper.get('thead th[data-column-id="selection"]').classes()).toContain('px-2')
+        expect(wrapper.get('thead th[data-column-id="name"]').classes()).toContain('px-2')
+        expect(wrapper.get('tbody td[data-column-id="selection"]').classes()).toContain('p-2')
+        expect(wrapper.get('tbody td[data-column-id="name"]').classes()).toContain('p-2')
+        expect(wrapper.get('tbody td[data-column-id="actions"]').classes()).toContain('p-2')
+    })
+
     it('supports controlled row selection and current-page select-all state', async () => {
         const wrapper = mountTable({ selectable: true }, {
                 'cell-name': ({ value }: { value: unknown }) => `slot:${String(value)}`,

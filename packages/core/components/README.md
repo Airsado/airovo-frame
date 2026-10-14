@@ -24,6 +24,8 @@ Selection checkbox aria labels use `common.selectCurrentPage` and
 Rows use the new-api muted surface contract: selected rows use `bg-muted`,
 while hover blends `muted` and `background` with the same color-mix token;
 pinned cells preserve the corresponding surface while scrolling.
+Desktop headers use `h-10 px-2` and cells use `p-2`, matching the new-api table
+density; mobile card slots keep their caller-owned spacing.
 The default error and retry copy uses `common.errorLoading` and `common.retry`
 locale keys; explicit `errorText` and error slots remain authoritative.
 
