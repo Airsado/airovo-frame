@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { ChartContainer, ChartLegend, ChartTooltip, Button, Skeleton } from '@airovo/uikit-shadcnui'
@@ -37,6 +37,26 @@ const resolvedErrorText = computed(() => props.errorText ?? copy('common.chartEr
 const resolvedEmptyText = computed(() => props.emptyText ?? copy('common.chartEmpty', '暂无图表数据'))
 const resolvedLoadingLabel = computed(() => copy('common.chartLoading', '正在加载图表'))
 const resolvedRetryText = computed(() => copy('common.retry', '重试'))
+const hoveredLabel = ref<string>()
+const hoveredItems = ref<ChartTooltipItem[]>([])
+function clearHoveredTooltip(): void { hoveredLabel.value = undefined; hoveredItems.value = [] }
+function externalTooltip(context: { tooltip?: any }): void {
+    const tooltip = context.tooltip
+    if (!tooltip || tooltip.opacity === 0) { clearHoveredTooltip(); return }
+    hoveredLabel.value = tooltip.title?.[0] ?? tooltip.dataPoints?.[0]?.label?.toString()
+    hoveredItems.value = (tooltip.dataPoints ?? []).map((point: any) => ({
+        color: typeof point.dataset?.borderColor === 'string' ? point.dataset.borderColor : typeof point.dataset?.backgroundColor === 'string' ? point.dataset.backgroundColor : '#888',
+        name: point.dataset?.label ?? point.dataset?.data?.label ?? point.label ?? '',
+        value: point.formattedValue ?? point.raw ?? '',
+    }))
+}
+const chartOptions = computed(() => {
+    const options = props.options ?? {}
+    const plugins = (options as any).plugins ?? {}
+    return { ...options, plugins: { ...plugins, tooltip: { ...(plugins.tooltip ?? {}), enabled: false, external: externalTooltip } } } as FrameworkChartOptions
+})
+const tooltipLabel = computed(() => hoveredLabel.value ?? props.tooltipLabel)
+const tooltipItems = computed(() => hoveredItems.value.length ? hoveredItems.value : (props.tooltipItems ?? []))
 const hasChartData = computed(() => Boolean(props.data?.datasets?.some((dataset) => Array.isArray(dataset.data) && dataset.data.length > 0)))
 const isEmpty = computed(() => props.empty || !hasChartData.value)
 const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [] })
@@ -65,10 +85,10 @@ const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [
             <p class="text-sm text-muted-foreground">{{ resolvedEmptyText }}</p>
         </div>
         <template v-else>
-            <ChartContainer class="mt-4" :type="type" :data="chartData" :options="options" :height="height" :aria-label="title" role="img" />
+            <ChartContainer class="mt-4" :type="type" :data="chartData" :options="chartOptions" :height="height" :aria-label="title" role="img" />
             <ChartLegend v-if="legend?.length" class="mt-3" :items="legend" />
-            <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems ?? []" />
-            <ChartTooltip v-else-if="tooltipLabel || tooltipItems?.length" class="mt-3 border-border/50 bg-background shadow-xl" :label="tooltipLabel" :payload="tooltipItems" />
+            <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems" />
+            <ChartTooltip v-else-if="tooltipLabel || tooltipItems.length" class="mt-3 border-border/50 bg-background shadow-xl" :label="tooltipLabel" :payload="tooltipItems" />
         </template>
         <slot name="footer" />
     </section>
