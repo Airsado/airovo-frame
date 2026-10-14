@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict'
-import { chromium } from 'playwright'
+import { launchMatrixBrowser } from './matrix-browser.mjs'
 
 const baseUrl = process.env.OVERLAY_MATRIX_URL ?? 'http://localhost:5176'
 const username = process.env.OVERLAY_MATRIX_USERNAME ?? 'admin'
 const password = process.env.OVERLAY_MATRIX_PASSWORD ?? '123456'
-const executablePath = process.env.OVERLAY_MATRIX_BROWSER
 
-const browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) })
+const browser = await launchMatrixBrowser('OVERLAY_MATRIX')
 
 try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })

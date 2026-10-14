@@ -80,7 +80,8 @@ using business routes.
 For a repeatable browser pass, start the demo with `pnpm dev` and run
 `pnpm verify:sidebar`. Set `SIDEBAR_MATRIX_URL`, `SIDEBAR_MATRIX_USERNAME`,
 `SIDEBAR_MATRIX_PASSWORD`, or `SIDEBAR_MATRIX_BROWSER` when the demo is served
-elsewhere or a specific browser executable is required. The script reports the
+elsewhere or a specific browser executable is required. Set
+`SIDEBAR_MATRIX_ENGINE=firefox` to launch Firefox instead of Chromium. The script reports the
 desktop, theme, reduced-motion and mobile assertions as one JSON result.
 
 The visible implementation differences from new-api are intentional: Vue uses

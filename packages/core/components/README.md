@@ -266,17 +266,21 @@ leaf values enter the v-model contract.
 Run `pnpm dev` followed by `pnpm verify:primitives` for the repeatable
 Calendar/Command/Combobox browser matrix. `PRIMITIVE_MATRIX_URL`,
 `PRIMITIVE_MATRIX_USERNAME`, `PRIMITIVE_MATRIX_PASSWORD`, and
-`PRIMITIVE_MATRIX_BROWSER` can override the demo URL, test account, and browser.
+`PRIMITIVE_MATRIX_BROWSER` can override the browser executable; set
+`PRIMITIVE_MATRIX_ENGINE=firefox` for Firefox. The URL and test account use
+the corresponding environment variables as well.
 
 Run `pnpm dev` followed by `pnpm verify:datatable` for the DataTable desktop,
 selection, ViewOptions, dark-theme and mobile-card smoke matrix. It accepts
 `DATATABLE_MATRIX_URL`, `DATATABLE_MATRIX_USERNAME`, `DATATABLE_MATRIX_PASSWORD`
-and `DATATABLE_MATRIX_BROWSER` overrides.
+and `DATATABLE_MATRIX_BROWSER` overrides; set `DATATABLE_MATRIX_ENGINE=firefox`
+for Firefox.
 
 Run `pnpm dev` followed by `pnpm verify:sectionpage` for the SectionPage/tabs/
 layout scroll matrix. It accepts `SECTIONPAGE_MATRIX_URL`,
 `SECTIONPAGE_MATRIX_USERNAME`, `SECTIONPAGE_MATRIX_PASSWORD`, and
-`SECTIONPAGE_MATRIX_BROWSER` overrides.
+`SECTIONPAGE_MATRIX_BROWSER` overrides; set `SECTIONPAGE_MATRIX_ENGINE=firefox`
+for Firefox.
 The wrapper intentionally uses Vue sticky header and the layout's native scroll
 container instead of copying React layout code; title/tab spacing and the
 scroll contract are the compatibility target.
@@ -284,7 +288,8 @@ scroll contract are the compatibility target.
 Run `pnpm dev` followed by `pnpm verify:overlays` for the Drawer/Modal desktop,
 mobile, focus, Escape and outside-click matrix. It accepts `OVERLAY_MATRIX_URL`,
 `OVERLAY_MATRIX_USERNAME`, `OVERLAY_MATRIX_PASSWORD`, and
-`OVERLAY_MATRIX_BROWSER` overrides.
+`OVERLAY_MATRIX_BROWSER` overrides; set `OVERLAY_MATRIX_ENGINE=firefox` for
+Firefox.
 
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,

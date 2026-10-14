@@ -1,15 +1,11 @@
 import assert from "node:assert/strict";
-import { chromium } from "playwright";
+import { launchMatrixBrowser } from './matrix-browser.mjs'
 
 const baseUrl = process.env.SIDEBAR_MATRIX_URL ?? "http://localhost:5176";
 const username = process.env.SIDEBAR_MATRIX_USERNAME ?? "admin";
 const password = process.env.SIDEBAR_MATRIX_PASSWORD ?? "123456";
-const executablePath = process.env.SIDEBAR_MATRIX_BROWSER;
 
-const browser = await chromium.launch({
-  headless: true,
-  ...(executablePath ? { executablePath } : {}),
-});
+const browser = await launchMatrixBrowser('SIDEBAR_MATRIX');
 
 try {
   const page = await browser.newPage({
