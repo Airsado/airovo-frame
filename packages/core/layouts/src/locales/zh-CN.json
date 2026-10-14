@@ -18,6 +18,12 @@
         "error": "操作失败",
         "retry": "重试",
         "loading": "加载中…",
+        "records": "条记录",
+        "selected": "已选择",
+        "clearSelection": "清除选择",
+        "clearSelectionWithEscape": "清除选择（Escape）",
+        "bulkActions": "批量操作：{count} 项已选择",
+        "bulkAnnouncement": "已选择 {count} {entity}，可执行批量操作",
         "untitledPage": "未命名页面"
     },
     "user": {

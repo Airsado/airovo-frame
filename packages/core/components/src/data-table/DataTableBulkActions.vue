@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Badge, Button, Separator, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@airovo/uikit-shadcnui'
 
@@ -11,7 +12,6 @@ const props = withDefaults(defineProps<{
   placement?: 'floating' | 'inline'
   class?: string
 }>(), {
-  entityName: '条记录',
   placement: 'floating',
 })
 
@@ -20,7 +20,16 @@ const emit = defineEmits<{
 }>()
 
 const descriptionId = `data-table-bulk-actions-${useId()}`
-const announcement = computed(() => `已选择 ${props.selectedCount} ${props.entityName}，可执行批量操作`)
+const { t, te } = useI18n({ useScope: 'global' })
+function copy(key: string, fallback: string, values?: Record<string, unknown>): string {
+  return te(key) ? t(key, values ?? {}) : fallback
+}
+const entityName = computed(() => props.entityName ?? copy('common.records', '条记录'))
+const selectedText = computed(() => copy('common.selected', '已选择'))
+const clearText = computed(() => copy('common.clearSelection', '清除选择'))
+const clearHint = computed(() => copy('common.clearSelectionWithEscape', '清除选择（Escape）'))
+const toolbarLabel = computed(() => copy('common.bulkActions', `批量操作：${props.selectedCount} 项已选择`, { count: props.selectedCount }))
+const announcement = computed(() => copy('common.bulkAnnouncement', `已选择 ${props.selectedCount} ${entityName.value}，可执行批量操作`, { count: props.selectedCount, entity: entityName.value }))
 
 function clearSelection(): void {
   emit('clear-selection')
@@ -65,7 +74,7 @@ function handleKeydown(event: KeyboardEvent): void {
     <div
       data-slot="data-table-bulk-actions"
       role="toolbar"
-      :aria-label="`${props.entityName}批量操作`"
+      :aria-label="toolbarLabel"
       :aria-describedby="descriptionId"
       tabindex="-1"
       :class="[
@@ -86,23 +95,23 @@ function handleKeydown(event: KeyboardEvent): void {
                 variant="outline"
                 size="icon"
                 class="size-7"
-                aria-label="清除选择"
-                title="清除选择（Escape）"
+                :aria-label="clearText"
+                :title="clearHint"
                 @click="clearSelection"
               >
                 <Icon icon="lucide:x" class="size-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>清除选择（Escape）</TooltipContent>
+            <TooltipContent>{{ clearHint }}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
         <Separator orientation="vertical" class="h-5" aria-hidden="true" />
         <div :id="descriptionId" class="flex items-center gap-1 text-sm">
-          <Badge variant="default" class="min-w-8 justify-center rounded-lg" :aria-label="`${props.selectedCount} 项已选择`">
+          <Badge variant="default" class="min-w-8 justify-center rounded-lg" :aria-label="`${props.selectedCount} ${selectedText}`">
             {{ props.selectedCount }}
           </Badge>
-          <span class="hidden sm:inline">{{ props.entityName }}</span>
-          <span>已选择</span>
+          <span class="hidden sm:inline">{{ entityName }}</span>
+          <span>{{ selectedText }}</span>
         </div>
         <Separator orientation="vertical" class="h-5" aria-hidden="true" />
         <div class="flex flex-wrap items-center gap-1.5">
