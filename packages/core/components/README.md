@@ -19,6 +19,8 @@ horizontal scrolling available for narrow screens. The default
 through that field or through a `rowKey` function. Missing or duplicate keys
 throw an error instead of silently falling back to the row index, which keeps
 selection and Vue DOM identity stable when sorting or replacing data.
+Selection checkbox aria labels use `common.selectCurrentPage` and
+`common.selectRow`; the selection model remains caller-owned.
 The default error and retry copy uses `common.errorLoading` and `common.retry`
 locale keys; explicit `errorText` and error slots remain authoritative.
 
