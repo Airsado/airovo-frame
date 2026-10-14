@@ -3,6 +3,11 @@
 Framework-level UI compositions live here; the shadcn-vue primitives remain
 unchanged in `packages/ui-kit/shadcn-vue`.
 
+`ResultPage` supports success, error, warning, info and HTTP result states
+with primary/secondary action events. Default title, description and secondary
+action copy uses `common.result.<status>.*` locale keys; explicit props remain
+authoritative.
+
 ## DataTable
 
 `DataTable` is the presentation layer. It supports stable row keys, controlled

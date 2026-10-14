@@ -44,6 +44,15 @@
         "followLatest": "跟随最新",
         "selectCurrentPage": "全选当前页",
         "selectRow": "选择第 {index} 行",
+        "result": {
+            "success": { "title": "操作成功", "description": "请等待后续通知" },
+            "error": { "title": "操作失败", "description": "请稍后重试或联系管理员" },
+            "warning": { "title": "请注意", "description": "存在需要处理的风险" },
+            "info": { "title": "提示", "description": "" },
+            "403": { "title": "无访问权限", "description": "请联系管理员申请权限", "secondaryText": "返回首页" },
+            "404": { "title": "页面不存在", "description": "请检查链接是否正确", "secondaryText": "返回首页" },
+            "500": { "title": "服务异常", "description": "请稍后重试", "secondaryText": "返回首页" }
+        },
         "jsonMode": "JSON 模式",
         "visualMode": "可视化模式",
         "fillTemplate": "回填模板",
