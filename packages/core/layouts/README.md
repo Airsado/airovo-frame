@@ -8,6 +8,9 @@
 
 - `LayoutSettings`：统一调整布局和外观偏好的设置抽屉。
 
+`LayoutSettings` 的抽屉标题、说明、打开按钮和恢复默认按钮使用全局
+`common.layoutSettings*` locale keys；显式 title/description props 仍优先。
+
 这些组件属于框架内置能力，业务包只负责提供领域语义组件。布局包不再承载通用组件，也不再 re-export `@airovo/components`；应用应直接从 `@airovo/components` 导入页面、数据和交互封装。
 
 ```vue
