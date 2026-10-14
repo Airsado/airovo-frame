@@ -103,3 +103,43 @@ Chrome 和 Edge 均使用本机可执行文件运行，demo 地址为
 - 复杂嵌套 overlay 的跨层 focus stack、第三方浏览器差异。
 - DataTable 全量服务端过滤/排序/取消请求在真实业务网络下的长时间并发行为。
 - 业务应用组合、权限语义和真实生产数据；这些属于应用层验证，不进入框架 PR。
+
+## 2026-10-15 continuation evidence
+
+The following framework-only increments are merged into `dev` after the prior
+snapshot: [#338](https://github.com/Airsado/airovo-frame/pull/338)
+MultiSelect chips/input, [#340](https://github.com/Airsado/airovo-frame/pull/340)
+Combobox input group, [#342](https://github.com/Airsado/airovo-frame/pull/342)
+DateTimePicker row visuals, [#344](https://github.com/Airsado/airovo-frame/pull/344)
+FrameworkTooltip trigger/surface, [#346](https://github.com/Airsado/airovo-frame/pull/346)
+FrameworkPopover trigger/surface,
+[#348](https://github.com/Airsado/airovo-frame/pull/348) DataTable row surfaces,
+[#350](https://github.com/Airsado/airovo-frame/pull/350) DataTable density,
+[#352](https://github.com/Airsado/airovo-frame/pull/352) SelectBox surface,
+[#354](https://github.com/Airsado/airovo-frame/pull/354) SearchSelect input,
+[#356](https://github.com/Airsado/airovo-frame/pull/356) collapsed sidebar child
+surface, and [#358](https://github.com/Airsado/airovo-frame/pull/358)
+DataTableToolbar search surface.
+
+### Current automated evidence
+
+| Command | Result |
+| --- | --- |
+| `pnpm lint` | Passed; all 22 workspace lint tasks |
+| `pnpm --filter @airovo/components test` | Passed; 66 test files, 192 tests |
+| `pnpm --filter @airovo/layouts test` | Passed; 6 test files, 15 tests |
+| `pnpm --filter playwright exec vue-tsc --noEmit` | Passed |
+| `pnpm build` | Passed; existing LightningCSS `@theme`, Rolldown annotation, and chunk-size warnings remain |
+
+Recent Chrome evidence includes the DataTable matrix (desktop selection,
+ViewOptions, dark theme and mobile cards), Sidebar matrix (collapsed dropdown
+active states, reduced motion, mobile Sheet/Escape/outside), SelectBox and
+SearchSelect desktop/mobile selection, overlay click/Escape/outside/focus, and
+the DateTimePicker, Tooltip and Popover targeted demos. These targeted checks
+were run against temporary local demo ports and are evidence for the listed
+surfaces only; they do not mark the inventory complete.
+
+Firefox and Safari remain unverified. Long-running server-side DataTable
+concurrency, complex nested overlay stacks, and real business application
+composition remain outside framework completion evidence. `apps/airhaven` was
+not changed or included in these increments.
