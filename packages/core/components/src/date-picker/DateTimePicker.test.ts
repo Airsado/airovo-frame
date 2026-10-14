@@ -5,12 +5,12 @@ import { describe, expect, it } from 'vitest'
 import DateTimePicker from './DateTimePicker.vue'
 
 const DatePickerStub = {
-    props: ['modelValue', 'disabled', 'placeholder', 'minDate', 'maxDate', 'locale'],
+    props: ['modelValue', 'disabled', 'placeholder', 'minDate', 'maxDate', 'locale', 'triggerIcon'],
     emits: ['update:modelValue'],
-    template: '<button type="button" data-date-picker :disabled="disabled" @click="$emit(\'update:modelValue\', new Date(2024, 0, 3))">{{ modelValue }}</button>',
+    template: '<button type="button" data-date-picker :data-trigger-icon="triggerIcon" :disabled="disabled" @click="$emit(\'update:modelValue\', new Date(2024, 0, 3))">{{ modelValue }}</button>',
 }
 
-const global = { stubs: { DatePicker: DatePickerStub, CalendarClock: true, X: true }, plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { datePickerPlaceholder: '选择日期', dateTimePickerPlaceholder: '选择日期和时间' } } } })] }
+const global = { stubs: { DatePicker: DatePickerStub, X: true }, plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { datePickerPlaceholder: '选择日期', dateTimePickerPlaceholder: '选择日期和时间' } } } })] }
 
 describe('DateTimePicker time and controlled state', () => {
     it('keeps seconds and does not mutate the caller Date when changing time', async () => {
@@ -46,7 +46,9 @@ describe('DateTimePicker time and controlled state', () => {
         const wrapper = mount(DateTimePicker, { props: { modelValue: new Date(2024, 0, 2, 3, 4, 5) }, global })
         const input = wrapper.get('input[type="time"]')
         expect(input.classes()).toContain('w-32')
+        expect(input.classes()).toContain('shrink-0')
         expect(input.classes()).toContain('appearance-none')
+        expect(wrapper.get('[data-date-picker]').attributes('data-trigger-icon')).toBe('chevron')
         expect(wrapper.get('button[aria-label="清除日期时间"]').attributes('data-variant')).toBe('outline')
         expect(wrapper.get('button[aria-label="清除日期时间"]').classes()).toContain('shrink-0')
     })

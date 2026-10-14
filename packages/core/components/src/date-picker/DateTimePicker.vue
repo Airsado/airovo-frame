@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarClock, X } from '@lucide/vue'
+import { X } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cn } from '@airovo/uikit-shadcnui'
@@ -64,11 +64,8 @@ function clear(): void {
 <template>
   <div :class="cn('flex items-center gap-2', props.class)">
     <!-- Override DatePicker's standalone width so this row can shrink in forms. -->
-    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="resolvedPlaceholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
-    <label class="relative flex h-8 shrink-0 items-center">
-      <CalendarClock class="pointer-events-none absolute left-2 opacity-60" />
-      <Input type="time" step="1" :model-value="time" aria-label="时间" :disabled="props.disabled || !props.modelValue" class="w-32 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" @update:model-value="updateTime" />
-    </label>
+    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="resolvedPlaceholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" trigger-icon="chevron" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
+    <Input type="time" step="1" :model-value="time" aria-label="时间" :disabled="props.disabled || !props.modelValue" class="w-32 shrink-0 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" @update:model-value="updateTime" />
       <Button v-if="props.modelValue" type="button" variant="outline" size="icon" class="shrink-0" aria-label="清除日期时间" :disabled="props.disabled" @click="clear">
       <X />
     </Button>

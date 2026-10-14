@@ -2,7 +2,6 @@
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
-import { createI18n } from 'vue-i18n'
 import DatePicker from './DatePicker.vue'
 
 const stubs = {
@@ -48,6 +47,13 @@ describe('DatePicker boundaries', () => {
         expect(wrapper.get('button').attributes('aria-label')).toBe('2024-01-02')
         const zh = mount(DatePicker, { props: { modelValue: value, locale: 'zh-CN' }, global })
         expect(zh.get('button').attributes('aria-label')).toBe('2024-01-02')
+    })
+
+    it('switches the trigger icon for DateTimePicker while keeping the calendar default', () => {
+        const calendar = mount(DatePicker, { global, props: { modelValue: new Date(2024, 0, 2) } })
+        expect(calendar.get('[data-date-picker-trigger-icon="calendar"]')).toBeTruthy()
+        const chevron = mount(DatePicker, { global, props: { triggerIcon: 'chevron' } })
+        expect(chevron.get('[data-date-picker-trigger-icon="chevron"]')).toBeTruthy()
     })
 
     it('uses the global i18n locale when locale is omitted, while explicit locale wins', () => {
