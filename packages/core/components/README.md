@@ -228,6 +228,11 @@ Calendar/Command/Combobox browser matrix. `PRIMITIVE_MATRIX_URL`,
 `PRIMITIVE_MATRIX_USERNAME`, `PRIMITIVE_MATRIX_PASSWORD`, and
 `PRIMITIVE_MATRIX_BROWSER` can override the demo URL, test account, and browser.
 
+Run `pnpm dev` followed by `pnpm verify:datatable` for the DataTable desktop,
+selection, ViewOptions, dark-theme and mobile-card smoke matrix. It accepts
+`DATATABLE_MATRIX_URL`, `DATATABLE_MATRIX_USERNAME`, `DATATABLE_MATRIX_PASSWORD`
+and `DATATABLE_MATRIX_BROWSER` overrides.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit
