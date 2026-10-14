@@ -1,21 +1,29 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
+import { createI18n } from "vue-i18n";
 import { describe, expect, it } from "vitest";
 import Combobox from "./Combobox.vue";
 
+const i18n = createI18n({ legacy: false, locale: "zh-CN", messages: { "zh-CN": { common: { selectSearch: "搜索选项", selectEmpty: "没有匹配的选项", open: "打开" } } } });
+
 const stubs = {
   Popover: { template: "<div><slot /></div>" },
+  PopoverAnchor: { template: "<div><slot /></div>" },
   PopoverTrigger: { template: "<div><slot /></div>" },
   PopoverContent: { template: "<div><slot /></div>" },
-  Command: { template: "<div><slot /></div>" },
-  CommandInput: {
-    emits: ["keydown", "update:modelValue"],
-    props: ["modelValue"],
-    template:
-      '<input data-slot="command-input" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" @keydown="$emit(\'keydown\', $event)" />',
+  InputGroup: { template: '<div data-slot="input-group"><slot /></div>' },
+  InputGroupAddon: { template: '<div><slot /></div>' },
+  InputGroupButton: {
+    props: ["disabled"],
+    template: '<button type="button" :disabled="disabled"><slot /></button>',
   },
+  InputGroupInput: {
+    props: ["modelValue", "placeholder", "readonly", "disabled"],
+    emits: ["update:modelValue", "click", "focus", "keydown"],
+    template: '<input data-slot="input-group-control" :value="modelValue" :placeholder="placeholder" :readonly="readonly" :disabled="disabled" @input="$emit(\'update:modelValue\', $event.target.value)" @click="$emit(\'click\')" @focus="$emit(\'focus\', $event)" @keydown="$emit(\'keydown\', $event)" />',
+  },
+  Command: { template: "<div><slot /></div>" },
   CommandList: { template: "<div><slot /></div>" },
-  CommandEmpty: { template: "<div><slot /></div>" },
   CommandGroup: { template: "<div><slot /></div>" },
   CommandItem: {
     template:
@@ -31,6 +39,7 @@ describe("Combobox", () => {
       props: {
         options: [{ label: "OpenAI", value: "openai", disabled: true }],
       },
+      global: { stubs, plugins: [i18n] },
     });
     expect(wrapper.get('[role="combobox"]').attributes("aria-expanded")).toBe(
       "false",
@@ -41,10 +50,10 @@ describe("Combobox", () => {
   it("accepts a custom value on Enter when enabled", async () => {
     const wrapper = mount(Combobox, {
       props: { allowCustomValue: true, options: [] },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
     await wrapper.get('[role="combobox"]').trigger("click");
-    const input = wrapper.find('[data-slot="command-input"]');
+    const input = wrapper.find('[data-slot="input-group-control"]');
     await input.setValue("custom-model");
     await input.trigger("keydown", { key: "Enter" });
     expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual([
@@ -59,7 +68,7 @@ describe("Combobox", () => {
           { label: "Cloud", children: [{ label: "OpenAI", value: "openai" }] },
         ],
       },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
 
     expect(wrapper.findAll("button")).toHaveLength(2);
@@ -85,7 +94,7 @@ describe("Combobox", () => {
         id: "provider",
         name: "provider",
       },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
 
     expect(wrapper.get('[role="combobox"]').attributes("aria-label")).toBe(
@@ -94,7 +103,7 @@ describe("Combobox", () => {
     expect(wrapper.get('[role="combobox"]').attributes("id")).toBe("provider");
     expect(wrapper.get('[data-slot="combobox-selected-icon"]')).toBeTruthy();
     await wrapper.get('[role="combobox"]').trigger("click");
-    const input = wrapper.get('[data-slot="command-input"]');
+    const input = wrapper.get('[data-slot="input-group-control"]');
     await input.setValue("gemini");
     expect(wrapper.text()).toContain("Google");
     expect(wrapper.text()).toContain("备用渠道");
@@ -105,7 +114,7 @@ describe("Combobox", () => {
         .map((button) => button.text()),
     ).not.toContain("OpenAI");
     await input.trigger("keydown", { key: "Escape" });
-    expect(wrapper.get('[role="combobox"]').text()).toContain("OpenAI");
+    expect((wrapper.get('[role="combobox"]').element as HTMLInputElement).value).toBe("OpenAI");
     expect(wrapper.get('[role="combobox"]').attributes("aria-expanded")).toBe(
       "false",
     );
@@ -127,7 +136,7 @@ describe("Combobox", () => {
           },
         ],
       },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
     await wrapper.get('[role="combobox"]').trigger("click");
     expect(
@@ -136,7 +145,7 @@ describe("Combobox", () => {
     expect(
       wrapper.find('[data-depth="2"]').attributes("disabled"),
     ).toBeDefined();
-    await wrapper.get('[data-slot="command-input"]').setValue("视频");
+    await wrapper.get('[data-slot="input-group-control"]').setValue("视频");
     expect(wrapper.text()).toContain("媒体");
     expect(wrapper.text()).toContain("视频");
     expect(wrapper.text()).not.toContain("文章");
@@ -148,20 +157,20 @@ describe("Combobox", () => {
         options: [{ label: "内容", children: [{ label: "文章", value: "articles" }] }],
         emptyText: "没有匹配渠道",
       },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
     await wrapper.get('[role="combobox"]').trigger("click");
     expect(wrapper.find('[data-depth="1"]').attributes("style")).toContain("padding-left");
-    await wrapper.get('[data-slot="command-input"]').setValue("不存在");
+    await wrapper.get('[data-slot="input-group-control"]').setValue("不存在");
     expect(wrapper.text()).toContain("没有匹配渠道");
-    await wrapper.get('[data-slot="command-input"]').setValue("文章");
+    await wrapper.get('[data-slot="input-group-control"]').setValue("文章");
     expect(wrapper.text()).toContain("文章");
   });
 
   it("does not open on focus by default and opens when requested", async () => {
     const closed = mount(Combobox, {
       props: { options: [{ label: "A", value: "a" }] },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
     await closed.get('[role="combobox"]').trigger("focus");
     expect(closed.get('[role="combobox"]').attributes("aria-expanded")).toBe(
@@ -170,7 +179,7 @@ describe("Combobox", () => {
 
     const open = mount(Combobox, {
       props: { openOnFocus: true, options: [{ label: "A", value: "a" }] },
-      global: { stubs },
+      global: { stubs, plugins: [i18n] },
     });
     await open.get('[role="combobox"]').trigger("focus");
     expect(open.get('[role="combobox"]').attributes("aria-expanded")).toBe(
