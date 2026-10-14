@@ -62,6 +62,18 @@ try {
         assert.ok((await page.locator('body').innerText()).includes('确认回传'))
     }
 
+    await page.locator('[data-test="open-first-form"]').click()
+    await page.waitForTimeout(250)
+    await page.locator('[data-test="open-second-form"]').click()
+    await page.waitForTimeout(250)
+    assert.ok(await page.locator('[role="dialog"]').count() >= 2)
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+    assert.equal(await page.locator('[role="dialog"]').count(), 1)
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+    assert.equal(await page.locator('[role="dialog"]').count(), 0)
+
     await page.setViewportSize({ width: 390, height: 844 })
     await page.getByRole('button', { name: '打开 Dialog' }).click()
     const mobileDialog = page.locator('[role="dialog"]').last()
