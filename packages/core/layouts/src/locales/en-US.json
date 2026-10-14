@@ -44,6 +44,15 @@
         "followLatest": "Follow latest",
         "selectCurrentPage": "Select current page",
         "selectRow": "Select row {index}",
+        "result": {
+            "success": { "title": "Success", "description": "Please wait for the follow-up notification" },
+            "error": { "title": "Something went wrong", "description": "Try again later or contact an administrator" },
+            "warning": { "title": "Please note", "description": "There is a risk that needs attention" },
+            "info": { "title": "Notice", "description": "" },
+            "403": { "title": "Access denied", "description": "Contact an administrator for access", "secondaryText": "Back to home" },
+            "404": { "title": "Page not found", "description": "Check that the link is correct", "secondaryText": "Back to home" },
+            "500": { "title": "Service unavailable", "description": "Try again later", "secondaryText": "Back to home" }
+        },
         "jsonMode": "JSON mode",
         "visualMode": "Visual mode",
         "fillTemplate": "Fill template",

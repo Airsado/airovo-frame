@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button } from '@airovo/uikit-shadcnui'
 import { RESULT_PRESET, type ResultStatus } from './types'
@@ -16,18 +17,24 @@ const props = withDefaults(
     {},
 )
 
+const { t, te } = useI18n({ useScope: 'global' })
+function resultCopy(part: 'title' | 'description' | 'secondaryText', fallback: string): string {
+    const key = `common.result.${props.status}.${part}`
+    return te(key) ? t(key) : fallback
+}
+
 defineEmits<{
     (e: 'primary', ev: MouseEvent): void
     (e: 'secondary', ev: MouseEvent): void
 }>()
 
 const preset = computed(() => RESULT_PRESET[props.status])
-const finalTitle = computed(() => props.title ?? preset.value.title)
+const finalTitle = computed(() => props.title ?? resultCopy('title', preset.value.title))
 const finalDescription = computed(
-    () => props.description ?? preset.value.description,
+    () => props.description ?? resultCopy('description', preset.value.description),
 )
 const finalSecondaryText = computed(
-    () => props.secondaryText ?? preset.value.secondaryText,
+    () => props.secondaryText ?? (preset.value.secondaryText ? resultCopy('secondaryText', preset.value.secondaryText) : undefined),
 )
 const hasSecondary = computed(() => !!finalSecondaryText.value)
 </script>
