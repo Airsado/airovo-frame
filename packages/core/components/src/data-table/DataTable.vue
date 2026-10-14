@@ -76,6 +76,10 @@ const emit = defineEmits<{
 const { t, te } = useI18n({ useScope: 'global' })
 const errorLoadingText = computed(() => props.errorText ?? (te('common.errorLoading') ? t('common.errorLoading') : '加载失败'))
 const retryText = computed(() => te('common.retry') ? t('common.retry') : '重试')
+const selectCurrentPageText = computed(() => te('common.selectCurrentPage') ? t('common.selectCurrentPage') : '全选当前页')
+function selectRowText(index: number): string {
+    return (te('common.selectRow') ? t('common.selectRow', { index: index + 1 }) : `选择第 ${index + 1} 行`)
+}
 const slots = useSlots()
 const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
@@ -403,7 +407,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                             type="checkbox"
                             :checked="allVisibleSelected"
                             :indeterminate="someVisibleSelected && !allVisibleSelected"
-                            aria-label="全选当前页"
+                            :aria-label="selectCurrentPageText"
                             @change="toggleAll"
                         />
                     </th>
@@ -464,7 +468,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                             <input
                                 type="checkbox"
                                 :checked="selected.includes(visibleRowKeys[index])"
-                                :aria-label="`选择第 ${index + 1} 行`"
+                                :aria-label="selectRowText(index)"
                                 @change="toggleRow(row)"
                             />
                         </td>
