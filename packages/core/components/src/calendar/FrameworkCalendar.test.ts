@@ -22,8 +22,8 @@ describe('FrameworkCalendar', () => {
             },
             global: { stubs: { Calendar: CalendarStub } },
         })
-        const calendar = wrapper.get('[data-slot="framework-calendar"]')
-        expect(calendar.classes()).toEqual(expect.arrayContaining(['group/calendar', 'bg-background', 'p-2']))
+        expect(wrapper.get('[data-slot="framework-calendar"]').classes()).toContain('contents')
+        expect(wrapper.getComponent(CalendarStub).attributes('class')).toContain('group/calendar')
         expect(wrapper.get('[data-test="heading"]').text()).toBe('自定义月份')
         expect(wrapper.getComponent(CalendarStub).props('layout')).toBe('month-and-year')
     })

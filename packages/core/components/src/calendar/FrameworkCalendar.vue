@@ -26,13 +26,13 @@ const forwardedProps = computed(() => {
 </script>
 
 <template>
-    <Calendar
-        v-bind="forwardedProps"
-        data-slot="framework-calendar"
-        :class="['group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:1.75rem]', props.class]"
-        @update:model-value="(value) => emit('update:modelValue', value)"
-        @update:placeholder="(value) => emit('update:placeholder', value)"
-    >
+    <div data-slot="framework-calendar" data-framework-component="calendar" class="contents">
+        <Calendar
+            v-bind="forwardedProps"
+            :class="['group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:1.75rem]', props.class]"
+            @update:model-value="(value) => emit('update:modelValue', value)"
+            @update:placeholder="(value) => emit('update:placeholder', value)"
+        >
         <template v-if="$slots['calendar-heading']" #calendar-heading="slotProps">
             <slot name="calendar-heading" v-bind="slotProps" />
         </template>
@@ -42,5 +42,6 @@ const forwardedProps = computed(() => {
         <template v-if="$slots['calendar-next-icon']" #calendar-next-icon>
             <slot name="calendar-next-icon" />
         </template>
-    </Calendar>
+        </Calendar>
+    </div>
 </template>

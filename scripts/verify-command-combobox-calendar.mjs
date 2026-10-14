@@ -19,7 +19,7 @@ try {
     await page.goto(`${baseUrl}/dashboard/components`, { waitUntil: 'domcontentloaded', timeout: 15000 })
     await page.waitForTimeout(800)
 
-    const calendar = page.locator('[data-slot="framework-calendar"]')
+    const calendar = page.locator('[data-framework-component="calendar"]')
     assert.ok(await calendar.count())
     assert.ok(await calendar.locator('[data-slot="calendar-cell-trigger"]').count() || await calendar.locator('[data-slot="calendar-cell"]').count())
 
@@ -49,7 +49,7 @@ try {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`${baseUrl}/dashboard/components`, { waitUntil: 'domcontentloaded', timeout: 15000 })
     await page.waitForTimeout(600)
-    assert.ok(await page.locator('[data-slot="framework-calendar"]').count())
+    assert.ok(await page.locator('[data-framework-component="calendar"]').count())
 
     console.log(JSON.stringify({ baseUrl, calendar: true, command: true, combobox: true, dark: true, mobile: '390x844' }))
 } finally {
