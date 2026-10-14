@@ -402,7 +402,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
             <caption v-if="caption" class="sr-only">{{ caption }}</caption>
             <thead>
                 <tr class="border-b">
-                    <th v-if="selectable" data-column-id="selection" scope="col" class="data-table-pinned-header h-10 w-10 px-3 align-middle" :style="pinnedStyle('selection', 'header')">
+                    <th v-if="selectable" data-column-id="selection" scope="col" class="data-table-pinned-header h-10 w-10 px-2 align-middle" :style="pinnedStyle('selection', 'header')">
                         <input
                             type="checkbox"
                             :checked="allVisibleSelected"
@@ -418,7 +418,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         scope="col"
                         :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'header') }"
                         :aria-sort="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'ascending' : 'descending') : undefined"
-                        class="data-table-pinned-header relative h-10 whitespace-nowrap px-3 text-left align-middle font-medium text-foreground"
+                        class="data-table-pinned-header relative h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground"
                         :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                     >
                         <button
@@ -438,15 +438,15 @@ function toCssSize(value: string | number | undefined): string | undefined {
                             @pointerdown="startResize($event, column)"
                         />
                     </th>
-                    <th v-if="hasActions" data-column-id="actions" scope="col" class="data-table-pinned-header h-10 whitespace-nowrap px-3 text-right align-middle font-medium text-foreground" :style="pinnedStyle('actions', 'header')">操作</th>
+                    <th v-if="hasActions" data-column-id="actions" scope="col" class="data-table-pinned-header h-10 whitespace-nowrap px-2 text-right align-middle font-medium text-foreground" :style="pinnedStyle('actions', 'header')">操作</th>
                 </tr>
             </thead>
             <tbody>
                 <template v-if="loading">
                     <tr v-for="index in 3" :key="index" class="border-b last:border-0">
-                        <td v-if="selectable" class="data-table-pinned-cell p-3" :style="pinnedStyle('selection', 'cell')"><Skeleton class="h-4 w-4" /></td>
-                        <td v-for="column in visibleColumns" :key="column.key" :data-column-id="columnId(column)" class="data-table-pinned-cell p-3" :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'cell') }"><Skeleton class="h-5 w-full" /></td>
-                        <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell p-3" :style="pinnedStyle('actions', 'cell')"><Skeleton class="ml-auto h-5 w-16" /></td>
+                        <td v-if="selectable" class="data-table-pinned-cell p-2" :style="pinnedStyle('selection', 'cell')"><Skeleton class="h-4 w-4" /></td>
+                        <td v-for="column in visibleColumns" :key="column.key" :data-column-id="columnId(column)" class="data-table-pinned-cell p-2" :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'cell') }"><Skeleton class="h-5 w-full" /></td>
+                        <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell p-2" :style="pinnedStyle('actions', 'cell')"><Skeleton class="ml-auto h-5 w-16" /></td>
                     </tr>
                 </template>
                 <tr v-else-if="error">
@@ -464,7 +464,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 </tr>
                 <template v-else>
                     <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group border-b transition-colors last:border-0 data-[state=selected]:bg-muted hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))]" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
-                        <td v-if="selectable" data-column-id="selection" class="data-table-pinned-cell w-10 p-3 align-middle" :style="pinnedStyle('selection', 'cell')">
+                        <td v-if="selectable" data-column-id="selection" class="data-table-pinned-cell w-10 p-2 align-middle" :style="pinnedStyle('selection', 'cell')">
                             <input
                                 type="checkbox"
                                 :checked="selected.includes(visibleRowKeys[index])"
@@ -476,7 +476,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                             v-for="column in visibleColumns"
                             :key="column.key"
                             :data-column-id="columnId(column)"
-                            class="data-table-pinned-cell whitespace-nowrap p-3 align-middle"
+                            class="data-table-pinned-cell whitespace-nowrap p-2 align-middle"
                             :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'cell') }"
                             :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                         >
@@ -484,7 +484,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                                 {{ displayValue(row, column, index) ?? '—' }}
                             </slot>
                         </td>
-                        <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell whitespace-nowrap p-3 text-right align-middle" :style="pinnedStyle('actions', 'cell')">
+                        <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell whitespace-nowrap p-2 text-right align-middle" :style="pinnedStyle('actions', 'cell')">
                             <slot name="actions" :row="row" :value="row" :index="index" :row-key="visibleRowKeys[index]">
                                 <slot name="action" :row="row" :value="row" :index="index" :row-key="visibleRowKeys[index]" />
                             </slot>
