@@ -11,7 +11,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "verify:sidebar": "node scripts/verify-sidebar-matrix.mjs"
+    "verify:sidebar": "node scripts/verify-sidebar-matrix.mjs",
+    "verify:primitives": "node scripts/verify-command-combobox-calendar.mjs"
   },
   "devDependencies": {
     "anymatch": "^3.1.3",
