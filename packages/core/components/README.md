@@ -47,6 +47,8 @@ selection must own that policy outside the component.
 the existing `page`, `pageSize`, `total`, `update:page` and `update:pageSize`
 contract. It owns only page clamping and presentation; query synchronization
 and data fetching remain with `useDataTable` or the caller.
+Its full layout follows the new-api total/rows-per-page/first-prev-pages-next-last
+density; `compact` provides the mobile total/current-page/previous-next layout.
 
 For channel-style administration pages, compose `DataTablePage` with
 `DataTableToolbar`, `DataTableViewOptions` and `DataTableRowActions`. The
