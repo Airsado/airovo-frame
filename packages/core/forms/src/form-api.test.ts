@@ -87,6 +87,19 @@ describe('FormApi', () => {
         expect(api.values.value).toEqual({ username: 'alice', email: 'a@b.com' })
     })
 
+    it('mirrors custom component errors and clears them on valid/reset paths', async () => {
+        const { context } = makeContext()
+        api.mount(context)
+        api.setFieldError('username', 'JSON 格式无效')
+        expect(api.errors.value.username).toBe('JSON 格式无效')
+        await expect(api.validate()).resolves.toMatchObject({ valid: false })
+        api.setFieldError('username')
+        expect(api.errors.value.username).toBeUndefined()
+        api.setFieldError('email', '错误')
+        api.resetFields(['email'])
+        expect(api.errors.value.email).toBeUndefined()
+    })
+
     it('preserves a plain values object whose field is named value', async () => {
         const values = reactive<Values>({
             configKey: { value: 'settings' },

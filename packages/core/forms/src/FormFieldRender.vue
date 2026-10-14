@@ -202,6 +202,10 @@ function handleInput(item: FormFieldSchema, onInput: (value: unknown) => void, v
     })
 }
 
+function handleParseError(item: FormFieldSchema, message?: string): void {
+    props.api.setFieldError(item.fieldName, message)
+}
+
 function isRendered(item: FormFieldSchema): boolean {
     return dependencyValue(item, 'if', true)
         && dependencyValue(item, 'show', true)
@@ -301,6 +305,7 @@ watchEffect(() => {
                                         :aria-invalid="!!getError(item, index) || !!errors.length"
                                         :aria-labelledby="item.array ? `${fieldId(item.fieldName)}-label` : undefined"
                                         :aria-required="isRequired(item) || undefined"
+                                        @parse-error="(message: string) => handleParseError(item, message)"
                                         @blur="handleBlur" />
                                     <FieldError v-if="getError(item, index) || errors.length"
                                         :errors="[getError(item, index) ?? errors[0]]" />
