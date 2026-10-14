@@ -34,13 +34,15 @@ try {
     assert.equal(await dialog.count(), 0)
     assert.equal(await dialogTrigger.evaluate(element => document.activeElement === element), true)
 
-    await page.getByRole('button', { name: '打开 Drawer' }).click()
+    const drawerTrigger = page.getByRole('button', { name: '打开 Drawer' })
+    await drawerTrigger.click()
     const drawer = page.locator('[data-slot="drawer-content"]').last()
     assert.ok(await drawer.count())
     assert.ok(await drawer.locator('text=可滚动内容 1').count())
     await page.keyboard.press('Escape')
     await page.waitForTimeout(250)
     assert.equal(await drawer.count(), 0)
+    assert.equal(await drawerTrigger.evaluate(element => document.activeElement === element), true)
 
     await page.getByRole('button', { name: '打开右侧 Drawer' }).click()
     const rightDrawer = page.locator('[data-slot="drawer-content"]').last()
@@ -61,6 +63,16 @@ try {
         await page.waitForTimeout(500)
         assert.ok((await page.locator('body').innerText()).includes('确认回传'))
     }
+
+    await page.getByRole('button', { name: '打开 typed Drawer' }).click()
+    await page.waitForTimeout(350)
+    const rejectDrawer = page.locator('[role="dialog"]').last()
+    await page.locator('#typed-drawer-input').fill('')
+    await rejectDrawer.getByRole('button', { name: /确认|保存/ }).last().click()
+    await page.waitForTimeout(250)
+    assert.ok((await rejectDrawer.innerText()).includes('请输入渠道名称'))
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
 
     await page.locator('[data-test="open-first-form"]').click()
     await page.waitForTimeout(250)
