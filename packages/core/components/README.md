@@ -138,8 +138,11 @@ const options: SelectOption[] = [
 
 A node with `children` is rendered as a non-selectable group label. Only leaf
 nodes with `value` can be selected, so the selected value and form backfill
-remain stable. `MultiSelect` is the chip-style multi-value composition from
-new-api. Its bordered control keeps the chips and a keyboard-searchable input
+remain stable. `SelectBox` uses the new-api compact `h-8 rounded-lg` trigger,
+anchor-width popup, ring surface and compact label/item spacing; `allowClear`,
+disabled and overlay-owner behavior remain caller-compatible. `MultiSelect` is
+the chip-style multi-value composition from new-api. Its bordered control
+keeps the chips and a keyboard-searchable input
 in one row, uses the new-api `bg-muted`/`rounded-sm` chip surface and exposes
 the same focus ring, hint marker and `+N more` density pattern. It supports
 search, disabled options, optional custom creation, batch comma/newline input,
