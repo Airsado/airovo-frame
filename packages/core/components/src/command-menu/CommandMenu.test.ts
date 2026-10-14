@@ -3,8 +3,11 @@ import { nextTick } from 'vue'
 import { mount, type MountingOptions } from '@vue/test-utils'
 import type { Component } from 'vue'
 import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
 import CommandMenu from './CommandMenu.vue'
 import type { CommandMenuGroup } from './types'
+
+const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { commandTitle: '命令面板', commandDescription: '搜索要执行的命令…', commandPlaceholder: '搜索命令…', commandEmpty: '没有找到结果。' } } } })] }
 
 const groups: CommandMenuGroup[] = [
     {
@@ -26,11 +29,20 @@ function mountMenu(props: Record<string, unknown> = {}, options: MountingOptions
     return mount(CommandMenu, {
         props: { groups, open: true, ...props },
         attachTo: document.body,
+        global,
         ...options,
     })
 }
 
 describe('CommandMenu', () => {
+    it('uses locale defaults while explicit command copy remains authoritative', async () => {
+        const i18n = createI18n({ legacy: false, locale: 'en-US', messages: { 'en-US': { common: { commandTitle: 'Command Palette', commandDescription: 'Search for a command to run...', commandPlaceholder: 'Search commands', commandEmpty: 'No results' } } } })
+        const wrapper = mount(CommandMenu, { global: { plugins: [i18n] }, props: { groups, open: true, title: 'Commands', placeholder: 'Type a command' }, attachTo: document.body })
+        await nextTick()
+        expect(document.body.textContent).toContain('Commands')
+        expect(document.body.querySelector('[data-slot="command-input"]')?.getAttribute('placeholder')).toBe('Type a command')
+        wrapper.unmount()
+    })
     it('renders grouped items, shortcuts, and disabled state', async () => {
         const wrapper = mountMenu()
         await nextTick()
@@ -62,6 +74,7 @@ describe('CommandMenu', () => {
 
     it('emits the selected item and closes uncontrolled menus', async () => {
         const wrapper = mount(CommandMenu, {
+            global,
             props: { groups, defaultOpen: true },
             attachTo: document.body,
         })

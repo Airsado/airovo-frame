@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, type PropType } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
     Command,
     CommandEmpty,
@@ -23,13 +24,20 @@ const props = defineProps({
     // An explicit undefined default keeps the prop distinguishable from a controlled false value.
     open: { type: Boolean as PropType<boolean | undefined>, default: undefined },
     defaultOpen: { type: Boolean, default: false },
-    title: { type: String, default: 'Command Palette' },
-    description: { type: String, default: 'Search for a command to run...' },
-    placeholder: { type: String, default: '搜索命令…' },
-    emptyText: { type: String, default: '没有找到结果。' },
+    title: { type: String, default: undefined },
+    description: { type: String, default: undefined },
+    placeholder: { type: String, default: undefined },
+    emptyText: { type: String, default: undefined },
     closeOnSelect: { type: Boolean, default: true },
     contentClass: { type: [String, Array, Object] as PropType<CommandMenuProps['contentClass']>, default: undefined },
 })
+
+const { t, te } = useI18n({ useScope: 'global' })
+function copy(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
+const resolvedTitle = computed(() => props.title ?? copy('common.commandTitle', 'Command Palette'))
+const resolvedDescription = computed(() => props.description ?? copy('common.commandDescription', 'Search for a command to run...'))
+const resolvedPlaceholder = computed(() => props.placeholder ?? copy('common.commandPlaceholder', '搜索命令…'))
+const resolvedEmptyText = computed(() => props.emptyText ?? copy('common.commandEmpty', '没有找到结果。'))
 
 const emit = defineEmits<{
     (event: 'update:open', value: boolean): void
@@ -56,13 +64,13 @@ function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
     <Dialog :open="isOpen" @update:open="updateOpen">
         <DialogContent :show-close-button="false" :class="['top-1/3 translate-y-0 overflow-hidden rounded-xl p-0', props.contentClass]">
             <DialogHeader class="sr-only">
-                <DialogTitle>{{ props.title }}</DialogTitle>
-                <DialogDescription>{{ props.description }}</DialogDescription>
+                <DialogTitle>{{ resolvedTitle }}</DialogTitle>
+                <DialogDescription>{{ resolvedDescription }}</DialogDescription>
             </DialogHeader>
             <Command>
-                <CommandInput :placeholder="props.placeholder" />
+                <CommandInput :placeholder="resolvedPlaceholder" />
                 <CommandList>
-                    <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
+                    <CommandEmpty>{{ resolvedEmptyText }}</CommandEmpty>
                     <template v-for="(group, groupIndex) in props.groups" :key="group.id">
                         <slot name="group" :group="group" :index="groupIndex">
                             <CommandGroup :heading="group.label">
