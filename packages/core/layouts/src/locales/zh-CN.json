@@ -57,6 +57,13 @@
         "layoutSettingsDescription": "调整界面外观与工作区布局，设置会自动保存。",
         "openLayoutSettings": "打开主题设置",
         "resetAllSettings": "恢复全部默认",
+        "layoutSettings": {
+            "theme": "主题", "themeSystem": "跟随系统", "themeLight": "浅色", "themeDark": "深色",
+            "preset": "配色预设", "presetDefault": "默认", "presetAnthropic": "Anthropic", "presetSimpleLarge": "大字简洁", "presetUnderground": "地下", "presetRoseGarden": "玫瑰花园", "presetLakeView": "湖景", "presetSunsetGlow": "落日", "presetForestWhisper": "森林", "presetOceanBreeze": "海风", "presetLavenderDream": "薰衣草",
+            "font": "字体", "fontSans": "无衬线", "fontSerif": "衬线", "radius": "圆角", "density": "界面密度", "densityCompact": "紧凑", "densityDefault": "标准", "densityLoose": "舒适",
+            "sidebarTitle": "侧栏", "sidebarInset": "内嵌", "sidebarFloating": "浮动", "sidebar": "侧栏", "layoutTitle": "布局", "layoutDefault": "默认", "layoutCompact": "紧凑", "layoutOffcanvas": "全布局", "contentTitle": "内容宽度", "contentCentered": "居中", "contentFull": "铺满", "maxWidth": "最大宽度",
+            "customColor": "自定义主色", "customColorDescription": "覆盖当前配色预设的强调色", "animation": "页面动画", "animationDescription": "关闭后减少页面切换过渡"
+        },
         "jsonMode": "JSON 模式",
         "visualMode": "可视化模式",
         "fillTemplate": "回填模板",

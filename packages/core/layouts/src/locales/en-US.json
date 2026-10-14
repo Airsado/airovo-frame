@@ -57,6 +57,13 @@
         "layoutSettingsDescription": "Adjust appearance and workspace layout. Settings are saved automatically.",
         "openLayoutSettings": "Open theme settings",
         "resetAllSettings": "Restore all defaults",
+        "layoutSettings": {
+            "theme": "Theme", "themeSystem": "System", "themeLight": "Light", "themeDark": "Dark",
+            "preset": "Color preset", "presetDefault": "Default", "presetAnthropic": "Anthropic", "presetSimpleLarge": "Large and simple", "presetUnderground": "Underground", "presetRoseGarden": "Rose garden", "presetLakeView": "Lake view", "presetSunsetGlow": "Sunset glow", "presetForestWhisper": "Forest whisper", "presetOceanBreeze": "Ocean breeze", "presetLavenderDream": "Lavender dream",
+            "font": "Font", "fontSans": "Sans", "fontSerif": "Serif", "radius": "Radius", "density": "Density", "densityCompact": "Compact", "densityDefault": "Default", "densityLoose": "Comfortable",
+            "sidebarTitle": "Sidebar", "sidebarInset": "Inset", "sidebarFloating": "Floating", "sidebar": "Sidebar", "layoutTitle": "Layout", "layoutDefault": "Default", "layoutCompact": "Compact", "layoutOffcanvas": "Off-canvas", "contentTitle": "Content width", "contentCentered": "Centered", "contentFull": "Full width", "maxWidth": "Maximum width",
+            "customColor": "Custom primary color", "customColorDescription": "Override the accent color of the current preset", "animation": "Page animation", "animationDescription": "Reduce page transition effects when disabled"
+        },
         "jsonMode": "JSON mode",
         "visualMode": "Visual mode",
         "fillTemplate": "Fill template",
