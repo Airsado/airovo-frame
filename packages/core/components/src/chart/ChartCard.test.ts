@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import ChartCard from './ChartCard.vue'
+import { ChartContainer } from '@airovo/uikit-shadcnui'
 
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { chartLoading: '正在加载图表', chartError: '图表加载失败', chartEmpty: '暂无图表数据', retry: '重试' } } } })] }
 
@@ -61,5 +62,16 @@ describe('ChartCard', () => {
     it('marks loading state as a live status', () => {
         const wrapper = mount(ChartCard, { global, props: { title: '调用趋势', loading: true } })
         expect(wrapper.get('[role="status"]').attributes('aria-live')).toBe('polite')
+    })
+
+    it('normalizes Chart.js external tooltip payloads into the shared tooltip model', async () => {
+        const wrapper = mount(ChartCard, { global, props: { title: '趋势', data: { labels: ['一'], datasets: [{ label: '请求', data: [1] }] } } })
+        const chart = wrapper.findComponent(ChartContainer)
+        const external = (chart.props('options') as any).plugins.tooltip.external
+        external({ tooltip: { opacity: 1, title: ['一'], dataPoints: [{ label: '一', formattedValue: '1,240', dataset: { label: '请求', borderColor: '#123456' } }] } })
+        await wrapper.vm.$nextTick()
+        expect(wrapper.text()).toContain('1,240')
+        expect(wrapper.text()).toContain('请求')
+        external({ tooltip: { opacity: 0 } })
     })
 })
