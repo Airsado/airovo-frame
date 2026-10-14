@@ -188,6 +188,11 @@ keeps `HH:mm:ss` precision, accepts legacy `HH:mm` input as `:00`, clones
 dates before merging the selected day and time, and resets the time to
 `00:00:00` when cleared. Disabled state prevents date, time, and clear edits.
 
+When `locale` is omitted, `DatePicker` reads the installed framework i18n
+locale and falls back to `en-US`; an explicit locale always wins. This mirrors
+new-api's language-aware calendar selection without making date values or
+business forms depend on the i18n implementation.
+
 `DatePickerField` is the FormFieldSchema-friendly wrapper. Set `type="date"`
 or `type="datetime"`; it forwards date constraints, locale, disabled state,
 v-model and form attributes such as `id`, `name`, `aria-describedby`, and
