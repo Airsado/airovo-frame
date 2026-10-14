@@ -237,6 +237,9 @@ Run `pnpm dev` followed by `pnpm verify:sectionpage` for the SectionPage/tabs/
 layout scroll matrix. It accepts `SECTIONPAGE_MATRIX_URL`,
 `SECTIONPAGE_MATRIX_USERNAME`, `SECTIONPAGE_MATRIX_PASSWORD`, and
 `SECTIONPAGE_MATRIX_BROWSER` overrides.
+The wrapper intentionally uses Vue sticky header and the layout's native scroll
+container instead of copying React layout code; title/tab spacing and the
+scroll contract are the compatibility target.
 
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,

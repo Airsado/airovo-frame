@@ -26,6 +26,7 @@ try {
     assert.equal(await header.evaluate(element => getComputedStyle(element).top), '0px')
     const contentScroll = page.locator('[data-slot="layout-content-scroll"]')
     assert.equal(await contentScroll.evaluate(element => getComputedStyle(element).overflowY), 'auto')
+    assert.ok(await contentScroll.evaluate(element => element.scrollHeight > element.clientHeight))
     assert.ok(await page.locator('[data-slot="tabs-scroll"]').count())
     assert.ok(await page.locator('[data-slot="section-page-footer-host"]').count())
     const beforeScrollTop = await header.boundingBox()
@@ -33,6 +34,7 @@ try {
     await page.waitForTimeout(100)
     const afterScrollTop = await header.boundingBox()
     assert.ok(beforeScrollTop && afterScrollTop && Math.abs(beforeScrollTop.y - afterScrollTop.y) < 4)
+    assert.equal(await contentScroll.evaluate(element => element.scrollTop), 500)
     const tabs = page.locator('[data-slot="tabs-scroll"]').first()
     const tabsBox = await tabs.boundingBox()
     const scrollBox = await contentScroll.boundingBox()
@@ -47,6 +49,7 @@ try {
     await page.waitForTimeout(250)
     assert.equal(await header.evaluate(element => getComputedStyle(element).position), 'sticky')
     assert.equal(await contentScroll.evaluate(element => getComputedStyle(element).overflowY), 'auto')
+    assert.ok(await contentScroll.evaluate(element => element.scrollHeight >= element.clientHeight))
     assert.ok((await header.boundingBox())?.width <= 320)
 
     console.log(JSON.stringify({ baseUrl, desktopSticky: true, tabs: true, footerPortal: true, longScroll: true, lightDark: true, narrow: '320x844' }))
