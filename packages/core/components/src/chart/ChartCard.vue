@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { ChartContainer, ChartLegend, ChartTooltip, Button, Skeleton } from '@airovo/uikit-shadcnui'
 import type { ChartLegendItem, ChartTooltipItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
@@ -27,11 +28,15 @@ const props = withDefaults(defineProps<{
     height: 280,
     loading: false,
     empty: false,
-    errorText: '图表加载失败',
-    emptyText: '暂无图表数据',
 })
 
 const emit = defineEmits<{ (event: 'retry'): void }>()
+const { t, te } = useI18n({ useScope: 'global' })
+function copy(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
+const resolvedErrorText = computed(() => props.errorText ?? copy('common.chartError', '图表加载失败'))
+const resolvedEmptyText = computed(() => props.emptyText ?? copy('common.chartEmpty', '暂无图表数据'))
+const resolvedLoadingLabel = computed(() => copy('common.chartLoading', '正在加载图表'))
+const resolvedRetryText = computed(() => copy('common.retry', '重试'))
 const hasChartData = computed(() => Boolean(props.data?.datasets?.some((dataset) => Array.isArray(dataset.data) && dataset.data.length > 0)))
 const isEmpty = computed(() => props.empty || !hasChartData.value)
 const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [] })
@@ -47,17 +52,17 @@ const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [
             <slot name="actions" />
         </header>
 
-        <div v-if="loading" role="status" aria-live="polite" aria-label="正在加载图表" class="mt-4 space-y-3">
+        <div v-if="loading" role="status" aria-live="polite" :aria-label="resolvedLoadingLabel" class="mt-4 space-y-3">
             <Skeleton class="h-56 w-full" />
         </div>
         <div v-else-if="error" role="alert" class="mt-4 flex min-h-56 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
             <Icon icon="lucide:triangle-alert" class="size-7 text-destructive" />
-            <p class="text-sm text-destructive">{{ errorText }}</p>
-            <Button type="button" size="sm" variant="outline" @click="emit('retry')">重试</Button>
+            <p class="text-sm text-destructive">{{ resolvedErrorText }}</p>
+            <Button type="button" size="sm" variant="outline" @click="emit('retry')">{{ resolvedRetryText }}</Button>
         </div>
         <div v-else-if="isEmpty" role="status" aria-live="polite" class="mt-4 flex min-h-56 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-center">
             <Icon icon="lucide:chart-no-axes-combined" class="size-7 text-muted-foreground" />
-            <p class="text-sm text-muted-foreground">{{ emptyText }}</p>
+            <p class="text-sm text-muted-foreground">{{ resolvedEmptyText }}</p>
         </div>
         <template v-else>
             <ChartContainer class="mt-4" :type="type" :data="chartData" :options="options" :height="height" :aria-label="title" role="img" />

@@ -368,6 +368,10 @@ without a custom slot it renders the shared ui-kit `ChartTooltip` composition
 with the new-api border, rounded surface, indicator colors and shadow. The slot
 receives the normalized label/items model and is only rendered for a loaded
 non-empty chart. Chart.js options and actual hover wiring remain caller-owned.
+Default loading/error/empty/retry labels use the framework i18n
+`common.chartLoading`, `common.chartError`, `common.chartEmpty` and
+`common.retry` keys with Chinese fallbacks; explicit `errorText` and
+`emptyText` props remain authoritative.
 ## Accordion
 
 `Accordion`, `AccordionItem`, `AccordionHeader`, `AccordionTrigger` and
