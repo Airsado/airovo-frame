@@ -13,11 +13,12 @@ const stubs = {
     template: '<div data-stub="tooltip"><slot /></div>',
   },
   TooltipTrigger: {
-    template: '<div data-stub="tooltip-trigger"><slot /></div>',
+    props: ["asChild"],
+    template: '<div data-stub="tooltip-trigger" :data-as-child="String(asChild)"><slot /></div>',
   },
   TooltipContent: {
-    props: ["side", "sideOffset"],
-    template: '<div v-bind="$attrs" data-stub="tooltip-content"><slot /></div>',
+    props: ["side", "sideOffset", "align", "alignOffset"],
+    template: '<div v-bind="$attrs" data-stub="tooltip-content" :data-align="align" :data-align-offset="alignOffset"><slot /></div>',
   },
   Popover: { template: '<div data-stub="popover"><slot /></div>' },
   PopoverTrigger: {
@@ -32,14 +33,16 @@ const stubs = {
 describe("framework overlay compositions", () => {
   it("exposes new-api tooltip defaults and trigger/content slots", () => {
     const wrapper = mount(FrameworkTooltip, {
-      props: { content: "说明" },
+      props: { content: "说明", align: "end", alignOffset: 2 },
       slots: { trigger: "<button>?</button>" },
       global: { stubs },
     });
     expect(wrapper.get('[data-slot="framework-tooltip"]')).toBeTruthy();
     expect(
       wrapper.get('[data-slot="framework-tooltip-content"]').classes(),
-    ).toContain("max-w-xs");
+    ).toEqual(expect.arrayContaining(["max-w-xs", "inline-flex", "gap-1.5"]));
+    expect(wrapper.get('[data-stub="tooltip-trigger"]').attributes("data-as-child")).toBeDefined();
+    expect(wrapper.get('[data-slot="framework-tooltip-content"]').attributes("data-align")).toBe("end");
     expect(wrapper.text()).toContain("说明");
   });
 
