@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DateValue } from 'reka-ui'
-import { CalendarDays } from '@lucide/vue'
+import { CalendarDays, ChevronDown } from '@lucide/vue'
 import { fromDate, getLocalTimeZone, toCalendarDate } from '@internationalized/date'
 import { computed, getCurrentInstance, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -22,6 +22,7 @@ const props = defineProps<{
   minDate?: Date
   maxDate?: Date
   locale?: string
+  triggerIcon?: 'calendar' | 'chevron'
     id?: string
     name?: string
     ariaDescribedby?: string
@@ -100,7 +101,8 @@ function selectDate(value: DateValue | undefined): void {
         :aria-label="label"
       >
         <span class="truncate">{{ label }}</span>
-        <CalendarDays data-icon="inline-end" class="ml-auto opacity-60" />
+        <CalendarDays v-if="props.triggerIcon !== 'chevron'" data-date-picker-trigger-icon="calendar" data-icon="inline-end" class="ml-auto opacity-60" />
+        <ChevronDown v-else data-date-picker-trigger-icon="chevron" data-icon="inline-end" class="ml-auto size-4 opacity-60" />
       </Button>
     </PopoverTrigger>
     <PopoverContent class="w-auto p-0" align="start" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
