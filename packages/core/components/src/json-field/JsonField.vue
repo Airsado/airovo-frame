@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Input } from '@airovo/uikit-shadcnui'
 import { formatJson, jsonError, parseJsonRows, serializeJsonRows, type JsonFieldRow, type JsonFieldValueType } from './json-field-utils'
@@ -24,17 +25,25 @@ const props = withDefaults(defineProps<{
     disabled: false,
     valueType: 'string',
     nested: false,
-    keyLabel: '键',
-    valueLabel: '值',
-    keyPlaceholder: '字段名',
-    valuePlaceholder: '字段值',
-    emptyText: '暂无字段，点击下方按钮添加。',
 })
 
 const emit = defineEmits<{
     (event: 'update:modelValue', value: string): void
     (event: 'parse-error', value?: string): void
 }>()
+const { t, te } = useI18n({ useScope: 'global' })
+function copy(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
+const keyLabel = computed(() => props.keyLabel ?? copy('common.jsonKey', '键'))
+const valueLabel = computed(() => props.valueLabel ?? copy('common.jsonValue', '值'))
+const keyPlaceholder = computed(() => props.keyPlaceholder ?? copy('common.jsonKeyPlaceholder', '字段名'))
+const valuePlaceholder = computed(() => props.valuePlaceholder ?? copy('common.jsonValuePlaceholder', '字段值'))
+const emptyText = computed(() => props.emptyText ?? copy('common.jsonEmptyFields', '暂无字段，点击下方按钮添加。'))
+const visualModeText = computed(() => copy('common.visualMode', '可视化模式'))
+const jsonModeText = computed(() => copy('common.jsonMode', 'JSON 模式'))
+const fillTemplateText = computed(() => copy('common.fillTemplate', '回填模板'))
+const formatText = computed(() => copy('common.format', '格式化'))
+const deleteFieldText = computed(() => copy('common.deleteField', '删除字段'))
+const addFieldText = computed(() => copy('common.addField', '添加字段'))
 
 const mode = ref<'visual' | 'json'>('visual')
 const draft = ref(props.modelValue)
@@ -100,11 +109,11 @@ function formatDraft(): void {
             <div class="flex items-center gap-2">
                 <Button type="button" size="sm" variant="outline" :disabled="disabled" @click="toggleMode">
                     <Icon :icon="mode === 'visual' ? 'lucide:code-2' : 'lucide:table-2'" class="mr-1.5 size-4" />
-                    {{ mode === 'visual' ? 'JSON 模式' : '可视化模式' }}
+                    {{ mode === 'visual' ? jsonModeText : visualModeText }}
                 </Button>
-                <Button v-if="template" type="button" size="sm" variant="link" :disabled="disabled" @click="fillTemplate">回填模板</Button>
+                <Button v-if="template" type="button" size="sm" variant="link" :disabled="disabled" @click="fillTemplate">{{ fillTemplateText }}</Button>
             </div>
-            <Button v-if="mode === 'json'" type="button" size="sm" variant="ghost" :disabled="disabled || !!error" @click="formatDraft">格式化</Button>
+            <Button v-if="mode === 'json'" type="button" size="sm" variant="ghost" :disabled="disabled || !!error" @click="formatDraft">{{ formatText }}</Button>
         </div>
 
         <div v-if="mode === 'visual'" class="space-y-2">
@@ -114,10 +123,10 @@ function formatDraft(): void {
             <div v-for="row in rows" :key="row.id" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-2">
                 <Input :model-value="row.key" :placeholder="keyPlaceholder" :disabled="disabled" @update:model-value="updateRow(row.id, 'key', String($event))" />
                 <Input :model-value="row.value" :placeholder="valuePlaceholder" :disabled="disabled" @update:model-value="updateRow(row.id, 'value', String($event))" />
-                <Button type="button" variant="ghost" size="icon" class="size-9" :disabled="disabled" aria-label="删除字段" @click="removeRow(row.id)"><Icon icon="lucide:trash-2" class="size-4" /></Button>
+                <Button type="button" variant="ghost" size="icon" class="size-9" :disabled="disabled" :aria-label="deleteFieldText" @click="removeRow(row.id)"><Icon icon="lucide:trash-2" class="size-4" /></Button>
             </div>
             <p v-if="!rows.length" class="rounded-md border border-dashed p-5 text-center text-sm text-muted-foreground">{{ emptyText }}</p>
-            <Button type="button" variant="outline" size="sm" class="w-full" :disabled="disabled" @click="addRow"><Icon icon="lucide:plus" class="mr-1.5 size-4" />添加字段</Button>
+            <Button type="button" variant="outline" size="sm" class="w-full" :disabled="disabled" @click="addRow"><Icon icon="lucide:plus" class="mr-1.5 size-4" />{{ addFieldText }}</Button>
         </div>
         <div v-else class="space-y-1.5">
             <JsonCodeEditor :model-value="draft" :disabled="disabled" @update:model-value="publish" @parse-error="(message) => emit('parse-error', message)" />
