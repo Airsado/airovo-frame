@@ -79,6 +79,8 @@ The useFollowTail composable and LiveLog component keep auto-scroll in the
 view layer. They watch an item collection, pause when the user scrolls away
 from the bottom, and expose a follow-latest action to resume. They do not know
 how items are fetched or which SSE/WebSocket transport produced them.
+LiveLog defaults use the global `common.noLogs` and `common.followLatest`
+locale keys; an explicit `emptyText` remains authoritative.
 
 ## Charts
 

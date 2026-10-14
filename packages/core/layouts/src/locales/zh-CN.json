@@ -40,6 +40,8 @@
         "jsonKeyPlaceholder": "字段名",
         "jsonValuePlaceholder": "字段值",
         "jsonEmptyFields": "暂无字段，点击下方按钮添加。",
+        "noLogs": "暂无日志",
+        "followLatest": "跟随最新",
         "jsonMode": "JSON 模式",
         "visualMode": "可视化模式",
         "fillTemplate": "回填模板",

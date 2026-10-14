@@ -40,6 +40,8 @@
         "jsonKeyPlaceholder": "Field name",
         "jsonValuePlaceholder": "Field value",
         "jsonEmptyFields": "No fields yet. Add one below.",
+        "noLogs": "No logs",
+        "followLatest": "Follow latest",
         "jsonMode": "JSON mode",
         "visualMode": "Visual mode",
         "fillTemplate": "Fill template",
