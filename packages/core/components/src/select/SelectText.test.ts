@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import SearchSelect from './SearchSelect.vue'
 
 const stubs = {
+    Combobox: { props: ['placeholder', 'searchPlaceholder', 'emptyText'], template: '<div><span>{{ placeholder }}</span><input data-command-input :placeholder="searchPlaceholder" /><span data-command-empty>{{ emptyText }}</span></div>' },
     Popover: { template: '<div><slot /></div>' },
     PopoverTrigger: { template: '<div><slot /></div>' },
     PopoverContent: { template: '<div><slot /></div>' },
