@@ -67,11 +67,13 @@ describe('ChartCard', () => {
     it('normalizes Chart.js external tooltip payloads into the shared tooltip model', async () => {
         const wrapper = mount(ChartCard, { global, props: { title: '趋势', data: { labels: ['一'], datasets: [{ label: '请求', data: [1] }] } } })
         const chart = wrapper.findComponent(ChartContainer)
-        const external = (chart.props('options') as any).plugins.tooltip.external
-        external({ tooltip: { opacity: 1, title: ['一'], dataPoints: [{ label: '一', formattedValue: '1,240', dataset: { label: '请求', borderColor: '#123456' } }] } })
+        const options = chart.props('options') as { plugins?: { tooltip?: { external?: (context: unknown) => void } } }
+        const external = options.plugins?.tooltip?.external
+        expect(external).toBeTypeOf('function')
+        external!({ tooltip: { opacity: 1, title: ['一'], dataPoints: [{ label: '一', formattedValue: '1,240', dataset: { label: '请求', borderColor: '#123456' } }] } })
         await wrapper.vm.$nextTick()
         expect(wrapper.text()).toContain('1,240')
         expect(wrapper.text()).toContain('请求')
-        external({ tooltip: { opacity: 0 } })
+        external!({ tooltip: { opacity: 0 } })
     })
 })
