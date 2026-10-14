@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Check, ChevronsUpDown } from '@lucide/vue'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { cn } from '@airovo/uikit-shadcnui'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
 import {
@@ -27,11 +28,13 @@ const props = withDefaults(defineProps<{
   class?: string
 }>(), {
   options: () => [],
-  placeholder: '请选择',
-  searchPlaceholder: '搜索选项',
-  emptyText: '没有匹配的选项',
   disabled: false,
 })
+
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedPlaceholder = computed(() => props.placeholder ?? (te('common.selectPlaceholder') ? t('common.selectPlaceholder') : '请选择'))
+const resolvedSearchPlaceholder = computed(() => props.searchPlaceholder ?? (te('common.selectSearch') ? t('common.selectSearch') : '搜索选项'))
+const resolvedEmptyText = computed(() => props.emptyText ?? (te('common.selectEmpty') ? t('common.selectEmpty') : '没有匹配的选项'))
 
 const modelValue = defineModel<string | undefined>()
 const flattenedOptions = computed(() => flattenSelectOptions(props.options))
@@ -57,15 +60,15 @@ function select(value: string): void {
         :disabled="props.disabled"
         :class="cn('h-8 w-full justify-between rounded-lg font-normal select-none', !selectedLabel && 'text-muted-foreground', props.class)"
       >
-        <span class="min-w-0 truncate">{{ selectedLabel ?? props.placeholder }}</span>
+        <span class="min-w-0 truncate">{{ selectedLabel ?? resolvedPlaceholder }}</span>
         <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
       </Button>
     </PopoverTrigger>
     <PopoverContent class="w-(--reka-popover-trigger-width) min-w-48 rounded-lg border-0 p-0 ring-1 ring-foreground/10" align="start">
       <Command>
-        <CommandInput :placeholder="props.searchPlaceholder" />
+        <CommandInput :placeholder="resolvedSearchPlaceholder" />
         <CommandList>
-          <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
+          <CommandEmpty>{{ resolvedEmptyText }}</CommandEmpty>
           <CommandGroup>
             <template v-for="item in flattenedOptions" :key="item.key">
               <div v-if="item.group" class="px-2 py-1.5 text-xs font-semibold text-muted-foreground" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">{{ item.option.label }}</div>

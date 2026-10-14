@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@airovo/uikit-shadcnui/components/ui/select'
 import { computed, ref, useAttrs, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { flattenSelectOptions, type SelectOption } from './options'
 
 export type { SelectOption } from './options'
@@ -23,10 +24,13 @@ const props = withDefaults(defineProps<{
   class?: string
 }>(), {
   options: () => [],
-  placeholder: '请选择',
   allowClear: false,
   disabled: false,
 })
+
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedPlaceholder = computed(() => props.placeholder ?? (te('common.selectPlaceholder') ? t('common.selectPlaceholder') : '请选择'))
+const clearText = computed(() => te('common.clearSelection') ? t('common.clearSelection') : '清除选择')
 
 defineOptions({ inheritAttrs: false })
 
@@ -70,13 +74,13 @@ function clear(event: MouseEvent): void {
         v-bind="attrs"
         :class="['w-full', props.class, props.allowClear && modelValue ? 'pr-14' : undefined]"
       >
-        <SelectValue :placeholder="props.placeholder" />
+        <SelectValue :placeholder="resolvedPlaceholder" />
       </SelectTrigger>
       <button
         v-if="props.allowClear && modelValue"
         type="button"
         class="absolute right-7 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm opacity-50 transition-opacity hover:opacity-100"
-        aria-label="清除选择"
+        :aria-label="clearText"
         :disabled="props.disabled"
         @click="clear"
       >

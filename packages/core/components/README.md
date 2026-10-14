@@ -126,6 +126,8 @@ A node with `children` is rendered as a non-selectable group label. Only leaf
 nodes with `value` can be selected, so the selected value and form backfill
 remain stable. Nested labels are indented by depth; `SearchSelect` searches
 the rendered descendant labels. Existing flat options keep their behavior.
+Default SelectBox/SearchSelect placeholder, search and empty-result text uses
+the global `common.select*` locale keys; explicit props remain authoritative.
 
 ## DataTable column sizing
 
