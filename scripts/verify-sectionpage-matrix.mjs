@@ -27,16 +27,29 @@ try {
     const contentScroll = page.locator('[data-slot="layout-content-scroll"]')
     assert.equal(await contentScroll.evaluate(element => getComputedStyle(element).overflowY), 'auto')
     assert.ok(await page.locator('[data-slot="tabs-scroll"]').count())
+    assert.ok(await page.locator('[data-slot="section-page-footer-host"]').count())
+    const beforeScrollTop = await header.boundingBox()
+    await contentScroll.evaluate(element => { element.scrollTop = 500 })
+    await page.waitForTimeout(100)
+    const afterScrollTop = await header.boundingBox()
+    assert.ok(beforeScrollTop && afterScrollTop && Math.abs(beforeScrollTop.y - afterScrollTop.y) < 4)
+    const tabs = page.locator('[data-slot="tabs-scroll"]').first()
+    const tabsBox = await tabs.boundingBox()
+    const scrollBox = await contentScroll.boundingBox()
+    assert.ok(tabsBox && scrollBox && tabsBox.y + tabsBox.height <= scrollBox.y + 2)
 
     await page.getByRole('button', { name: '切换主题' }).click()
     assert.equal(await page.locator('html').evaluate(element => element.classList.contains('dark')), true)
+    await page.getByRole('button', { name: '切换主题' }).click()
+    assert.equal(await page.locator('html').evaluate(element => element.classList.contains('dark')), false)
 
-    await page.setViewportSize({ width: 390, height: 844 })
+    await page.setViewportSize({ width: 320, height: 844 })
     await page.waitForTimeout(250)
     assert.equal(await header.evaluate(element => getComputedStyle(element).position), 'sticky')
     assert.equal(await contentScroll.evaluate(element => getComputedStyle(element).overflowY), 'auto')
+    assert.ok((await header.boundingBox())?.width <= 320)
 
-    console.log(JSON.stringify({ baseUrl, desktopSticky: true, tabs: true, independentScroll: true, dark: true, mobile: '390x844' }))
+    console.log(JSON.stringify({ baseUrl, desktopSticky: true, tabs: true, footerPortal: true, longScroll: true, lightDark: true, narrow: '320x844' }))
 } finally {
     await browser.close()
 }
