@@ -65,3 +65,40 @@
 - `app-ui` 只放业务扩展。
 - `apps/airhaven` 仅用于本地验证，不能提交、推送或进入 PR。
 - 不迁移 new-api 的业务页面、渠道 API、用户 API、权限业务规则。
+
+## 2026-10-15 证据快照
+
+以下结果来自当前 `dev` 工作区和 new-api revision
+`a0bf6a8a412764bc296a8e27cf8c4aaa3f3f0ed9`。快照记录已验证事实，不代表整张盘点表已经完成迁移。
+
+### 自动化验证
+
+| 命令 | 结果 |
+| --- | --- |
+| `pnpm lint` | 通过；全仓 22 个 lint task 完成 |
+| `pnpm --filter @airovo/components test` | 通过；60 个测试文件、177 个测试 |
+| `pnpm --filter @airovo/forms test` | 通过；5 个测试文件、55 个测试 |
+| `pnpm --filter @airovo/layouts test` | 通过；6 个测试文件、15 个测试 |
+| `pnpm --filter @airovo/router test` | 通过；2 个测试文件、21 个测试 |
+| `pnpm --filter @airovo/stores test` | 通过；3 个测试文件、13 个测试 |
+| `pnpm --filter playwright build` | 通过；保留既有 `@theme`、Rolldown annotation、chunk size 警告 |
+| `pnpm build` | 通过；playwright、mock-api、airhaven 本地构建均完成，未提交 airhaven 产物 |
+
+### 浏览器矩阵
+
+Chrome 和 Edge 均使用本机可执行文件运行，demo 地址为
+`http://127.0.0.1:5290`：
+
+- `verify:primitives`：Calendar、Command、Combobox、dark、mobile 通过；Chrome 与 Edge 均通过。
+- `verify:overlays`：Dialog、Drawer、右侧 Drawer、mobile Escape、focus 通过；Chrome 与 Edge 均通过。
+- `verify:sidebar`：展开/折叠、active/hover/focus/disabled、dropdown Escape、主题、mobile Sheet 通过；Chrome 与 Edge 均通过。
+- `verify:sectionpage`：sticky title、tabs、footer portal、长滚动、light/dark、320×844 通过；Chrome 与 Edge 均通过。
+- `verify:datatable`：桌面、选择、ViewOptions、暗色、移动卡片通过；Chrome 与 Edge 均通过。
+- `verify:json-form`：自定义 FormField、非法草稿保留、validate、reset 通过；Chrome 与 Edge 均通过。
+
+### 仍未验证的范围
+
+- Firefox、Safari 及其特有的 focus/portal/scroll 行为。
+- 复杂嵌套 overlay 的跨层 focus stack、第三方浏览器差异。
+- DataTable 全量服务端过滤/排序/取消请求在真实业务网络下的长时间并发行为。
+- 业务应用组合、权限语义和真实生产数据；这些属于应用层验证，不进入框架 PR。
