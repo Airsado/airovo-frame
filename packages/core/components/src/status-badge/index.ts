@@ -3,8 +3,10 @@ export { default as StatusBadgeList } from './StatusBadgeList.vue'
 export {
     STATUS_PRESET_LABEL,
     STATUS_PRESET_ICON,
+    statusPresets,
     type StatusBadgeSize,
     type StatusBadgeType,
     type StatusPreset,
+    type StatusPresetName,
     type StatusVariant,
 } from './types'

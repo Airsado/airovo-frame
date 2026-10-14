@@ -139,6 +139,13 @@ The legacy `status`/`text` props remain supported and use the same new-api
 color and sizing classes. Copyable badges expose a `copy` event after the
 clipboard write succeeds and can be activated with Enter or Space.
 
+`statusPresets` exports the new-api `active`, `inactive`, `invited`,
+`suspended` and `pending` display presets. `StatusPresetName` types those map
+keys; the existing `StatusPreset` variant union remains compatible with
+legacy callers. The presets only contain `variant`/`label` (and `pulse` for
+pending); callers still decide how a domain value maps to a preset and whether
+the badge is copyable.
+
 `StatusBadgeList` renders a bounded list of badge slots, a neutral `+N`
 overflow badge, and an `empty` slot. It owns only layout and display limits;
 the caller owns the item meaning and actions.

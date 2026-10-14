@@ -4,8 +4,16 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import StatusBadge from './StatusBadge.vue'
 import StatusBadgeList from './StatusBadgeList.vue'
+import { statusPresets } from './types'
 
 describe('StatusBadge', () => {
+    it('exports the new-api status presets without coupling them to business data', () => {
+        expect(statusPresets.active).toEqual({ variant: 'success', label: 'Active' })
+        expect(statusPresets.inactive).toEqual({ variant: 'neutral', label: 'Inactive' })
+        expect(statusPresets.invited).toEqual({ variant: 'info', label: 'Invited' })
+        expect(statusPresets.suspended).toEqual({ variant: 'danger', label: 'Suspended' })
+        expect(statusPresets.pending).toEqual({ variant: 'warning', label: 'Pending', pulse: true })
+    })
     it('keeps legacy status labels while using the new-api badge shape', () => {
         const wrapper = mount(StatusBadge, { props: { status: 'success', copyable: false } })
         const badge = wrapper.get('[data-slot="status-badge"]')
