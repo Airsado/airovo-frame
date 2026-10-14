@@ -506,3 +506,6 @@ dialog content follows new-api's top-third, rounded-xl, p-0 command surface;
 group, and the default slot can append additional ui-kit command content. The
 component does not know about routing, permissions, i18n, API requests or
 application stores.
+Default title, description, placeholder and empty-result copy uses the global
+`common.commandTitle`, `common.commandDescription`, `common.commandPlaceholder`
+and `common.commandEmpty` keys; explicit props remain authoritative.
