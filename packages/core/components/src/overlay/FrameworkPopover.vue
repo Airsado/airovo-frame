@@ -46,14 +46,7 @@ function updateOpen(value: boolean): void {
     :modal="props.modal"
     @update:open="updateOpen"
   >
-    <PopoverTrigger as-child
-      ><button
-        type="button"
-        :disabled="props.disabled"
-        :class="['inline-flex', props.triggerClass]"
-      >
-        <slot name="trigger" /></button
-    ></PopoverTrigger>
+    <PopoverTrigger as-child :disabled="props.disabled" :class="['inline-flex', props.triggerClass]"><slot name="trigger" /></PopoverTrigger>
     <PopoverContent
       :side="props.side"
       :align="props.align"
@@ -73,14 +66,7 @@ function updateOpen(value: boolean): void {
     :modal="props.modal"
     @update:open="updateOpen"
   >
-    <PopoverTrigger as-child
-      ><button
-        type="button"
-        :disabled="props.disabled"
-        :class="['inline-flex', props.triggerClass]"
-      >
-        <slot name="trigger" /></button
-    ></PopoverTrigger>
+    <PopoverTrigger as-child :disabled="props.disabled" :class="['inline-flex', props.triggerClass]"><slot name="trigger" /></PopoverTrigger>
     <PopoverContent
       :side="props.side"
       :align="props.align"

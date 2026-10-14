@@ -22,8 +22,8 @@ const stubs = {
   },
   Popover: { template: '<div data-stub="popover"><slot /></div>' },
   PopoverTrigger: {
-    props: ["disabled"],
-    template: '<div data-stub="popover-trigger"><slot /></div>',
+    props: ["disabled", "asChild"],
+    template: '<div data-stub="popover-trigger" :data-as-child="String(asChild)"><slot /></div>',
   },
   PopoverContent: {
     template: '<div v-bind="$attrs" data-stub="popover-content"><slot /></div>',
@@ -55,5 +55,6 @@ describe("framework overlay compositions", () => {
     expect(
       wrapper.get('[data-slot="framework-popover-content"]').classes(),
     ).toEqual(expect.arrayContaining(["w-72", "rounded-lg", "p-2.5"]));
+    expect(wrapper.get('[data-stub="popover-trigger"]').attributes("data-as-child")).toBeDefined();
   });
 });

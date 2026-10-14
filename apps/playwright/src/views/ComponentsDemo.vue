@@ -588,7 +588,7 @@ function sseItemData(item: unknown): unknown {
                         <template #trigger><button type="button">悬停查看 Tooltip</button></template>
                     </FrameworkTooltip>
                     <FrameworkPopover v-model:open="frameworkPopoverOpen" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
-                        <template #trigger>打开 Popover</template>
+                        <template #trigger><button type="button">打开 Popover</button></template>
                         <div class="space-y-1"><p class="text-sm font-medium">Popover 内容</p><p class="text-xs text-muted-foreground">支持 Escape、outside 和键盘焦点恢复。</p></div>
                     </FrameworkPopover>
                 </div>

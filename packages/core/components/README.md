@@ -255,7 +255,8 @@ as-child trigger semantics so a caller's button or link is not wrapped again.
 It accepts `content` or a `content` slot plus `side`, `align`, offsets,
 `delayDuration`, `disabled`, and `contentClass`. Popover exposes default
 content, `open`/`defaultOpen`, `update:open`, `modal`, `side`, `align`, offsets
-and `disabled`. Their content classes match new-api's foreground/popover
+and `disabled`; its trigger slot also uses direct as-child semantics and must
+provide the interactive root element. Their content classes match new-api's foreground/popover
 surfaces, arrow, rounded corners, padding, width and ring while primitive
 focus, Escape and outside behavior stays owner-controlled.
 
