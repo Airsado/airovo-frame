@@ -30,13 +30,14 @@ import SectionTitle from './SectionTitle.vue'
 
 defineOptions({ name: 'LayoutSettings' })
 
-const props = withDefaults(defineProps<{ title?: string; description?: string }>(), {
-    title: '主题设置',
-    description: '调整界面外观与工作区布局，设置会自动保存。',
-})
+const props = defineProps<{ title?: string; description?: string }>()
 const preferences = usePreferencesStore()
 const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar()
 const { t, te } = useI18n()
+const resolvedTitle = computed(() => props.title ?? (te('common.layoutSettingsTitle') ? t('common.layoutSettingsTitle') : '主题设置'))
+const resolvedDescription = computed(() => props.description ?? (te('common.layoutSettingsDescription') ? t('common.layoutSettingsDescription') : '调整界面外观与工作区布局，设置会自动保存。'))
+const openSettingsText = computed(() => te('common.openLayoutSettings') ? t('common.openLayoutSettings') : '打开主题设置')
+const resetAllText = computed(() => te('common.resetAllSettings') ? t('common.resetAllSettings') : '恢复全部默认')
 const open = ref(false)
 const current = computed(() => preferences.preferences)
 const defaults = computed(() => preferences.defaults)
@@ -123,14 +124,14 @@ const contentOptions: { value: ContentLayout; label: string; kind: 'content-full
 <template>
     <Sheet v-model:open="open">
         <SheetTrigger as-child>
-            <Button data-slot="layout-settings-trigger" variant="ghost" size="icon" aria-label="打开主题设置" title="主题设置" class="size-9">
+            <Button data-slot="layout-settings-trigger" variant="ghost" size="icon" :aria-label="openSettingsText" :title="resolvedTitle" class="size-9">
                 <Icon icon="lucide:palette" class="size-4" />
             </Button>
         </SheetTrigger>
         <SheetContent data-slot="layout-settings" side="right" class="h-dvh min-h-0 w-full shrink-0 gap-0 overflow-hidden border-l bg-background/98 p-0 shadow-none sm:max-w-md">
             <SheetHeader class="shrink-0 border-b border-border/70 bg-background/95 px-4 py-3 text-start backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6 sm:py-4">
-                <SheetTitle>{{ props.title }}</SheetTitle>
-                <SheetDescription>{{ props.description }}</SheetDescription>
+                <SheetTitle>{{ resolvedTitle }}</SheetTitle>
+                <SheetDescription>{{ resolvedDescription }}</SheetDescription>
             </SheetHeader>
             <div data-slot="layout-settings-scroll" class="hover-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
                 <div class="flex flex-col gap-6">
@@ -268,7 +269,7 @@ const contentOptions: { value: ContentLayout; label: string; kind: 'content-full
                 </div>
             </div>
             <SheetFooter class="mt-0 shrink-0 grid grid-cols-1 gap-2 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6 sm:py-4">
-                <Button variant="outline" class="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/10" aria-label="恢复全部默认设置" @click="resetAll"><Icon icon="lucide:rotate-ccw" class="size-4" />恢复全部默认</Button>
+                <Button variant="outline" class="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/10" :aria-label="resetAllText" @click="resetAll"><Icon icon="lucide:rotate-ccw" class="size-4" />{{ resetAllText }}</Button>
             </SheetFooter>
         </SheetContent>
     </Sheet>
