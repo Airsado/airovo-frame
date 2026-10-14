@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
 import DatePicker from './DatePicker.vue'
 
 const stubs = {
@@ -38,6 +39,14 @@ describe('DatePicker boundaries', () => {
         expect(wrapper.get('button').attributes('aria-label')).toBe('2024-01-02')
         const zh = mount(DatePicker, { props: { modelValue: value, locale: 'zh-CN' }, global: { stubs } })
         expect(zh.get('button').attributes('aria-label')).toBe('2024-01-02')
+    })
+
+    it('uses the global i18n locale when locale is omitted, while explicit locale wins', () => {
+        const i18n = createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': {} } })
+        const wrapper = mount(DatePicker, { global: { stubs, plugins: [i18n] } })
+        expect(wrapper.get('[data-calendar]').attributes('data-locale')).toBe('zh-CN')
+        const explicit = mount(DatePicker, { props: { locale: 'fr' }, global: { stubs, plugins: [i18n] } })
+        expect(explicit.get('[data-calendar]').attributes('data-locale')).toBe('fr')
     })
 
     it('keeps an invalid or reversed boundary configuration renderable', () => {

@@ -2,7 +2,7 @@
 import type { DateValue } from 'reka-ui'
 import { CalendarDays } from '@lucide/vue'
 import { fromDate, getLocalTimeZone, toCalendarDate } from '@internationalized/date'
-import { computed, ref, watch } from 'vue'
+import { computed, getCurrentInstance, ref, watch } from 'vue'
 import { useOverlayOwner } from '@airovo/shared/overlay'
 import { cn } from '@airovo/uikit-shadcnui'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
@@ -27,6 +27,14 @@ const props = withDefaults(defineProps<{
     ariaInvalid?: boolean | string
   class?: string
 }>(), { placeholder: '选择日期' })
+
+type GlobalI18n = { locale?: string | { value?: string } }
+const globalI18n = getCurrentInstance()?.appContext.config.globalProperties.$i18n as GlobalI18n | undefined
+const activeLocale = computed(() => {
+  const locale = globalI18n?.locale
+  return typeof locale === 'string' ? locale : locale?.value
+})
+const resolvedLocale = computed(() => props.locale ?? activeLocale.value ?? 'en-US')
 
 const emit = defineEmits<{ 'update:modelValue': [Date | undefined] }>()
 const owner = useOverlayOwner()
@@ -94,7 +102,7 @@ function selectDate(value: DateValue | undefined): void {
     <PopoverContent class="w-auto p-0" align="start" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <Calendar
         layout="month-and-year"
-        :locale="props.locale"
+        :locale="resolvedLocale"
         :min-value="minValue"
         :max-value="maxValue"
         :model-value="selected as never"
