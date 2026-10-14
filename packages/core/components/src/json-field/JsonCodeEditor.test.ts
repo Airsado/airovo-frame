@@ -42,6 +42,23 @@ describe('JsonCodeEditor', () => {
         expect(textarea.attributes('aria-invalid')).toBe('false')
     })
 
+    it('exposes the inner textarea and honors an explicit aria-invalid state', () => {
+        const elements: (HTMLTextAreaElement | null)[] = []
+        const wrapper = mount(JsonCodeEditor, {
+            props: {
+                modelValue: '{"a":1}',
+                ariaInvalid: true,
+                heightClassName: 'h-80',
+                textareaRef: (element) => elements.push(element),
+            },
+        })
+        expect(wrapper.get('textarea').attributes('aria-invalid')).toBe('true')
+        expect(wrapper.find('.h-80').exists()).toBe(true)
+        expect(elements[0]).toBeInstanceOf(HTMLTextAreaElement)
+        wrapper.unmount()
+        expect(elements.at(-1)).toBeNull()
+    })
+
     it('keeps the header actions at new-api spacing and reports clipboard success', async () => {
         const writeText = vi.fn().mockResolvedValue(undefined)
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })

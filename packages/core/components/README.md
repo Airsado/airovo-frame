@@ -255,7 +255,13 @@ notation and array entries use bracket indexes; switching to JSON mode still
 edits the same draft string, and serialization reconstructs the nested object.
 
 `JsonCodeEditor` follows the new-api header spacing and reports clipboard
-success/failure through the framework toaster without discarding the draft.
+success/failure through the framework toaster without discarding the draft. Its
+`textareaRef` callback exposes the inner textarea for focus management;
+`ariaInvalid` overrides the automatic JSON validity attribute when a form owns
+the validation state, and `heightClassName` can replace the fixed `height`
+style for theme/layout utility classes. `id`, `name`, `ariaDescribedby` and
+`dataFormRoot` are forwarded to the textarea, while `parse-error` keeps the
+invalid draft visible for correction.
 
 `DataTableRowActions` exposes a stable `data-action-key` for each inline and
 dropdown action. A loading action is disabled, announces `aria-busy`, and
