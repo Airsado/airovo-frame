@@ -359,13 +359,17 @@ They only own layout and theme classes, so preference state and button
 behavior remain with the caller.
 
 `Combobox` is the generic single-value searchable selector. It accepts the
-same option shape as `SelectBox`, supports disabled options and an optional
-`allowCustomValue` Enter path. Options can also provide `description` and
-`icon`; search matches both labels and values, `openOnFocus` controls whether
-focus opens the popup, and `showSelectedIcon` controls the selected check mark.
-`popupClass`, `id`, `name` and the aria props are forwarded to the public
-trigger contract. Escape restores the current model value; multi-select chips
-remain a separate future composition.
+same option shape as `SelectBox`, renders a new-api-style InputGroup with a
+lightweight trigger button, and keeps the search input in the control instead
+of moving it into the popup. With no selected value, typing opens the popup;
+with a selected value, the closed input shows the label and the trigger opens
+search mode. It supports disabled options and an optional `allowCustomValue`
+Enter path. Options can also provide `description` and `icon`; search matches
+both labels and values, `openOnFocus` controls whether focus opens the popup,
+and `showSelectedIcon` controls the selected check mark. `popupClass`, `id`,
+`name` and the aria props are forwarded to the public input contract. Escape
+restores the current model value; multi-select chips remain a separate
+composition.
 
 ## Tabs
 
