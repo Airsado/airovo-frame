@@ -17,6 +17,9 @@ import {
     DateTimePicker,
     Drawer,
     DrawerLayout,
+    DrawerSection,
+    DrawerSectionHeader,
+    DrawerSwitchItem,
     EmptyState,
     ErrorState,
     FacetedFilter,
@@ -915,6 +918,13 @@ function sseItemData(item: unknown): unknown {
                         <Drawer v-model:open="showRightDrawer">
                             <DrawerLayout side="right" title="渠道详情" description="右侧 Drawer 适合桌面端详情和编辑面板。">
                                 <div class="space-y-3 pb-4">
+                                    <DrawerSection>
+                                        <DrawerSectionHeader title="请求设置" description="可复用的 new-api 抽屉分区组合" icon="lucide:settings" icon-tone="info" />
+                                        <DrawerSwitchItem>
+                                            <span class="text-sm">启用缓存</span>
+                                            <template #control><Button size="sm" variant="outline">切换</Button></template>
+                                        </DrawerSwitchItem>
+                                    </DrawerSection>
                                     <p v-for="item in 4" :key="item" class="rounded-md border p-3 text-sm">
                                         右侧可滚动内容 {{ item }}。
                                     </p>
