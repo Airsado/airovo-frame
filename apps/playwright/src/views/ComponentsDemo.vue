@@ -146,7 +146,7 @@ import {
     TabsList,
     TabsTrigger,
 } from '@airovo/uikit-shadcnui'
-import { Combobox, SelectBox, SearchSelect } from '@airovo/components'
+import { Combobox, MultiSelect, SelectBox, SearchSelect } from '@airovo/components'
 import { useDrawer, useModal } from '@airovo/composables'
 import { useEventSourceSession, type EventSourceProtocolEventPayload } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
@@ -176,6 +176,7 @@ const selectedDate = ref<Date>()
 const selectedDateTime = ref<Date>()
 const selectedProvider = ref<string | undefined>('openai')
 const selectedCombobox = ref<string | undefined>()
+const selectedMultiSelect = ref<string[]>(['openai'])
 const selectedRegion = ref('us-east')
 const searchedProvider = ref<string | undefined>()
 const selectedChannelStatus = ref<string | undefined>()
@@ -1029,6 +1030,9 @@ function sseItemData(item: unknown): unknown {
                         <span class="text-xs font-medium text-muted-foreground">通用 Combobox</span>
                         <Combobox v-model="selectedCombobox" :options="hierarchicalProviderOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
                         <span class="text-xs text-muted-foreground">当前值：{{ selectedCombobox ?? '未选择' }}</span>
+                        <span class="text-xs font-medium text-muted-foreground">多选渠道（MultiSelect）</span>
+                        <MultiSelect v-model="selectedMultiSelect" :options="[{ label: 'OpenAI', value: 'openai' }, { label: 'Claude', value: 'claude' }, { label: '自定义', value: 'custom' }]" allow-create :max-visible-chips="2" />
+                        <span class="text-xs text-muted-foreground">当前值：{{ selectedMultiSelect.join('、') || '未选择' }}</span>
                         </label>
                     </div>
                 </div>
