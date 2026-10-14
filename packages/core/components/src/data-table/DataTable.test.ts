@@ -30,6 +30,16 @@ function mountTable(props: Record<string, unknown> = {}, slots: Record<string, u
 }
 
 describe('DataTable', () => {
+    it('uses the new-api muted row surface for hover and selected states', () => {
+        const wrapper = mountTable({ selectable: true, selectedKeys: [1] })
+        const row = wrapper.get('tbody tr')
+        expect(row.classes()).toEqual(expect.arrayContaining([
+            'data-[state=selected]:bg-muted',
+            'hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))]',
+        ]))
+        expect(row.attributes('data-state')).toBe('selected')
+    })
+
     it('supports controlled row selection and current-page select-all state', async () => {
         const wrapper = mountTable({ selectable: true }, {
                 'cell-name': ({ value }: { value: unknown }) => `slot:${String(value)}`,
