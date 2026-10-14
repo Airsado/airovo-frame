@@ -19,7 +19,11 @@ try {
     await page.goto(`${baseUrl}/dashboard/components`, { waitUntil: 'domcontentloaded', timeout: 15000 })
     await page.waitForTimeout(800)
 
-    await page.getByRole('button', { name: '打开 Dialog' }).click()
+    const dialogTrigger = page.getByRole('button', { name: '打开 Dialog' })
+    await dialogTrigger.focus()
+    const triggerFocusRing = await dialogTrigger.evaluate(element => getComputedStyle(element).boxShadow)
+    assert.match(triggerFocusRing, /px/)
+    await dialogTrigger.click()
     const dialog = page.locator('[role="dialog"]').last()
     assert.ok(await dialog.count())
     const modalInput = page.locator('[role="dialog"] input[aria-label="渠道名称"]')
@@ -28,6 +32,7 @@ try {
     await page.keyboard.press('Escape')
     await page.waitForTimeout(250)
     assert.equal(await dialog.count(), 0)
+    assert.equal(await dialogTrigger.evaluate(element => document.activeElement === element), true)
 
     await page.getByRole('button', { name: '打开 Drawer' }).click()
     const drawer = page.locator('[data-slot="drawer-content"]').last()
@@ -44,13 +49,33 @@ try {
     await page.waitForTimeout(250)
     assert.equal(await rightDrawer.count(), 0)
 
+    await page.getByRole('button', { name: '打开 typed Drawer' }).click()
+    await page.waitForTimeout(350)
+    const typedDrawer = page.locator('[role="dialog"]').last()
+    assert.ok(await typedDrawer.count())
+    const typedInput = page.locator('#typed-drawer-input')
+    assert.equal(await typedInput.evaluate(element => document.activeElement === element), true)
+    const confirm = typedDrawer.getByRole('button', { name: /确认|保存/ }).last()
+    if (await confirm.count()) {
+        await confirm.click()
+        await page.waitForTimeout(500)
+        assert.ok((await page.locator('body').innerText()).includes('确认回传'))
+    }
+
     await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('button', { name: '打开 Dialog' }).click()
+    const mobileDialog = page.locator('[role="dialog"]').last()
+    assert.ok(await mobileDialog.count())
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+    assert.equal(await mobileDialog.count(), 0)
     await page.getByRole('button', { name: '打开 Drawer' }).click()
     const mobileDrawer = page.locator('[data-slot="drawer-content"]').last()
     assert.ok(await mobileDrawer.count())
     await page.keyboard.press('Escape')
     await page.waitForTimeout(250)
     assert.equal(await mobileDrawer.count(), 0)
+
 
     console.log(JSON.stringify({ baseUrl, dialog: true, drawer: true, rightDrawer: true, mobileEscape: true, focus: true }))
 } finally {
