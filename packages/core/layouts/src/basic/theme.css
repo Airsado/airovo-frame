@@ -435,6 +435,15 @@ body:has([data-layout-shell]) {
   color: var(--color-sidebar-accent-foreground) !important;
 }
 
+/* new-api uses the secondary surface for an active child inside the
+ * collapsed sidebar dropdown; keep that state distinct from the parent
+ * sidebar accent surface. */
+[data-layout-shell] [data-sidebar-menu-kind='collapsed-child'][data-app-sidebar-active='true'],
+[data-layout-shell] [data-sidebar-menu-kind='collapsed-child'][data-app-sidebar-active='true'] a {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+}
+
 [data-layout-shell] [data-sidebar='menu-button'],
 [data-layout-shell] [data-sidebar='menu-sub-button'],
 [data-layout-shell] [data-sidebar='menu-button'] a,
