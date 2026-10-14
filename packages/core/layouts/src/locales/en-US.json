@@ -15,6 +15,9 @@
         "clearSearch": "Clear search",
         "noData": "No data",
         "noDataDescription": "There is no data for the current filters.",
+        "error": "Something went wrong",
+        "retry": "Retry",
+        "loading": "Loading…",
         "untitledPage": "Untitled page"
     },
     "user": {

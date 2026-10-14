@@ -153,7 +153,10 @@ the caller owns the item meaning and actions.
 `EmptyState` keeps its existing `actionText`/`action` event and `actions` slot;
 it follows the new-api default Database icon, “暂无数据” title and 300px
 minimum height while retaining `bordered`, `size`, and the singular `action`
-slot. `ErrorState`
+slot. Default empty/error/loading text is read from the framework global i18n
+keys (`common.noData`, `common.error`, `common.retry`, `common.loading`) with
+the existing Chinese strings as fallback; explicit text props always win.
+`ErrorState`
 provides retry/action events and slots with an alert role. `LoadingState`
 uses the new-api 300px error / 200px loading block densities and supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
 and `aria-busy`/`aria-live` attributes. These components render state only and
