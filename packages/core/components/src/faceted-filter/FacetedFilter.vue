@@ -2,6 +2,7 @@
 import type { Component, HTMLAttributes } from 'vue'
 import { Check, PlusCircle } from '@lucide/vue'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { cn } from '@airovo/uikit-shadcnui'
 import { Badge } from '@airovo/uikit-shadcnui/components/ui/badge'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
@@ -46,16 +47,19 @@ const props = withDefaults(defineProps<{
   contentClass?: HTMLAttributes['class']
   align?: 'start' | 'center' | 'end'
 }>(), {
-  title: 'Filter',
   options: () => [],
   singleSelect: false,
   searchPlaceholder: undefined,
-  emptyText: 'No results found.',
-  clearText: 'Clear filters',
-  selectedText: 'selected',
   disabled: false,
   align: 'start',
 })
+
+const { t, te } = useI18n({ useScope: 'global' })
+function copy(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
+const resolvedTitle = computed(() => props.title ?? copy('common.filter', 'Filter'))
+const resolvedEmptyText = computed(() => props.emptyText ?? copy('common.noResults', 'No results found.'))
+const resolvedClearText = computed(() => props.clearText ?? copy('common.clearFilters', 'Clear filters'))
+const resolvedSelectedText = computed(() => props.selectedText ?? copy('common.selected', 'selected'))
 
 /**
  * Multi-select values are represented as string[]. In single-select mode the
@@ -73,7 +77,7 @@ const selectedValues = computed<string[]>(() => {
 
 const selectedSet = computed(() => new Set(selectedValues.value))
 const selectedOptions = computed(() => props.options.filter(option => selectedSet.value.has(option.value)))
-const triggerSearchPlaceholder = computed(() => props.searchPlaceholder ?? props.title)
+const triggerSearchPlaceholder = computed(() => props.searchPlaceholder ?? resolvedTitle.value)
 
 function setSelection(values: string[]): void {
   if (props.singleSelect && !Array.isArray(modelValue.value)) {
@@ -117,7 +121,7 @@ function optionCount(option: FacetedFilterOption): number | undefined {
         :class="cn('h-8 border-dashed', props.class)"
       >
         <PlusCircle class="size-4" />
-        <slot name="title">{{ props.title }}</slot>
+        <slot name="title">{{ resolvedTitle }}</slot>
         <template v-if="selectedSet.size > 0">
           <Separator orientation="vertical" class="mx-2 h-4" />
           <Badge
@@ -132,7 +136,7 @@ function optionCount(option: FacetedFilterOption): number | undefined {
               variant="secondary"
               class="rounded-sm px-1 font-normal"
             >
-              {{ selectedSet.size }} {{ props.selectedText }}
+              {{ selectedSet.size }} {{ resolvedSelectedText }}
             </Badge>
             <template v-else>
               <Badge
@@ -153,9 +157,9 @@ function optionCount(option: FacetedFilterOption): number | undefined {
       :class="cn('max-w-[360px] min-w-[200px] rounded-lg border-0 p-0 ring-1 ring-foreground/10 duration-100', props.contentClass)"
     >
       <Command>
-        <CommandInput :placeholder="triggerSearchPlaceholder" />
+        <CommandInput :placeholder="props.searchPlaceholder ?? resolvedTitle" />
         <CommandList>
-          <CommandEmpty>{{ props.emptyText }}</CommandEmpty>
+          <CommandEmpty>{{ resolvedEmptyText }}</CommandEmpty>
           <CommandGroup>
             <CommandItem
               v-for="option in props.options"
@@ -205,7 +209,7 @@ function optionCount(option: FacetedFilterOption): number | undefined {
                 class="justify-center text-center"
                 @select="clearSelection"
               >
-                {{ props.clearText }}
+                {{ resolvedClearText }}
               </CommandItem>
             </CommandGroup>
           </template>
