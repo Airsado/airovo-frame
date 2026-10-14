@@ -309,6 +309,9 @@ loading state. `collapsibleOnMobile` wraps the filter row in
 `DataTableMobileFilterPanel`, which keeps action buttons available while the
 filters collapse behind an accessible expand/collapse trigger. The toolbar
 does not own requests, URL state or business filter semantics.
+Toolbar search, clear, reset, refresh, search-action and expand/collapse
+labels use the global `common.*` locale keys; explicit `searchPlaceholder`
+and caller slots remain authoritative.
 `FacetedFilter` uses the same global locale defaults for its trigger, empty
 results, clear action and selected-count suffix; explicit text props remain
 authoritative.
