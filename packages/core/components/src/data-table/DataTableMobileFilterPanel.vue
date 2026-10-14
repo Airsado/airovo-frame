@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { HTMLAttributes } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { Button, Collapsible, CollapsibleContent, CollapsibleTrigger } from '@airovo/uikit-shadcnui'
@@ -14,6 +16,10 @@ const props = withDefaults(defineProps<{
 })
 
 const open = ref(true)
+const { t, te } = useI18n({ useScope: 'global' })
+const collapseText = computed(() => te('common.collapseFilters') ? t('common.collapseFilters') : '收起筛选')
+const expandText = computed(() => te('common.expandFilters') ? t('common.expandFilters') : '展开筛选')
+const actionsText = computed(() => te('common.filterActions') ? t('common.filterActions') : '筛选操作')
 </script>
 
 <template>
@@ -40,14 +46,14 @@ const open = ref(true)
             'text-muted-foreground hover:text-foreground',
             props.compact ? 'size-9' : 'mr-auto size-7',
           ]"
-          :aria-label="open ? '收起筛选' : '展开筛选'"
+          :aria-label="open ? collapseText : expandText"
         >
           <ChevronDown :class="['transition-transform duration-200', props.compact ? 'size-4' : 'size-3.5', open && 'rotate-180']" aria-hidden="true" />
         </Button>
       </CollapsibleTrigger>
       <div
         role="group"
-        aria-label="筛选操作"
+        :aria-label="actionsText"
         :class="[
           'flex items-center justify-end gap-1.5',
           props.compact && 'min-w-0 flex-wrap [&>button]:h-auto [&>button]:min-h-9 [&>button]:max-w-full [&>button]:[overflow-wrap:anywhere] [&>button]:whitespace-normal',

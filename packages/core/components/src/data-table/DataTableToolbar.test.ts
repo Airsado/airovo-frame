@@ -5,11 +5,12 @@ import { describe, expect, it, vi } from 'vitest'
 import DataTableMobileFilterPanel from './DataTableMobileFilterPanel.vue'
 import DataTableToolbar from './DataTableToolbar.vue'
 
-const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { search: '搜索…', clearSearch: '清除搜索', reset: '重置', refresh: '刷新', searchAction: '搜索', expand: '展开', collapse: '收起' } } } })] }
+const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { search: '搜索…', clearSearch: '清除搜索', reset: '重置', refresh: '刷新', searchAction: '搜索', expand: '展开', collapse: '收起', collapseFilters: '收起筛选', expandFilters: '展开筛选', filterActions: '筛选操作' } } } })] }
 
 describe('DataTableMobileFilterPanel', () => {
   it('starts open and exposes an accessible collapse control', async () => {
     const wrapper = mount(DataTableMobileFilterPanel, {
+      global,
       slots: { default: '<input data-filter />', actions: '<button data-action>重置</button>' },
     })
     expect(wrapper.find('[data-filter]').exists()).toBe(true)
