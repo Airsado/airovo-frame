@@ -25,7 +25,18 @@ export type StatusVariant =
     | 'violet'
     | 'yellow'
 
+export const statusPresets = {
+    active: { variant: 'success' as const, label: 'Active' },
+    inactive: { variant: 'neutral' as const, label: 'Inactive' },
+    invited: { variant: 'info' as const, label: 'Invited' },
+    suspended: { variant: 'danger' as const, label: 'Suspended' },
+    pending: { variant: 'warning' as const, label: 'Pending', pulse: true },
+} as const
+
+/** Existing callers use StatusPreset as the full status variant union. */
 export type StatusPreset = StatusVariant
+/** Keys available in the new-api display preset map. */
+export type StatusPresetName = keyof typeof statusPresets
 export type StatusBadgeType = 'badge' | 'text' | 'underline'
 export type StatusBadgeSize = 'sm' | 'md' | 'lg'
 
