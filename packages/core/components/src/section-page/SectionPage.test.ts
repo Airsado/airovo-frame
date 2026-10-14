@@ -24,6 +24,7 @@ describe('SectionPage', () => {
         expect(header.classes()).toContain('top-0')
         expect(header.classes()).toContain('z-20')
         expect(header.classes()).toContain('bg-background/95')
+        expect(header.classes()).not.toContain('border-b')
         const defaultWrapper = mount(SectionPage, {
             global: {
                 plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],

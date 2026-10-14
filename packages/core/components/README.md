@@ -359,7 +359,9 @@ scroll container. Direct `SectionPage` `footer` slots remain supported.
 
 `SectionPage` keeps the existing sticky title behavior while matching the
 new-api title weight (`font-bold`), responsive action spacing and content
-padding. It does not add a second tabs offset or business-specific border.
+padding. Its title header has no extra bottom border, matching new-api's
+borderless page title surface; content cards and footer hosts remain caller or
+framework composition concerns.
 
 ## ChartCard tooltip
 
