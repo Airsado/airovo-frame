@@ -19,6 +19,7 @@ describe('status state components', () => {
 
         expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('暂无数据')
         expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain('size-8')
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('motion-safe:animate-in')
         expect(wrapper.classes()).toContain('min-h-[300px]')
     })
 
@@ -70,6 +71,7 @@ describe('status state components', () => {
         expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
         expect(wrapper.get('[data-slot="empty-icon"]').attributes('data-variant')).toBe('icon')
         expect(wrapper.get('[data-slot="empty-description"]').text()).toContain('网络暂时不可用')
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('motion-safe:fade-in-0')
         const buttons = wrapper.findAll('button')
         await buttons[0]!.trigger('click')
         await buttons[1]!.trigger('click')

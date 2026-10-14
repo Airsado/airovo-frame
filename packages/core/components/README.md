@@ -189,7 +189,8 @@ the caller owns the item meaning and actions.
 `EmptyState` keeps its existing `actionText`/`action` event and `actions` slot;
 it follows the new-api default Database icon, “暂无数据” title and 300px
 minimum height while retaining `bordered`, `size`, and the singular `action`
-slot. Default empty/error/loading text is read from the framework global i18n
+slot. Empty and error surfaces use motion-safe FadeIn classes and respect the
+user's reduced-motion preference. Default empty/error/loading text is read from the framework global i18n
 keys (`common.noData`, `common.error`, `common.retry`, `common.loading`) with
 the existing Chinese strings as fallback; explicit text props always win.
 `ErrorState`

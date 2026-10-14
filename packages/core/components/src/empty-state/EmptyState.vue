@@ -23,7 +23,7 @@ const mediaSize = computed(() => ({ sm: 'size-8', md: 'size-12', lg: 'size-16' }
 </script>
 
 <template>
-    <Empty :class="[props.bordered ? 'border' : 'border-0', 'min-h-[300px] px-4 py-8 md:py-10', props.class]">
+    <Empty :class="[props.bordered ? 'border' : 'border-0', 'min-h-[300px] px-4 py-8 md:py-10 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200', props.class]">
         <EmptyHeader>
             <EmptyMedia v-if="props.icon" variant="icon" :class="mediaSize"><Icon :icon="props.icon" class="size-1/2" /></EmptyMedia>
             <EmptyTitle v-if="resolvedTitle">{{ resolvedTitle }}</EmptyTitle>

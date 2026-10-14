@@ -26,7 +26,7 @@ const resolvedRetryText = computed(() => props.retryText ?? (te('common.retry') 
 
 <template>
     <div role="alert">
-        <Empty :class="['min-h-[300px] border-0 px-4 py-8', props.class]">
+        <Empty :class="['min-h-[300px] border-0 px-4 py-8 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200', props.class]">
             <EmptyHeader>
                 <EmptyMedia variant="icon"><Icon :icon="props.icon" class="size-6 text-destructive" /></EmptyMedia>
                 <EmptyTitle>{{ resolvedTitle }}</EmptyTitle>
