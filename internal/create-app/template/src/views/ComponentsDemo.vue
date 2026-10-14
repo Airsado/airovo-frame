@@ -1157,12 +1157,16 @@ function sseItemData(item: unknown): unknown {
                                 :filters="serverTableFilters"
                                 :filter-values="serverTableFilterValues"
                                 :loading="serverTable.loading.value"
+                                collapsible-on-mobile
                                 search-placeholder="搜索渠道名称或类型"
                                 @update:filter-values="updateServerTableFilters"
                                 @refresh="serverTable.reload"
                                 @reset="applyServerTableSearch"
                                 @update:column-visibility="serverTableColumnVisibility = $event"
                             >
+                                <template #expandable>
+                                    <span class="text-xs text-muted-foreground">可展开筛选区：支持在移动端折叠，动作区保持可用。</span>
+                                </template>
                                 <template #actions>
                                     <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
                                 </template>

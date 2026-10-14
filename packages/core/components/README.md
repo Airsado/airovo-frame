@@ -264,6 +264,16 @@ permission ownership remain with the caller. The dropdown accepts
 `dropdownAriaLabel`, `dropdownContentClass`, and `dropdownModal`, and emits
 `dropdown-open-change` so callers can coordinate focus or overlay state.
 
+`DataTableToolbar` follows the new-api toolbar composition. Existing search,
+faceted filters, refresh, reset and column visibility props remain compatible;
+optional `custom-search`, `additional-search`, `expandable`, `pre-actions`,
+`left-actions`, `view-toggle` and `actions` slots add caller-owned controls.
+`onSearch` switches to explicit form mode and `searchLoading` renders the
+loading state. `collapsibleOnMobile` wraps the filter row in
+`DataTableMobileFilterPanel`, which keeps action buttons available while the
+filters collapse behind an accessible expand/collapse trigger. The toolbar
+does not own requests, URL state or business filter semantics.
+
 `DrawerLayout` composes the existing Drawer primitive with a fixed header,
 scrollable body and optional footer. Its right-side layout follows the
 new-api side-drawer surface (`h-dvh`, no extra shadow, backdrop-blurred
