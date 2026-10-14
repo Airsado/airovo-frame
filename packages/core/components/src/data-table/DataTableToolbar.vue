@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useSlots, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Input } from '@airovo/uikit-shadcnui'
 import FacetedFilter from '../faceted-filter/FacetedFilter.vue'
@@ -47,7 +47,18 @@ const slots = useSlots()
 const draft = ref(props.modelValue)
 const expanded = ref(false)
 const composing = ref(false)
+const isMobileViewport = ref(false)
+let mediaQuery: MediaQueryList | undefined
 let timer: ReturnType<typeof setTimeout> | undefined
+
+function updateViewport(): void { isMobileViewport.value = mediaQuery?.matches ?? false }
+onMounted(() => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+  mediaQuery = window.matchMedia('(max-width: 640px)')
+  updateViewport()
+  mediaQuery.addEventListener?.('change', updateViewport)
+})
+onBeforeUnmount(() => mediaQuery?.removeEventListener?.('change', updateViewport))
 
 watch(() => props.modelValue, (value) => { if (!composing.value) draft.value = value })
 watch(draft, (value) => {
@@ -71,7 +82,7 @@ function endComposition(): void { composing.value = false; if (!props.onSearch) 
 </script>
 
 <template>
-  <DataTableMobileFilterPanel v-if="props.collapsibleOnMobile" :class="props.class" compact>
+  <DataTableMobileFilterPanel v-if="props.collapsibleOnMobile && isMobileViewport" :class="props.class" compact>
     <template #default>
       <slot name="custom-search">
         <div class="relative min-w-0 flex-1 sm:max-w-xs">

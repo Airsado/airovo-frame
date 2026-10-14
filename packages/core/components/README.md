@@ -297,6 +297,9 @@ loading state. `collapsibleOnMobile` wraps the filter row in
 `DataTableMobileFilterPanel`, which keeps action buttons available while the
 filters collapse behind an accessible expand/collapse trigger. The toolbar
 does not own requests, URL state or business filter semantics.
+When `collapsibleOnMobile` is enabled, the mobile filter panel is visible only
+below the small-screen breakpoint; the ordinary toolbar remains the desktop
+rendering. This keeps the same query and slot state across responsive layouts.
 
 `DrawerLayout` composes the existing Drawer primitive with a fixed header,
 scrollable body and optional footer. Its right-side layout follows the

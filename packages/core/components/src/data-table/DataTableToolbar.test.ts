@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 import DataTableMobileFilterPanel from './DataTableMobileFilterPanel.vue'
 import DataTableToolbar from './DataTableToolbar.vue'
@@ -31,8 +32,10 @@ describe('DataTableToolbar', () => {
     expect(onSearch).toHaveBeenCalledOnce()
   })
 
-  it('renders the mobile filter panel when requested', () => {
+  it('renders the mobile filter panel when requested', async () => {
+    Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: true, addEventListener: () => {}, removeEventListener: () => {} }) })
     const wrapper = mount(DataTableToolbar, { props: { collapsibleOnMobile: true } })
+    await nextTick()
     expect(wrapper.findComponent(DataTableMobileFilterPanel).exists()).toBe(true)
     expect(wrapper.find('[aria-label="收起筛选"]').exists()).toBe(true)
   })
