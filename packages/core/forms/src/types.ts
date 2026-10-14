@@ -105,6 +105,8 @@ export interface FormApiLike {
         shouldValidate?: boolean,
     ): Promise<void>
     setFieldValue(field: string, value: unknown): boolean
+    /** Set or clear a renderer-owned custom component error. */
+    setFieldError(field: string, message?: string): void
     resetForm(): boolean
     resetFields(fields?: string[]): void
     validate(): Promise<{ valid: boolean; errors: Record<string, string> }>

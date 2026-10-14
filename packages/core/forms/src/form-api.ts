@@ -216,6 +216,7 @@ export class FormApi implements FormApiLike {
     private readonly submitting = ref(false)
     private submission: Promise<Record<string, unknown> | null> | null = null
     private latestSubmissionValues: Record<string, unknown> = {}
+    private customErrors: Record<string, string> = {}
 
     constructor(options: FormApiOptions = {}) {
         this.schema = shallowReactive([...(options.schema ?? [])])
@@ -240,7 +241,7 @@ export class FormApi implements FormApiLike {
         this.stopWatch = watch(
             () => unwrap(form.errors),
             (value) => {
-                this.errors.value = { ...(value ?? {}) } as Record<string, string>
+                this.errors.value = { ...(value ?? {}), ...this.customErrors } as Record<string, string>
             },
             { immediate: true, deep: true },
         )
@@ -313,10 +314,21 @@ export class FormApi implements FormApiLike {
         return true
     }
 
+    setFieldError(field: string, message?: string): void {
+        if (message) this.customErrors[field] = message
+        else delete this.customErrors[field]
+        this.form?.setFieldError?.(field, message)
+        const next = { ...this.errors.value }
+        if (message) next[field] = message
+        else delete next[field]
+        this.errors.value = next
+    }
+
     resetForm(): boolean {
         if (!this.form) return false
         this.form.resetForm({ values: this.initialValues })
         this.errors.value = {}
+        this.customErrors = {}
         this.latestSubmissionValues = {}
         return true
     }
@@ -333,6 +345,7 @@ export class FormApi implements FormApiLike {
         }
         const nextErrors = { ...this.errors.value }
         fields.forEach((field) => delete nextErrors[field])
+        fields.forEach((field) => delete this.customErrors[field])
         this.errors.value = nextErrors
     }
 
@@ -340,7 +353,7 @@ export class FormApi implements FormApiLike {
         if (!this.form) return { valid: true, errors: {} }
         const result = await this.form.validate()
         const errors = (result.errors ?? {}) as Record<string, string>
-        this.errors.value = { ...errors }
+        this.errors.value = { ...errors, ...this.customErrors }
         return { valid: result.valid, errors }
     }
 
@@ -371,6 +384,7 @@ export class FormApi implements FormApiLike {
 
     clearValid(): void {
         this.form?.setErrors({})
+        this.customErrors = {}
         this.errors.value = {}
     }
 
@@ -444,6 +458,7 @@ export class FormApi implements FormApiLike {
             this.form.setFieldError?.(fieldName, undefined)
         }
         delete this.initialValues[fieldName]
+        delete this.customErrors[fieldName]
         const next = { ...this.errors.value }
         for (const key of Object.keys(next)) {
             if (key === fieldName || key.startsWith(`${fieldName}[`)) delete next[key]

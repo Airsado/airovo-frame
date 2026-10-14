@@ -234,6 +234,10 @@ function handleInput(item: FormFieldSchema, onInput: (value: unknown) => void, v
     })
 }
 
+function handleParseError(item: FormFieldSchema, message?: string): void {
+    props.api.setFieldError(fieldPath(item), message)
+}
+
 watchEffect(() => {
     const values = props.api.values.value
     for (const item of props.schema) {
@@ -297,6 +301,7 @@ watchEffect(() => {
                                     :aria-invalid="!!getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) || !!errors.length"
                                     :aria-labelledby="`${fieldId(fieldPath(item))}-label`"
                                     :aria-required="isRequired(item) || undefined"
+                                    @parse-error="(message) => handleParseError(item, message)"
                                     @update:model-value="handleInput(item, field.onInput, $event)"
                                     @blur="handleBlur"
                                 />
@@ -373,6 +378,7 @@ watchEffect(() => {
                         :disabled="isDisabled(item)"
                         :aria-invalid="!!getError(fieldPath(item), item) || !!errors.length"
                         :aria-required="isRequired(item) || undefined"
+                        @parse-error="(message) => handleParseError(item, message)"
                         @update:model-value="handleInput(item, field.onInput, $event)"
                         @blur="handleBlur"
                     />
