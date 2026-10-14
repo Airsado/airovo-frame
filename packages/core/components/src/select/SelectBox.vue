@@ -72,7 +72,7 @@ function clear(event: MouseEvent): void {
     <div class="relative w-full">
       <SelectTrigger
         v-bind="attrs"
-        :class="['w-full', props.class, props.allowClear && modelValue ? 'pr-14' : undefined]"
+        :class="['w-full h-8 rounded-lg px-2.5 py-2', props.class, props.allowClear && modelValue ? 'pr-14' : undefined]"
       >
         <SelectValue :placeholder="resolvedPlaceholder" />
       </SelectTrigger>
@@ -87,13 +87,13 @@ function clear(event: MouseEvent): void {
         <X class="size-3.5" />
       </button>
     </div>
-    <SelectContent :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
+    <SelectContent class="w-(--reka-select-trigger-width) min-w-36 rounded-lg border-0 ring-1 ring-foreground/10" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <SelectGroup>
         <template v-for="item in flattenedOptions" :key="item.key">
-          <SelectLabel v-if="item.group" class="font-semibold" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+          <SelectLabel v-if="item.group" class="px-1.5 py-1 text-xs font-medium" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
             {{ item.option.label }}
           </SelectLabel>
-          <SelectItem v-else-if="item.option.value !== undefined" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+          <SelectItem v-else-if="item.option.value !== undefined" class="rounded-md py-1 pr-8 pl-1.5" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
             {{ item.option.label }}
           </SelectItem>
         </template>
