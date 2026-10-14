@@ -3,7 +3,8 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
 import { Check, ChevronDown, Copy, X } from '@lucide/vue'
-import { Button, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, Popover, PopoverContent, PopoverTrigger } from '@airovo/uikit-shadcnui'
+import { Button, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@airovo/uikit-shadcnui'
+import { Popover, PopoverContent, PopoverTrigger } from '@airovo/uikit-shadcnui/components/ui/popover'
 import { cn } from '@airovo/uikit-shadcnui'
 
 export interface MultiSelectOption {
@@ -102,7 +103,7 @@ function createLabel(): string { return props.createLabel?.replace('{{value}}', 
     </PopoverTrigger>
     <PopoverContent align="start" class="w-(--reka-popover-trigger-width) min-w-56 rounded-lg border-0 p-0 ring-1 ring-foreground/10">
       <Command>
-        <CommandInput :model-value="inputValue" :placeholder="resolvedPlaceholder" @update:model-value="inputValue = String($event)" @keydown="handleKeydown" @paste="(event) => { if (props.allowCreate) { const value = (event.clipboardData?.getData('text') ?? ''); if (/[，,\n]/.test(value)) { event.preventDefault(); addValues([value]) } } }" />
+        <CommandInput :model-value="inputValue" :placeholder="resolvedPlaceholder" @update:model-value="inputValue = String($event)" @keydown="handleKeydown" @paste="(event: ClipboardEvent) => { if (props.allowCreate) { const value = (event.clipboardData?.getData('text') ?? ''); if (/[，,\n]/.test(value)) { event.preventDefault(); addValues([value]) } } }" />
         <CommandList>
           <CommandEmpty>{{ resolvedEmptyText }}</CommandEmpty>
           <CommandGroup>
