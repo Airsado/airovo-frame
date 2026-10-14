@@ -89,35 +89,35 @@ function customFieldComponent(field: { component: string }): string {
 }
 
 const themeModes: { value: ThemeMode; label: string; kind: 'theme-system' | 'theme-light' | 'theme-dark' }[] = [
-    { value: 'system', label: '跟随系统', kind: 'theme-system' },
-    { value: 'light', label: '浅色', kind: 'theme-light' },
-    { value: 'dark', label: '深色', kind: 'theme-dark' },
+    { value: 'system', label: 'common.layoutSettings.themeSystem', kind: 'theme-system' },
+    { value: 'light', label: 'common.layoutSettings.themeLight', kind: 'theme-light' },
+    { value: 'dark', label: 'common.layoutSettings.themeDark', kind: 'theme-dark' },
 ]
 const presets: { value: ThemePreset; label: string; swatches: string[] }[] = [
-    { value: 'default', label: '默认', swatches: ['#6ea8fe', '#9b87f5'] },
-    { value: 'anthropic', label: 'Anthropic', swatches: ['#faf9f5', '#d97757'] },
-    { value: 'simple-large', label: '大字简洁', swatches: ['#18181b', '#fafafa'] },
-    { value: 'underground', label: '地下', swatches: ['#4d8f70', '#a75d8f'] },
-    { value: 'rose-garden', label: '玫瑰花园', swatches: ['#d12d58', '#f4a1b0'] },
-    { value: 'lake-view', label: '湖景', swatches: ['#46d4a8', '#4a8aa2'] },
-    { value: 'sunset-glow', label: '落日', swatches: ['#d95838', '#e9a56c'] },
-    { value: 'forest-whisper', label: '森林', swatches: ['#3a9b8b', '#516eaa'] },
-    { value: 'ocean-breeze', label: '海风', swatches: ['#3472e7', '#6f5be7'] },
-    { value: 'lavender-dream', label: '薰衣草', swatches: ['#8254d7', '#8bb7dc'] },
+    { value: 'default', label: 'common.layoutSettings.presetDefault', swatches: ['#6ea8fe', '#9b87f5'] },
+    { value: 'anthropic', label: 'common.layoutSettings.presetAnthropic', swatches: ['#faf9f5', '#d97757'] },
+    { value: 'simple-large', label: 'common.layoutSettings.presetSimpleLarge', swatches: ['#18181b', '#fafafa'] },
+    { value: 'underground', label: 'common.layoutSettings.presetUnderground', swatches: ['#4d8f70', '#a75d8f'] },
+    { value: 'rose-garden', label: 'common.layoutSettings.presetRoseGarden', swatches: ['#d12d58', '#f4a1b0'] },
+    { value: 'lake-view', label: 'common.layoutSettings.presetLakeView', swatches: ['#46d4a8', '#4a8aa2'] },
+    { value: 'sunset-glow', label: 'common.layoutSettings.presetSunsetGlow', swatches: ['#d95838', '#e9a56c'] },
+    { value: 'forest-whisper', label: 'common.layoutSettings.presetForestWhisper', swatches: ['#3a9b8b', '#516eaa'] },
+    { value: 'ocean-breeze', label: 'common.layoutSettings.presetOceanBreeze', swatches: ['#3472e7', '#6f5be7'] },
+    { value: 'lavender-dream', label: 'common.layoutSettings.presetLavenderDream', swatches: ['#8254d7', '#8bb7dc'] },
 ]
-const fonts: { value: ThemeFont; label: string }[] = [{ value: 'sans', label: '无衬线' }, { value: 'serif', label: '衬线' }]
+const fonts: { value: ThemeFont; label: string }[] = [{ value: 'sans', label: 'common.layoutSettings.fontSans' }, { value: 'serif', label: 'common.layoutSettings.fontSerif' }]
 const radii: { value: ThemeRadius; label: string }[] = [
     { value: 'none', label: '0' }, { value: 'sm', label: '0.3' }, { value: 'md', label: '0.5' }, { value: 'lg', label: '0.75' }, { value: 'xl', label: '1.0' },
 ]
-const densities: { value: LayoutDensity; label: string }[] = [{ value: 'compact', label: '紧凑' }, { value: 'default', label: '标准' }, { value: 'loose', label: '舒适' }]
+const densities: { value: LayoutDensity; label: string }[] = [{ value: 'compact', label: 'common.layoutSettings.densityCompact' }, { value: 'default', label: 'common.layoutSettings.densityDefault' }, { value: 'loose', label: 'common.layoutSettings.densityLoose' }]
 const sidebarOptions: { value: SidebarVariant; label: string; kind: 'sidebar-sidebar' | 'sidebar-inset' | 'sidebar-floating' }[] = [
-    { value: 'inset', label: '内嵌', kind: 'sidebar-inset' }, { value: 'floating', label: '浮动', kind: 'sidebar-floating' }, { value: 'sidebar', label: '侧栏', kind: 'sidebar-sidebar' },
+    { value: 'inset', label: 'common.layoutSettings.sidebarInset', kind: 'sidebar-inset' }, { value: 'floating', label: 'common.layoutSettings.sidebarFloating', kind: 'sidebar-floating' }, { value: 'sidebar', label: 'common.layoutSettings.sidebar', kind: 'sidebar-sidebar' },
 ]
 const layoutOptions: { value: SidebarCollapsible | 'default'; label: string; kind: 'layout-default' | 'layout-compact' | 'layout-full' }[] = [
-    { value: 'default', label: '默认', kind: 'layout-default' }, { value: 'icon', label: '紧凑', kind: 'layout-compact' }, { value: 'offcanvas', label: '全布局', kind: 'layout-full' },
+    { value: 'default', label: 'common.layoutSettings.layoutDefault', kind: 'layout-default' }, { value: 'icon', label: 'common.layoutSettings.layoutCompact', kind: 'layout-compact' }, { value: 'offcanvas', label: 'common.layoutSettings.layoutOffcanvas', kind: 'layout-full' },
 ]
 const contentOptions: { value: ContentLayout; label: string; kind: 'content-full' | 'content-centered' }[] = [
-    { value: 'centered', label: '居中', kind: 'content-centered' }, { value: 'full', label: '铺满', kind: 'content-full' },
+    { value: 'centered', label: 'common.layoutSettings.contentCentered', kind: 'content-centered' }, { value: 'full', label: 'common.layoutSettings.contentFull', kind: 'content-full' },
 ]
 </script>
 
@@ -136,34 +136,34 @@ const contentOptions: { value: ContentLayout; label: string; kind: 'content-full
             <div data-slot="layout-settings-scroll" class="hover-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
                 <div class="flex flex-col gap-6">
                 <section data-section="theme" class="flex flex-col gap-2.5">
-                    <SectionTitle title="主题" :show-reset="current.theme.mode !== defaults.theme.mode" @reset="updateTheme('mode', defaults.theme.mode)" />
+                    <SectionTitle :title="label('common.layoutSettings.theme')" :show-reset="current.theme.mode !== defaults.theme.mode" @reset="updateTheme('mode', defaults.theme.mode)" />
                     <div class="grid grid-cols-3 gap-3">
                         <button v-for="option in themeModes" :key="option.value" type="button" class="group flex flex-col gap-1.5 text-left outline-none" :aria-pressed="current.theme.mode === option.value" @click="updateTheme('mode', option.value)">
                             <PreviewCard :selected="current.theme.mode === option.value"><PreviewIcon :kind="option.kind" /></PreviewCard>
-                            <span class="text-center text-xs">{{ option.label }}</span>
+                            <span class="text-center text-xs">{{ label(option.label) }}</span>
                         </button>
                     </div>
                 </section>
                 <section data-section="preset" class="flex flex-col gap-2.5">
-                    <SectionTitle title="配色预设" :show-reset="current.theme.preset !== defaults.theme.preset || !!current.theme.primaryColor" @reset="resetTheme" />
+                    <SectionTitle :title="label('common.layoutSettings.preset')" :show-reset="current.theme.preset !== defaults.theme.preset || !!current.theme.primaryColor" @reset="resetTheme" />
                     <div class="grid grid-cols-4 gap-3">
                         <button v-for="preset in presets" :key="preset.value" type="button" class="group flex flex-col gap-1.5 text-left outline-none" :aria-pressed="current.theme.preset === preset.value && !current.theme.primaryColor" @click="selectPreset(preset.value)">
                             <PreviewCard :selected="current.theme.preset === preset.value && !current.theme.primaryColor" class="h-12"><span class="absolute inset-0 rounded-md" :style="{ background: `linear-gradient(135deg, ${preset.swatches[0]}, ${preset.swatches[1]})` }" /></PreviewCard>
-                            <span class="truncate text-center text-xs">{{ preset.label }}</span>
+                            <span class="truncate text-center text-xs">{{ label(preset.label) }}</span>
                         </button>
                     </div>
                 </section>
                 <section data-section="font" class="flex flex-col gap-2.5">
-                    <SectionTitle title="字体" :show-reset="current.theme.font !== defaults.theme.font" @reset="updateTheme('font', defaults.theme.font)" />
+                    <SectionTitle :title="label('common.layoutSettings.font')" :show-reset="current.theme.font !== defaults.theme.font" @reset="updateTheme('font', defaults.theme.font)" />
                     <div class="grid grid-cols-2 gap-3">
                         <button v-for="font in fonts" :key="font.value" type="button" class="group flex flex-col gap-1.5 outline-none" :aria-pressed="current.theme.font === font.value" @click="updateTheme('font', font.value)">
                             <PreviewCard :selected="current.theme.font === font.value" class="h-12"><span class="text-foreground text-xl" :class="font.value === 'serif' ? 'font-serif' : 'font-sans'">Aa</span></PreviewCard>
-                            <span class="text-center text-xs">{{ font.label }}</span>
+                            <span class="text-center text-xs">{{ label(font.label) }}</span>
                         </button>
                     </div>
                 </section>
                 <section data-section="radius" class="flex flex-col gap-2.5">
-                    <SectionTitle title="圆角" :show-reset="current.theme.radiusScale !== defaults.theme.radiusScale" @reset="updateTheme('radiusScale', defaults.theme.radiusScale)" />
+                    <SectionTitle :title="label('common.layoutSettings.radius')" :show-reset="current.theme.radiusScale !== defaults.theme.radiusScale" @reset="updateTheme('radiusScale', defaults.theme.radiusScale)" />
                     <div class="grid grid-cols-5 gap-2">
                         <button v-for="radius in radii" :key="radius.value" type="button" class="group flex flex-col gap-1.5 outline-none" :aria-pressed="current.theme.radiusScale === radius.value" @click="updateTheme('radiusScale', radius.value)">
                             <PreviewCard :selected="current.theme.radiusScale === radius.value" class="h-10"><span class="size-6 border-2 border-primary bg-primary/70" :style="{ borderRadius: radius.value === 'none' ? '0' : `var(--radius-${radius.value})` }" /></PreviewCard>
@@ -172,42 +172,42 @@ const contentOptions: { value: ContentLayout; label: string; kind: 'content-full
                     </div>
                 </section>
                 <section data-section="density" class="flex flex-col gap-2.5">
-                    <SectionTitle title="界面密度" :show-reset="current.theme.layoutDensity !== defaults.theme.layoutDensity" @reset="updateTheme('layoutDensity', defaults.theme.layoutDensity)" />
+                    <SectionTitle :title="label('common.layoutSettings.density')" :show-reset="current.theme.layoutDensity !== defaults.theme.layoutDensity" @reset="updateTheme('layoutDensity', defaults.theme.layoutDensity)" />
                     <div class="grid grid-cols-3 gap-3">
                         <button v-for="density in densities" :key="density.value" type="button" class="group flex flex-col gap-1.5 outline-none" :aria-pressed="current.theme.layoutDensity === density.value" @click="updateTheme('layoutDensity', density.value)">
                             <PreviewCard :selected="current.theme.layoutDensity === density.value" class="h-10"><span class="flex w-12 flex-col gap-1"><i v-for="line in density.value === 'compact' ? 4 : density.value === 'loose' ? 2 : 3" :key="line" class="h-1 rounded-full bg-primary/70" /></span></PreviewCard>
-                            <span class="text-center text-xs">{{ density.label }}</span>
+                            <span class="text-center text-xs">{{ label(density.label) }}</span>
                         </button>
                     </div>
                 </section>
                 <section data-section="sidebar" class="flex flex-col gap-2.5">
-                    <SectionTitle title="侧栏" :show-reset="current.layout.sidebarVariant !== defaults.layout.sidebarVariant" @reset="updateLayout('sidebarVariant', defaults.layout.sidebarVariant)" />
+                    <SectionTitle :title="label('common.layoutSettings.sidebarTitle')" :show-reset="current.layout.sidebarVariant !== defaults.layout.sidebarVariant" @reset="updateLayout('sidebarVariant', defaults.layout.sidebarVariant)" />
                     <div class="grid grid-cols-3 gap-3">
                         <button v-for="option in sidebarOptions" :key="option.value" type="button" class="group flex flex-col gap-1.5 outline-none" :aria-pressed="current.layout.sidebarVariant === option.value" @click="updateLayout('sidebarVariant', option.value)">
                             <PreviewCard :selected="current.layout.sidebarVariant === option.value"><PreviewIcon :kind="option.kind" /></PreviewCard>
-                            <span class="text-center text-xs">{{ option.label }}</span>
+                            <span class="text-center text-xs">{{ label(option.label) }}</span>
                         </button>
                     </div>
                 </section>
                 <section data-section="layout" class="flex flex-col gap-2.5">
-                    <SectionTitle title="布局" :show-reset="selectedLayout !== 'default' || current.layout.sidebarCollapsible !== defaults.layout.sidebarCollapsible" @reset="resetLayout" />
+                    <SectionTitle :title="label('common.layoutSettings.layoutTitle')" :show-reset="selectedLayout !== 'default' || current.layout.sidebarCollapsible !== defaults.layout.sidebarCollapsible" @reset="resetLayout" />
                     <div class="grid grid-cols-3 gap-3">
                         <button v-for="option in layoutOptions" :key="option.value" type="button" class="group flex flex-col gap-1.5 outline-none" :aria-pressed="selectedLayout === option.value" @click="selectLayout(option.value)">
                             <PreviewCard :selected="selectedLayout === option.value"><PreviewIcon :kind="option.kind" /></PreviewCard>
-                            <span class="text-center text-xs">{{ option.label }}</span>
+                            <span class="text-center text-xs">{{ label(option.label) }}</span>
                         </button>
                     </div>
                 </section>
                 <section data-section="content" class="flex flex-col gap-2.5">
-                    <SectionTitle title="内容宽度" :show-reset="current.layout.contentLayout !== defaults.layout.contentLayout" @reset="updateLayout('contentLayout', defaults.layout.contentLayout)" />
+                    <SectionTitle :title="label('common.layoutSettings.contentTitle')" :show-reset="current.layout.contentLayout !== defaults.layout.contentLayout" @reset="updateLayout('contentLayout', defaults.layout.contentLayout)" />
                     <div class="grid grid-cols-2 gap-3">
                         <button v-for="option in contentOptions" :key="option.value" type="button" class="group flex flex-col gap-1.5 outline-none" :aria-pressed="current.layout.contentLayout === option.value" @click="updateLayout('contentLayout', option.value)">
                             <PreviewCard :selected="current.layout.contentLayout === option.value"><PreviewIcon :kind="option.kind" /></PreviewCard>
-                            <span class="text-center text-xs">{{ option.label }}</span>
+                            <span class="text-center text-xs">{{ label(option.label) }}</span>
                         </button>
                     </div>
                     <label v-if="current.layout.contentLayout === 'centered'" class="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                        <span>最大宽度</span>
+                        <span>{{ label('common.layoutSettings.maxWidth') }}</span>
                         <select
                             class="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground"
                             :value="current.layout.contentMaxWidth || defaults.layout.contentMaxWidth || 1280"
@@ -258,11 +258,11 @@ const contentOptions: { value: ContentLayout; label: string; kind: 'content-full
                 </section>
                 <section class="flex flex-col gap-3 border-t pt-5">
                     <label class="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-sm">
-                        <span><span class="block font-medium">自定义主色</span><span class="text-xs text-muted-foreground">覆盖当前配色预设的强调色</span></span>
+                        <span><span class="block font-medium">{{ label('common.layoutSettings.customColor') }}</span><span class="text-xs text-muted-foreground">{{ label('common.layoutSettings.customColorDescription') }}</span></span>
                         <input :value="current.theme.primaryColor || '#2563eb'" type="color" class="size-8 cursor-pointer rounded border bg-background p-0.5" aria-label="自定义主色" @input="updateTheme('primaryColor', ($event.target as HTMLInputElement).value)" />
                     </label>
                     <label class="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-sm">
-                        <span><span class="block font-medium">页面动画</span><span class="text-xs text-muted-foreground">关闭后减少页面切换过渡</span></span>
+                        <span><span class="block font-medium">{{ label('common.layoutSettings.animation') }}</span><span class="text-xs text-muted-foreground">{{ label('common.layoutSettings.animationDescription') }}</span></span>
                         <input type="checkbox" :checked="current.theme.animationEnabled !== false" class="size-4 accent-primary" @change="updateTheme('animationEnabled', ($event.target as HTMLInputElement).checked)" />
                     </label>
                 </section>
