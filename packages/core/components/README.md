@@ -100,6 +100,9 @@ use the same `v-model` string. `template` provides a one-click backfill,
 invalid raw draft without discarding it. It can be passed as a component object
 in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
 while `JsonField` owns JSON serialization and visual editing.
+Default labels, placeholders, mode actions, empty text and field action
+labels use the global `common.json*`/`common.*` locale keys; explicit props
+remain authoritative.
 
 ## Select option hierarchy
 
