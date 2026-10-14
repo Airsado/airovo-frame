@@ -241,6 +241,11 @@ The wrapper intentionally uses Vue sticky header and the layout's native scroll
 container instead of copying React layout code; title/tab spacing and the
 scroll contract are the compatibility target.
 
+Run `pnpm dev` followed by `pnpm verify:overlays` for the Drawer/Modal desktop,
+mobile, focus, Escape and outside-click matrix. It accepts `OVERLAY_MATRIX_URL`,
+`OVERLAY_MATRIX_USERNAME`, `OVERLAY_MATRIX_PASSWORD`, and
+`OVERLAY_MATRIX_BROWSER` overrides.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit
