@@ -86,6 +86,14 @@ the framework's `SidebarView` prop registry instead of React context hooks,
 primitives instead of copying React primitives. The semantic tokens, menu
 states, back affordance and route-driven replacement remain aligned.
 
+Active state follows the new-api split between a parent scope and an exact
+leaf: selecting a child opens its parent group but does not paint the parent
+as selected. Leaf and collapsed-dropdown entries use the
+`sidebar-accent-foreground` token for both text and icons; unselected entries
+only receive the muted hover surface. The framework marker
+`data-app-sidebar-active="true"` is authoritative over primitive utility
+classes so application CSS order cannot remove the selected text color.
+
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 
 ```vue

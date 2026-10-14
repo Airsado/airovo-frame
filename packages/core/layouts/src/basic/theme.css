@@ -418,13 +418,21 @@ body:has([data-layout-shell]) {
 [data-layout-shell] [data-app-sidebar-active='true'] {
   background-color: var(--sidebar-accent);
   /* Keep active text ahead of the primitive's text-sidebar-foreground utility. */
-  color: var(--color-sidebar-accent-foreground);
+  color: var(--color-sidebar-accent-foreground) !important;
 }
 
 /* Keep icon and label descendants on the selected surface as well. */
 [data-layout-shell] [data-app-sidebar-active='true'] > svg,
 [data-layout-shell] [data-app-sidebar-active='true'] > span {
-  color: inherit;
+  color: inherit !important;
+}
+
+/* The utility primitive also emits hover/active text classes. Keep the
+ * framework marker authoritative so the selected label/icon cannot fall back
+ * to sidebar-foreground when CSS order changes in an application bundle. */
+[data-layout-shell] [data-app-sidebar-active='true']:hover,
+[data-layout-shell] [data-app-sidebar-active='true']:active {
+  color: var(--color-sidebar-accent-foreground) !important;
 }
 
 [data-layout-shell] [data-sidebar='menu-button'],
