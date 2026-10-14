@@ -361,6 +361,8 @@ empty slots, and optional page/persistent row selection. In selectable mode the
 renders row checkboxes and a current-page select-all control.
 Page scope clears selected keys that leave the current rows; persistent scope
 keeps them across row replacement, matching DataTable selection semantics.
+Default loading, empty and selection aria copy uses the global `common.*`
+locale keys; explicit `emptyText` and caller slots remain authoritative.
 
 ## PageFooter
 

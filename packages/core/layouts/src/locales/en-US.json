@@ -42,6 +42,8 @@
         "jsonEmptyFields": "No fields yet. Add one below.",
         "noLogs": "No logs",
         "followLatest": "Follow latest",
+        "selectCurrentPage": "Select current page",
+        "selectRow": "Select row {index}",
         "jsonMode": "JSON mode",
         "visualMode": "Visual mode",
         "fillTemplate": "Fill template",
