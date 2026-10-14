@@ -64,6 +64,7 @@
         "selectEmpty": "No matching options",
         "datePickerPlaceholder": "Pick a date",
         "dateTimePickerPlaceholder": "Pick a date and time",
+        "errorLoading": "Failed to load",
         "reset": "Reset",
         "refresh": "Refresh",
         "searchAction": "Search",

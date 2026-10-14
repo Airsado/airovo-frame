@@ -73,7 +73,9 @@ const emit = defineEmits<{
     (event: 'retry'): void
 }>()
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, te } = useI18n({ useScope: 'global' })
+const errorLoadingText = computed(() => props.errorText ?? (te('common.errorLoading') ? t('common.errorLoading') : '加载失败'))
+const retryText = computed(() => te('common.retry') ? t('common.retry') : '重试')
 const slots = useSlots()
 const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
@@ -446,8 +448,8 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 <tr v-else-if="error">
                     <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
                         <slot name="error" :error="error" :retry="retry">
-                            <p>{{ errorText ?? '加载失败' }}</p>
-                            <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="retry">重试</button>
+                            <p>{{ errorLoadingText }}</p>
+                            <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="retry">{{ retryText }}</button>
                         </slot>
                     </td>
                 </tr>
