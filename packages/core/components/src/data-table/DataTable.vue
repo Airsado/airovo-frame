@@ -463,7 +463,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </td>
                 </tr>
                 <template v-else>
-                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group border-b transition-colors last:border-0 hover:bg-accent" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
+                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group border-b transition-colors last:border-0 data-[state=selected]:bg-muted hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))]" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
                         <td v-if="selectable" data-column-id="selection" class="data-table-pinned-cell w-10 p-3 align-middle" :style="pinnedStyle('selection', 'cell')">
                             <input
                                 type="checkbox"
