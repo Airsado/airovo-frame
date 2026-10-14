@@ -97,8 +97,7 @@ function endComposition(): void { composing.value = false; if (!props.onSearch) 
     <template #default>
       <slot name="custom-search">
         <div class="relative min-w-0 flex-1 sm:max-w-xs">
-          <Icon icon="lucide:search" class="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input v-model="draft" :placeholder="resolvedSearchPlaceholder" class="h-8 w-full pl-8 pr-8 text-sm" @compositionstart="startComposition" @compositionend="endComposition" />
+          <Input v-model="draft" :placeholder="resolvedSearchPlaceholder" class="h-8 w-full pr-8 text-sm" @compositionstart="startComposition" @compositionend="endComposition" />
           <Button v-if="draft" type="button" variant="ghost" size="icon" class="absolute right-0.5 top-0.5 size-7 text-muted-foreground" :aria-label="clearSearchText" @click="clearSearch"><Icon icon="lucide:x" class="size-3.5" /></Button>
         </div>
       </slot>
@@ -122,9 +121,8 @@ function endComposition(): void { composing.value = false; if (!props.onSearch) 
   <div v-else :class="['flex min-w-0 flex-col gap-2', props.class]">
     <div class="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
       <slot name="custom-search">
-        <div class="relative min-w-52 flex-1 sm:max-w-xs">
-          <Icon icon="lucide:search" class="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input v-model="draft" :placeholder="resolvedSearchPlaceholder" class="h-8 pl-8 pr-8 text-sm" @compositionstart="startComposition" @compositionend="endComposition" />
+        <div class="relative min-w-0 w-full sm:w-[200px] lg:w-[240px]">
+          <Input v-model="draft" :placeholder="resolvedSearchPlaceholder" class="h-8 w-full pr-8 text-sm" @compositionstart="startComposition" @compositionend="endComposition" />
           <Button v-if="draft" type="button" variant="ghost" size="icon" class="absolute right-0.5 top-0.5 size-7 text-muted-foreground" :aria-label="clearSearchText" @click="clearSearch"><Icon icon="lucide:x" class="size-3.5" /></Button>
         </div>
       </slot>

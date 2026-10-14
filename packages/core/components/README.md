@@ -342,6 +342,9 @@ with a Chinese fallback; `dropdownAriaLabel` remains caller-authoritative.
 faceted filters, refresh, reset and column visibility props remain compatible;
 optional `custom-search`, `additional-search`, `expandable`, `pre-actions`,
 `left-actions`, `view-toggle` and `actions` slots add caller-owned controls.
+The default search uses a plain Input surface with no decorative search icon;
+desktop widths follow `sm:w-[200px] lg:w-[240px]`, while mobile keeps the
+input flexible. Clear, debounce and IME behavior remain unchanged.
 `onSearch` switches to explicit form mode and `searchLoading` renders the
 loading state. `collapsibleOnMobile` wraps the filter row in
 `DataTableMobileFilterPanel`, which keeps action buttons available while the
