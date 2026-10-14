@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { HTMLAttributes } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { Button, Collapsible, CollapsibleContent, CollapsibleTrigger } from '@airovo/uikit-shadcnui'
 
@@ -7,7 +8,7 @@ defineOptions({ name: 'DataTableMobileFilterPanel' })
 
 const props = withDefaults(defineProps<{
   compact?: boolean
-  class?: string
+  class?: HTMLAttributes['class']
 }>(), {
   compact: false,
 })
