@@ -305,7 +305,7 @@ watchEffect(() => {
                                         :aria-invalid="!!getError(item, index) || !!errors.length"
                                         :aria-labelledby="item.array ? `${fieldId(item.fieldName)}-label` : undefined"
                                         :aria-required="isRequired(item) || undefined"
-                                        @parse-error="(message) => handleParseError(item, message)"
+                                        @parse-error="(message: string) => handleParseError(item, message)"
                                         @blur="handleBlur" />
                                     <FieldError v-if="getError(item, index) || errors.length"
                                         :errors="[getError(item, index) ?? errors[0]]" />

@@ -301,7 +301,7 @@ watchEffect(() => {
                                     :aria-invalid="!!getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) || !!errors.length"
                                     :aria-labelledby="`${fieldId(fieldPath(item))}-label`"
                                     :aria-required="isRequired(item) || undefined"
-                                    @parse-error="(message) => handleParseError(item, message)"
+                                    @parse-error="(message: string) => handleParseError(item, message)"
                                     @update:model-value="handleInput(item, field.onInput, $event)"
                                     @blur="handleBlur"
                                 />
@@ -378,7 +378,7 @@ watchEffect(() => {
                         :disabled="isDisabled(item)"
                         :aria-invalid="!!getError(fieldPath(item), item) || !!errors.length"
                         :aria-required="isRequired(item) || undefined"
-                        @parse-error="(message) => handleParseError(item, message)"
+                        @parse-error="(message: string) => handleParseError(item, message)"
                         @update:model-value="handleInput(item, field.onInput, $event)"
                         @blur="handleBlur"
                     />
