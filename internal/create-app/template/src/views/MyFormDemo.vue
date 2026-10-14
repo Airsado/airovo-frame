@@ -659,7 +659,7 @@ async function openTagDialog(): Promise<void> {
                 </div>
             </section>
 
-            <section class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
+            <section data-test="json-form-section" class="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
                 <div class="min-w-0 rounded-xl border bg-card p-4 sm:p-6">
                     <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -672,15 +672,15 @@ async function openTagDialog(): Promise<void> {
                             <Badge variant="outline">children</Badge>
                         </div>
                     </div>
-                    <AForm @submit="onSubmit">
+                    <AForm data-test="json-form" @submit="onSubmit">
                         <template #actions="{ submitting, reset }">
                             <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4">
                                 <div class="flex flex-wrap gap-2">
-                                    <Button type="button" variant="ghost" size="sm" @click="reset">重置全部</Button>
+                                    <Button data-test="json-form-reset" type="button" variant="ghost" size="sm" @click="reset">重置全部</Button>
                                     <Button type="button" variant="outline" size="sm" @click="clearValidation">清空错误</Button>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
-                                    <Button type="button" variant="outline" size="sm" @click="validateMain">校验</Button>
+                                    <Button data-test="json-form-validate" type="button" variant="outline" size="sm" @click="validateMain">校验</Button>
                                     <Button type="submit" size="sm" :disabled="submitting || controllerLoading">
                                         {{ submitting ? '提交中…' : '提交演示表单' }}
                                     </Button>
