@@ -3,6 +3,7 @@ import type { DateValue } from 'reka-ui'
 import { CalendarDays } from '@lucide/vue'
 import { fromDate, getLocalTimeZone, toCalendarDate } from '@internationalized/date'
 import { computed, getCurrentInstance, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useOverlayOwner } from '@airovo/shared/overlay'
 import { cn } from '@airovo/uikit-shadcnui'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
@@ -14,7 +15,7 @@ import {
 } from '@airovo/uikit-shadcnui/components/ui/popover'
 import { toDate } from 'reka-ui/date'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   modelValue?: Date
   placeholder?: string
   disabled?: boolean
@@ -26,7 +27,10 @@ const props = withDefaults(defineProps<{
     ariaDescribedby?: string
     ariaInvalid?: boolean | string
   class?: string
-}>(), { placeholder: '选择日期' })
+}>()
+
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedPlaceholder = computed(() => props.placeholder ?? (te('common.datePickerPlaceholder') ? t('common.datePickerPlaceholder') : '选择日期'))
 
 type GlobalI18n = { locale?: string | { value?: string } }
 const globalI18n = getCurrentInstance()?.appContext.config.globalProperties.$i18n as GlobalI18n | undefined
@@ -66,7 +70,7 @@ watch(() => props.modelValue, (value) => {
 })
 
 const label = computed(() => {
-  if (!props.modelValue) return props.placeholder
+  if (!props.modelValue) return resolvedPlaceholder.value
   const year = props.modelValue.getFullYear()
   const month = String(props.modelValue.getMonth() + 1).padStart(2, '0')
   const day = String(props.modelValue.getDate()).padStart(2, '0')

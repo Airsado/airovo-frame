@@ -53,6 +53,8 @@
         "selectPlaceholder": "Select an option",
         "selectSearch": "Search options",
         "selectEmpty": "No matching options",
+        "datePickerPlaceholder": "Pick a date",
+        "dateTimePickerPlaceholder": "Pick a date and time",
         "reset": "Reset",
         "refresh": "Refresh",
         "searchAction": "Search",
