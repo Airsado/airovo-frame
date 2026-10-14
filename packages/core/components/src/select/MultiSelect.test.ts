@@ -12,9 +12,32 @@ const stubs = {
 }
 
 describe('MultiSelect', () => {
-  it('toggles values, supports creation and keeps a bounded chip summary', async () => {
-    const wrapper = shallowMount(MultiSelect, { global: { stubs, plugins: [createI18n({ legacy: false, locale: 'en-US', messages: { 'en-US': { common: { multiSelectPlaceholder: 'Select items', multiSelectCreate: 'Add “{value}”', multiSelectEmpty: 'No items', remove: 'Remove', showAll: 'Show all', collapse: 'Collapse' } } } })] }, props: { options: [{ label: 'One', value: 'one' }, { label: 'Two', value: 'two' }], modelValue: ['one'], allowCreate: true, maxVisibleChips: 1 } })
-    expect(wrapper.exists()).toBe(true)
-    expect(wrapper.props('modelValue')).toEqual(['one'])
+  const global = { stubs, plugins: [createI18n({ legacy: false, locale: 'en-US', messages: { 'en-US': { common: { multiSelectPlaceholder: 'Select items', multiSelectCreate: 'Add “{value}”', multiSelectEmpty: 'No items', remove: 'Remove', showAll: 'Show all', collapse: 'Collapse' } } } })] }
+
+  it('uses the new-api chips/input surface and keeps hidden values compact', () => {
+    const wrapper = shallowMount(MultiSelect, { global, props: { options: [{ label: 'One', value: 'one', hint: 'Primary' }, { label: 'Two', value: 'two' }], modelValue: ['one', 'two'], maxVisibleChips: 1 } })
+    expect(wrapper.get('[role="combobox"]').classes()).toEqual(expect.arrayContaining(['rounded-md', 'border-input', 'bg-background']))
+    expect(wrapper.get('input').attributes('aria-label')).toBe('Select items')
+    expect(wrapper.get('input').attributes('placeholder')).toBeUndefined()
+    expect(wrapper.text()).toContain('+1')
+  })
+
+  it('selects existing options from the inline input with Enter', async () => {
+    const wrapper = shallowMount(MultiSelect, { global, props: { options: [{ label: 'One', value: 'one' }, { label: 'Two', value: 'two' }], modelValue: ['one'] } })
+    const input = wrapper.get('input')
+    await input.setValue('Two')
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([['one', 'two']])
+  })
+
+  it('creates a custom value and handles comma separated input', async () => {
+    const wrapper = shallowMount(MultiSelect, { global, props: { allowCreate: true, modelValue: [] } })
+    const input = wrapper.get('input')
+    await input.setValue('alpha,beta,')
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([['alpha', 'beta']])
+    await wrapper.setProps({ modelValue: ['alpha', 'beta'] })
+    await input.setValue('gamma')
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([['alpha', 'beta', 'gamma']])
   })
 })

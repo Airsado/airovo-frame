@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
-import { Check, ChevronDown, Copy, X } from '@lucide/vue'
-import { Button, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@airovo/uikit-shadcnui'
+import { ArrowRightLeft, Check, ChevronDown, X } from '@lucide/vue'
+import { Command, CommandGroup, CommandItem, CommandList } from '@airovo/uikit-shadcnui'
 import { Popover, PopoverContent, PopoverTrigger } from '@airovo/uikit-shadcnui/components/ui/popover'
 import { cn } from '@airovo/uikit-shadcnui'
 
@@ -41,6 +41,7 @@ const model = computed(() => props.modelValue ?? [])
 const open = ref(false)
 const inputValue = ref('')
 const expanded = ref(false)
+const activeIndex = ref(0)
 const { t, te } = useI18n({ useScope: 'global' })
 function copy(key: string, fallback: string, values?: Record<string, unknown>): string { return te(key) ? t(key, values ?? {}) : fallback }
 const resolvedPlaceholder = computed(() => props.placeholder ?? copy('common.multiSelectPlaceholder', '选择项目…'))
@@ -56,23 +57,66 @@ const filteredOptions = computed(() => {
 })
 const visibleValues = computed(() => typeof props.maxVisibleChips === 'number' && !expanded.value ? model.value.slice(0, props.maxVisibleChips) : model.value)
 const hiddenCount = computed(() => model.value.length - visibleValues.value.length)
-const canCreate = computed(() => props.allowCreate && trimmedInput.value.length > 0 && !selectedSet.value.has(trimmedInput.value) && !optionMap.value.has(trimmedInput.value))
+const canCreate = computed(() => props.allowCreate && trimmedInput.value.length > 0 && !selectedSet.value.has(trimmedInput.value) && !props.options.some(option => option.value === trimmedInput.value || option.label === trimmedInput.value))
+const menuEntries = computed(() => [
+  ...(canCreate.value ? [{ kind: 'create' as const, value: trimmedInput.value }] : []),
+  ...filteredOptions.value.map(option => ({ kind: 'option' as const, value: option.value, option })),
+])
 
 function setValues(values: string[]): void { emit('update:modelValue', [...new Set(values.filter(Boolean))]) }
 function toggle(value: string): void {
   if (selectedSet.value.has(value)) setValues(model.value.filter(item => item !== value))
   else setValues([...model.value, value])
   inputValue.value = ''
+  activeIndex.value = 0
 }
 function addValues(values: string[]): void {
   const additions = values.flatMap(value => value.replaceAll('，', ',').replaceAll('\n', ',').split(',')).map(value => value.trim()).filter(value => value && !selectedSet.value.has(value))
   if (additions.length) setValues([...model.value, ...additions])
   inputValue.value = ''
+  activeIndex.value = 0
 }
 function remove(value: string): void { if (!props.disabled) setValues(model.value.filter(item => item !== value)) }
+function handleInput(value: string): void {
+  inputValue.value = value
+  activeIndex.value = 0
+  if (!props.allowCreate) return
+  const normalized = value.replaceAll('，', ',').replaceAll('\n', ',')
+  if (!normalized.includes(',')) return
+  const parts = normalized.split(',')
+  const draft = parts.pop() ?? ''
+  addValues(parts)
+  inputValue.value = draft
+}
+function moveActive(delta: number): void {
+  if (!menuEntries.value.length) return
+  let next = activeIndex.value
+  for (let index = 0; index < menuEntries.value.length; index += 1) {
+    next = (next + delta + menuEntries.value.length) % menuEntries.value.length
+    const entry = menuEntries.value[next]
+    if (entry.kind === 'create' || !entry.option?.disabled) {
+      activeIndex.value = next
+      return
+    }
+  }
+}
 function handleKeydown(event: KeyboardEvent): void {
   if (event.key === 'Backspace' && !inputValue.value && model.value.length) { event.preventDefault(); remove(model.value.at(-1)!) }
-  if (event.key === 'Enter' && canCreate.value) { event.preventDefault(); addValues([trimmedInput.value]) }
+  if (event.key === 'ArrowDown') { event.preventDefault(); open.value = true; moveActive(1) }
+  if (event.key === 'ArrowUp') { event.preventDefault(); open.value = true; moveActive(-1) }
+  if (event.key === 'Escape') { event.preventDefault(); open.value = false }
+  if (event.key === 'Enter') {
+    const entry = menuEntries.value[activeIndex.value]
+    if (entry?.kind === 'create') { event.preventDefault(); addValues([entry.value]) }
+    else if (entry?.kind === 'option' && !entry.option.disabled) { event.preventDefault(); toggle(entry.value) }
+  }
+}
+function handlePaste(event: ClipboardEvent): void {
+  if (!props.allowCreate || props.disabled) return
+  const value = event.clipboardData?.getData('text') ?? ''
+  if (!/[，,\n]/.test(value)) return
+  event.preventDefault()
+  addValues([value])
 }
 async function copyChip(value: string): Promise<void> {
   if (!navigator.clipboard) return
@@ -85,38 +129,38 @@ function createLabel(): string { return props.createLabel?.replace('{{value}}', 
 <template>
   <Popover v-model:open="open">
     <PopoverTrigger as-child>
-      <Button type="button" variant="outline" role="combobox" :disabled="props.disabled" :aria-expanded="open" :class="cn('min-h-9 w-full justify-between gap-2 rounded-lg font-normal', !model.length && 'text-muted-foreground', props.class)">
+      <div role="combobox" :aria-expanded="open" :aria-disabled="props.disabled || undefined" :class="cn('flex min-h-9 w-full items-center gap-1 rounded-md border border-input bg-background px-2 py-1.5 text-sm shadow-xs transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50', props.disabled && 'cursor-not-allowed opacity-50', props.class)" @click="open = !props.disabled">
         <span class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-left">
           <template v-for="value in visibleValues" :key="value">
-            <span class="inline-flex max-w-full items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-xs text-foreground">
+            <span class="inline-flex h-[calc(--spacing(5.25))] max-w-full items-center gap-1 rounded-sm bg-muted px-1.5 text-xs font-medium text-foreground">
               <span v-if="optionMap.get(value)?.icon" class="shrink-0">{{ optionMap.get(value)?.icon }}</span>
               <button v-if="props.copyChipOnClick" type="button" class="max-w-40 truncate hover:underline" @click.stop="copyChip(value)">{{ labelMap.get(value) ?? value }}</button>
               <span v-else class="max-w-40 truncate">{{ labelMap.get(value) ?? value }}</span>
+              <span v-if="optionMap.get(value)?.hint" class="inline-flex shrink-0 text-muted-foreground" :title="optionMap.get(value)?.hint" aria-hidden="true"><ArrowRightLeft class="size-3" /></span>
               <button type="button" class="rounded-sm opacity-60 hover:opacity-100" :aria-label="`${copy('common.remove', '移除')} ${labelMap.get(value) ?? value}`" @click.stop="remove(value)"><X class="size-3" /></button>
             </span>
           </template>
-          <span v-if="hiddenCount > 0" class="rounded-sm bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">+{{ hiddenCount }}</span>
-          <span v-if="!model.length" class="truncate">{{ resolvedPlaceholder }}</span>
+          <button v-if="hiddenCount > 0" type="button" class="inline-flex h-[calc(--spacing(5.25))] items-center rounded-sm bg-muted px-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground" :title="copy('common.showAll', '显示全部')" @click.stop="expanded = true">+{{ hiddenCount }}</button>
+          <input :value="inputValue" :placeholder="!model.length ? resolvedPlaceholder : undefined" :disabled="props.disabled" :aria-label="resolvedPlaceholder" class="h-5 min-w-16 flex-1 border-0 bg-transparent p-0 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed" @input="handleInput(($event.target as HTMLInputElement).value)" @keydown="handleKeydown" @paste="handlePaste" />
         </span>
         <ChevronDown class="size-4 shrink-0 opacity-50" />
-      </Button>
+      </div>
     </PopoverTrigger>
     <PopoverContent align="start" class="w-(--reka-popover-trigger-width) min-w-56 rounded-lg border-0 p-0 ring-1 ring-foreground/10">
       <Command>
-        <CommandInput :model-value="inputValue" :placeholder="resolvedPlaceholder" @update:model-value="inputValue = String($event)" @keydown="handleKeydown" @paste="(event: ClipboardEvent) => { if (props.allowCreate) { const value = (event.clipboardData?.getData('text') ?? ''); if (/[，,\n]/.test(value)) { event.preventDefault(); addValues([value]) } } }" />
         <CommandList>
-          <CommandEmpty>{{ resolvedEmptyText }}</CommandEmpty>
+          <div v-if="!menuEntries.length" class="py-6 text-center text-sm text-muted-foreground">{{ resolvedEmptyText }}</div>
           <CommandGroup>
-            <CommandItem v-if="canCreate" :value="trimmedInput" @select="addValues([trimmedInput])"><span class="mr-2">＋</span>{{ createLabel() }}</CommandItem>
-            <CommandItem v-for="option in filteredOptions" :key="option.value" :value="option.value" :disabled="option.disabled" @select="toggle(option.value)">
+            <CommandItem v-if="canCreate" :value="trimmedInput" :class="activeIndex === 0 ? 'bg-accent text-accent-foreground' : undefined" @mouseenter="activeIndex = 0" @select="addValues([trimmedInput])"><span class="mr-2">＋</span>{{ createLabel() }}</CommandItem>
+            <CommandItem v-for="(option, index) in filteredOptions" :key="option.value" :value="option.value" :disabled="option.disabled" :class="activeIndex === index + (canCreate ? 1 : 0) ? 'bg-accent text-accent-foreground' : undefined" @mouseenter="activeIndex = index + (canCreate ? 1 : 0)" @select="toggle(option.value)">
               <Check :class="['mr-2 size-4', selectedSet.has(option.value) ? 'opacity-100' : 'opacity-0']" />
               <span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
-              <span v-if="option.hint" class="ml-2 text-xs text-muted-foreground">{{ option.hint }}</span>
+              <span v-if="option.hint" class="ml-auto max-w-40 truncate text-xs text-muted-foreground">{{ option.hint }}</span>
             </CommandItem>
           </CommandGroup>
         </CommandList>
       </Command>
-      <button v-if="hiddenCount > 0" type="button" class="w-full border-t px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent" @click="expanded = !expanded">{{ expanded ? copy('common.collapse', '收起') : copy('common.showAll', '显示全部') }}</button>
+      <button v-if="expanded && typeof props.maxVisibleChips === 'number' && model.length > props.maxVisibleChips" type="button" class="w-full border-t px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" @click="expanded = false">{{ copy('common.collapse', '收起') }}</button>
     </PopoverContent>
   </Popover>
 </template>
