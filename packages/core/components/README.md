@@ -233,6 +233,11 @@ selection, ViewOptions, dark-theme and mobile-card smoke matrix. It accepts
 `DATATABLE_MATRIX_URL`, `DATATABLE_MATRIX_USERNAME`, `DATATABLE_MATRIX_PASSWORD`
 and `DATATABLE_MATRIX_BROWSER` overrides.
 
+Run `pnpm dev` followed by `pnpm verify:sectionpage` for the SectionPage/tabs/
+layout scroll matrix. It accepts `SECTIONPAGE_MATRIX_URL`,
+`SECTIONPAGE_MATRIX_USERNAME`, `SECTIONPAGE_MATRIX_PASSWORD`, and
+`SECTIONPAGE_MATRIX_BROWSER` overrides.
+
 When used in a FormFieldSchema, pass JsonField as the component object and use
 componentProps for valueType/template. The form renderer owns modelValue,
 update:modelValue, disabled state, validation ARIA attributes and reset/submit
