@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict'
-import { chromium } from 'playwright'
+import { launchMatrixBrowser } from './matrix-browser.mjs'
 
 const baseUrl = process.env.PRIMITIVE_MATRIX_URL ?? 'http://localhost:5176'
 const username = process.env.PRIMITIVE_MATRIX_USERNAME ?? 'admin'
 const password = process.env.PRIMITIVE_MATRIX_PASSWORD ?? '123456'
-const executablePath = process.env.PRIMITIVE_MATRIX_BROWSER
 
-const browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) })
+const browser = await launchMatrixBrowser('PRIMITIVE_MATRIX')
 
 try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
