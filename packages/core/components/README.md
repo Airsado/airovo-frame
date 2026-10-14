@@ -148,8 +148,10 @@ the same focus ring, hint marker and `+N more` density pattern. It supports
 search, disabled options, optional custom creation, batch comma/newline input,
 bounded visible chips, hint text and copyable chips while keeping selection
 state caller-owned.
-Nested labels are indented by depth; `SearchSelect` searches
-the rendered descendant labels. Existing flat options keep their behavior.
+Nested labels are indented by depth; `SearchSelect` now reuses the Combobox
+input surface from new-api, so the selected label and search query share one
+control while descendant paths remain visible. Existing flat options keep
+their behavior.
 Default SelectBox/SearchSelect placeholder, search and empty-result text uses
 the global `common.select*` locale keys; explicit props remain authoritative.
 
