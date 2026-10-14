@@ -287,6 +287,14 @@ header/footer, overscroll-contained body). It accepts `bottom`/`right` side, tit
 description, `actions`/`footer` slots and class overrides; callers still own
 open state and business actions.
 
+`DrawerSection`, `DrawerSectionHeader` and `DrawerSwitchItem` provide the
+business-neutral section compositions from new-api's `drawer-layout.ts`.
+Sections remove their final divider/padding through `last-*` utilities;
+headers support title, description, icon/icon tone and an actions slot; switch
+items keep descriptive content and the control slot in separate hit areas.
+They only own layout and theme classes, so preference state and button
+behavior remain with the caller.
+
 `Combobox` is the generic single-value searchable selector. It accepts the
 same option shape as `SelectBox`, supports disabled options and an optional
 `allowCustomValue` Enter path. Options can also provide `description` and
