@@ -24,6 +24,7 @@
         "clearSelectionWithEscape": "Clear selection (Escape)",
         "bulkActions": "Bulk actions for {count} selected records",
         "bulkAnnouncement": "{count} {entity} selected. Bulk actions are available.",
+        "moreActions": "More actions",
         "chartLoading": "Loading chart",
         "chartError": "Chart failed to load",
         "chartEmpty": "No chart data",
