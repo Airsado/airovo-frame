@@ -1,11 +1,15 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import ResponsiveCardList from './ResponsiveCardList.vue'
+
+const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { noData: '暂无数据', loading: '正在加载', selectCurrentPage: '全选当前页', selectRow: '选择第 {index} 行' } } } })] }
 
 describe('ResponsiveCardList', () => {
     it('renders stable cards and exposes row slot context', () => {
         const wrapper = mount(ResponsiveCardList, {
+            global,
             props: { rows: [{ id: 1, name: 'one' }], columns: [{ key: 'name', title: '名称' }] },
             slots: { card: '<div data-card>{{ row.name }} #{{ rowKey }}</div>' },
         })
@@ -13,15 +17,16 @@ describe('ResponsiveCardList', () => {
     })
 
     it('renders loading and empty slots instead of cards', () => {
-        const loading = mount(ResponsiveCardList, { props: { loading: true, rows: [{ id: 1 }] } })
+        const loading = mount(ResponsiveCardList, { global, props: { loading: true, rows: [{ id: 1 }] } })
         expect(loading.findAll('article')).toHaveLength(0)
         expect(loading.findAll('.animate-pulse')).toHaveLength(3)
-        const empty = mount(ResponsiveCardList, { props: { rows: [] } })
+        const empty = mount(ResponsiveCardList, { global, props: { rows: [] } })
         expect(empty.text()).toContain('暂无数据')
     })
 
     it('supports current-page card selection and exposes slot state', async () => {
         const wrapper = mount(ResponsiveCardList, {
+            global,
             props: { selectable: true, rows: [{ id: 1, name: 'one' }, { id: 2, name: 'two' }] },
             slots: { card: '<div data-card>{{ row.name }} {{ selected ? "selected" : "idle" }}</div>' },
         })
@@ -36,6 +41,7 @@ describe('ResponsiveCardList', () => {
 
     it('preserves persistent selected keys when rows change', async () => {
         const wrapper = mount(ResponsiveCardList, {
+            global,
             props: { selectable: true, selectionScope: 'persistent', selectedKeys: [1], rows: [{ id: 2, name: 'two' }] },
         })
         await wrapper.findAll('input[type="checkbox"]').at(-1)!.setValue(true)
@@ -46,6 +52,7 @@ describe('ResponsiveCardList', () => {
 
     it('clears page-scoped selected keys when rows change', async () => {
         const wrapper = mount(ResponsiveCardList, {
+            global,
             props: { selectable: true, selectedKeys: [1], rows: [{ id: 1, name: 'one' }] },
         })
         await wrapper.setProps({ rows: [{ id: 2, name: 'two' }] })

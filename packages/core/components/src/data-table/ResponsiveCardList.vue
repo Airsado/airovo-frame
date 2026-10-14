@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { HTMLAttributes } from 'vue'
 import type { DataTableRowKey, DataTableSelectionScope } from './types'
 
@@ -10,7 +11,7 @@ const props = withDefaults(defineProps<{
     columns?: Array<{ key: string; title: string; value?: (row: T) => unknown }>
     rowKey?: string | ((row: T) => string | number)
     loading?: boolean
-    emptyText?: string
+  emptyText?: string
     selectable?: boolean
     selectedKeys?: DataTableRowKey[]
     selectionScope?: DataTableSelectionScope
@@ -20,10 +21,16 @@ const props = withDefaults(defineProps<{
     columns: () => [],
     rowKey: 'id',
     loading: false,
-    emptyText: '暂无数据',
     selectable: false,
     selectionScope: 'page',
 })
+
+const { t, te } = useI18n({ useScope: 'global' })
+function copy(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
+const resolvedEmptyText = computed(() => props.emptyText ?? copy('common.noData', '暂无数据'))
+const loadingText = computed(() => copy('common.loading', '正在加载'))
+const selectCurrentPageText = computed(() => copy('common.selectCurrentPage', '全选当前页'))
+function selectRowText(index: number): string { return copy('common.selectRow', `选择第 ${index + 1} 行`).replace('{index}', String(index + 1)) }
 
 const emit = defineEmits<{
     (event: 'update:selectedKeys', value: DataTableRowKey[]): void
@@ -77,18 +84,18 @@ watch(visibleKeySet, () => {
 <template>
     <div :class="['grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3', props.class]">
         <template v-if="props.loading">
-            <div role="status" aria-live="polite" class="sr-only">正在加载</div>
+            <div role="status" aria-live="polite" class="sr-only">{{ loadingText }}</div>
             <slot name="loading"><div v-for="index in 3" :key="index" class="min-h-24 animate-pulse rounded-lg border bg-muted/40" /></slot>
         </template>
         <template v-else-if="props.rows.length">
             <div v-if="props.selectable" class="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-xs">
-                <input type="checkbox" :checked="allVisibleSelected" :indeterminate="someVisibleSelected && !allVisibleSelected" aria-label="全选当前页" @change="toggleAll">
-                <span>选择当前页</span>
+                <input type="checkbox" :checked="allVisibleSelected" :indeterminate="someVisibleSelected && !allVisibleSelected" :aria-label="selectCurrentPageText" @change="toggleAll">
+                <span>{{ selectCurrentPageText }}</span>
             </div>
             <slot :rows="props.rows" :selected-keys="selected">
             <article v-for="(row, index) in props.rows" :key="String(rowKey(row, index))" class="min-w-0 rounded-lg border bg-card p-3">
                 <div class="flex min-w-0 items-start gap-2">
-                    <input v-if="props.selectable" type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="`选择第 ${index + 1} 行`" @change="toggleRow(row, index)">
+                    <input v-if="props.selectable" type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="selectRowText(index)" @change="toggleRow(row, index)">
                     <div class="min-w-0 flex-1">
                 <slot name="card" :row="row" :index="index" :row-key="rowKey(row, index)" :selected="selected.includes(rowKey(row, index))" :toggle-row="() => toggleRow(row, index)">
                     <dl class="grid gap-2 text-sm">
@@ -103,6 +110,6 @@ watch(visibleKeySet, () => {
             </article>
             </slot>
         </template>
-        <slot v-else name="empty"><div role="status" aria-live="polite" class="col-span-full p-8 text-center text-sm text-muted-foreground">{{ props.emptyText }}</div></slot>
+        <slot v-else name="empty"><div role="status" aria-live="polite" class="col-span-full p-8 text-center text-sm text-muted-foreground">{{ resolvedEmptyText }}</div></slot>
     </div>
 </template>
