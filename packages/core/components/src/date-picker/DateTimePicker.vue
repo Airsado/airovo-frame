@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { CalendarClock, X } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { cn } from '@airovo/uikit-shadcnui'
 import { Input } from '@airovo/uikit-shadcnui/components/ui/input'
 import { Button } from '@airovo/uikit-shadcnui/components/ui/button'
 import DatePicker from './DatePicker.vue'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   modelValue?: Date
   placeholder?: string
   disabled?: boolean
@@ -18,8 +19,10 @@ const props = withDefaults(defineProps<{
   ariaDescribedby?: string
   ariaInvalid?: boolean | string
   class?: string
-}>(), { placeholder: '选择日期和时间' })
+}>()
 const emit = defineEmits<{ 'update:modelValue': [Date | undefined] }>()
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedPlaceholder = computed(() => props.placeholder ?? (te('common.dateTimePickerPlaceholder') ? t('common.dateTimePickerPlaceholder') : '选择日期和时间'))
 const time = ref(props.modelValue ? formatTime(props.modelValue) : '00:00:00')
 
 watch(() => props.modelValue, (value) => { time.value = value ? formatTime(value) : '00:00:00' })
@@ -61,7 +64,7 @@ function clear(): void {
 <template>
   <div :class="cn('flex items-center gap-2', props.class)">
     <!-- Override DatePicker's standalone width so this row can shrink in forms. -->
-    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="props.placeholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
+    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="resolvedPlaceholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
     <label class="relative flex h-8 shrink-0 items-center">
       <CalendarClock class="pointer-events-none absolute left-2 opacity-60" />
       <Input type="time" step="1" :model-value="time" aria-label="时间" :disabled="props.disabled || !props.modelValue" class="w-32 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" @update:model-value="updateTime" />

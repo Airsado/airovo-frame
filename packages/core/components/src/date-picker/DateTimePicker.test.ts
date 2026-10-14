@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import DateTimePicker from './DateTimePicker.vue'
 
@@ -9,7 +10,7 @@ const DatePickerStub = {
     template: '<button type="button" data-date-picker :disabled="disabled" @click="$emit(\'update:modelValue\', new Date(2024, 0, 3))">{{ modelValue }}</button>',
 }
 
-const global = { stubs: { DatePicker: DatePickerStub, CalendarClock: true, X: true } }
+const global = { stubs: { DatePicker: DatePickerStub, CalendarClock: true, X: true }, plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { datePickerPlaceholder: '选择日期', dateTimePickerPlaceholder: '选择日期和时间' } } } })] }
 
 describe('DateTimePicker time and controlled state', () => {
     it('keeps seconds and does not mutate the caller Date when changing time', async () => {

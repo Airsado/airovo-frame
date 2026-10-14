@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import DatePicker from './DatePicker.vue'
@@ -13,8 +14,16 @@ const stubs = {
         template: '<div data-calendar :data-min="minValue?.toString()" :data-max="maxValue?.toString()" :data-locale="locale" />',
     },
 }
+const global = { stubs, plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { datePickerPlaceholder: '选择日期', dateTimePickerPlaceholder: '选择日期和时间' } } } })] }
 
 describe('DatePicker boundaries', () => {
+    it('uses locale defaults for date placeholder while explicit values win', () => {
+        const en = createI18n({ legacy: false, locale: 'en-US', messages: { 'en-US': { common: { datePickerPlaceholder: 'Pick a date' } } } })
+        const wrapper = mount(DatePicker, { global: { stubs, plugins: [en] } })
+        expect(wrapper.get('button').attributes('aria-label')).toBe('Pick a date')
+        const explicit = mount(DatePicker, { global: { stubs, plugins: [en] }, props: { placeholder: 'Custom date' } })
+        expect(explicit.get('button').attributes('aria-label')).toBe('Custom date')
+    })
     it('passes optional min/max dates and locale to Calendar', () => {
         const wrapper = mount(DatePicker, {
             props: {
@@ -22,7 +31,7 @@ describe('DatePicker boundaries', () => {
                 maxDate: new Date(2024, 11, 31, 12),
                 locale: 'zh-CN',
             },
-            global: { stubs },
+            global,
         })
         const calendar = wrapper.get('[data-calendar]')
         expect(calendar.attributes('data-min')).toContain('2024-01-01')
@@ -34,10 +43,10 @@ describe('DatePicker boundaries', () => {
         const value = new Date(2024, 0, 2, 12)
         const wrapper = mount(DatePicker, {
             props: { modelValue: value, locale: 'en-US' },
-            global: { stubs },
+            global,
         })
         expect(wrapper.get('button').attributes('aria-label')).toBe('2024-01-02')
-        const zh = mount(DatePicker, { props: { modelValue: value, locale: 'zh-CN' }, global: { stubs } })
+        const zh = mount(DatePicker, { props: { modelValue: value, locale: 'zh-CN' }, global })
         expect(zh.get('button').attributes('aria-label')).toBe('2024-01-02')
     })
 
@@ -52,7 +61,7 @@ describe('DatePicker boundaries', () => {
     it('keeps an invalid or reversed boundary configuration renderable', () => {
         expect(() => mount(DatePicker, {
             props: { minDate: new Date(2025, 0, 1), maxDate: new Date(2024, 0, 1) },
-            global: { stubs },
+            global,
         })).not.toThrow()
     })
 })

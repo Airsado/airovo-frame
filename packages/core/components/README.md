@@ -205,6 +205,9 @@ When `locale` is omitted, `DatePicker` reads the installed framework i18n
 locale and falls back to `en-US`; an explicit locale always wins. This mirrors
 new-api's language-aware calendar selection without making date values or
 business forms depend on the i18n implementation.
+Default DatePicker and DateTimePicker placeholders use
+`common.datePickerPlaceholder` and `common.dateTimePickerPlaceholder`; explicit
+placeholder props remain authoritative.
 
 `DatePickerField` is the FormFieldSchema-friendly wrapper. Set `type="date"`
 or `type="datetime"`; it forwards date constraints, locale, disabled state,
