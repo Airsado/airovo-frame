@@ -1,14 +1,17 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
 import JsonCodeEditor from './JsonCodeEditor.vue'
 
 vi.mock('vue-sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
+const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { copiedJson: '已复制 JSON', copyFailed: '复制失败' } } } })] }
+
 describe('JsonCodeEditor', () => {
     it('renders status, line numbers and formatting control', async () => {
-        const wrapper = mount(JsonCodeEditor, { props: { modelValue: '{"a":1}' } })
+        const wrapper = mount(JsonCodeEditor, { global, props: { modelValue: '{"a":1}' } })
         expect(wrapper.text()).toContain('JSON')
         expect(wrapper.text()).toContain('1:1')
         expect(wrapper.text()).toContain('1')
@@ -17,7 +20,7 @@ describe('JsonCodeEditor', () => {
     })
 
     it('keeps invalid drafts and reports parse errors', async () => {
-        const wrapper = mount(JsonCodeEditor, { props: { modelValue: '{"a":1}' } })
+        const wrapper = mount(JsonCodeEditor, { global, props: { modelValue: '{"a":1}' } })
         await wrapper.get('textarea').setValue('{"a":}')
         expect(wrapper.text()).toContain('JSON 格式无效')
         expect(wrapper.emitted('parse-error')?.at(-1)?.[0]).toBeTruthy()
@@ -25,6 +28,7 @@ describe('JsonCodeEditor', () => {
 
     it('forwards form and accessible attributes to the textarea', () => {
         const wrapper = mount(JsonCodeEditor, {
+            global,
             props: {
                 modelValue: '{"a":1}',
                 id: 'json-config',
@@ -45,6 +49,7 @@ describe('JsonCodeEditor', () => {
     it('exposes the inner textarea and honors an explicit aria-invalid state', () => {
         const elements: (HTMLTextAreaElement | null)[] = []
         const wrapper = mount(JsonCodeEditor, {
+            global,
             props: {
                 modelValue: '{"a":1}',
                 ariaInvalid: true,
@@ -62,7 +67,7 @@ describe('JsonCodeEditor', () => {
     it('keeps the header actions at new-api spacing and reports clipboard success', async () => {
         const writeText = vi.fn().mockResolvedValue(undefined)
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
-        const wrapper = mount(JsonCodeEditor, { props: { modelValue: '{"a":1}' } })
+        const wrapper = mount(JsonCodeEditor, { global, props: { modelValue: '{"a":1}' } })
         expect(wrapper.findAll('.gap-2').length).toBeGreaterThan(0)
         await wrapper.findAll('button').find(button => button.text() === '复制')?.trigger('click')
         expect(writeText).toHaveBeenCalledWith('{"a":1}')
@@ -72,7 +77,7 @@ describe('JsonCodeEditor', () => {
     it('reports clipboard failure and keeps the draft when copying fails', async () => {
         const writeText = vi.fn().mockRejectedValue(new Error('clipboard denied'))
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
-        const wrapper = mount(JsonCodeEditor, { props: { modelValue: '{"a":1}' } })
+        const wrapper = mount(JsonCodeEditor, { global, props: { modelValue: '{"a":1}' } })
         await wrapper.findAll('button').find(button => button.text() === '复制')?.trigger('click')
         expect(toast.error).toHaveBeenCalledWith('复制失败')
         expect(wrapper.get('textarea').element.value).toBe('{"a":1}')

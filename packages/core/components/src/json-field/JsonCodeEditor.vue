@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Textarea } from '@airovo/uikit-shadcnui'
 import { toast } from 'vue-sonner'
@@ -23,6 +24,9 @@ const props = withDefaults(defineProps<{
     /** Optional utility class for the editor viewport height. */
     heightClassName?: string
 }>(), { modelValue: '', disabled: false, height: '14rem', ariaLabel: 'JSON' })
+
+const { t, te } = useI18n({ useScope: 'global' })
+function translate(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
 
 const emit = defineEmits<{
     (event: 'update:modelValue', value: string): void
@@ -75,14 +79,14 @@ function format(): void {
 async function copy(): Promise<void> {
     if (!draft.value) return
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
-        toast.error('复制失败')
+        toast.error(translate('common.copyFailed', '复制失败'))
         return
     }
     try {
         await navigator.clipboard.writeText(draft.value)
-        toast.success('已复制 JSON')
+        toast.success(translate('common.copiedJson', '已复制 JSON'))
     } catch {
-        toast.error('复制失败')
+        toast.error(translate('common.copyFailed', '复制失败'))
     }
 }
 </script>
