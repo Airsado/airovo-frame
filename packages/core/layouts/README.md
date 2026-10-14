@@ -92,9 +92,10 @@ states, back affordance and route-driven replacement remain aligned.
 
 Active state follows the new-api split between a parent scope and an exact
 leaf: selecting a child opens its parent group but does not paint the parent
-as selected. Leaf and collapsed-dropdown entries use the
-`sidebar-accent-foreground` token for both text and icons; unselected entries
-only receive the muted hover surface. The framework marker
+as selected. Leaf entries use the `sidebar-accent-foreground` token, while an
+active child inside the collapsed dropdown uses the new-api `secondary`
+surface and foreground token; unselected entries only receive the muted hover
+surface. The framework marker
 `data-app-sidebar-active="true"` is authoritative over primitive utility
 classes so application CSS order cannot remove the selected text color.
 
