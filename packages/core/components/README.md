@@ -64,6 +64,9 @@ normal layout flow. The floating toolbar uses the new-api hover scale,
 transition, backdrop, border and rounded surface classes; the clear control
 also exposes a tooltip. Escape and arrow/Home/End keys operate on the toolbar
 buttons without taking ownership of the batch operation itself.
+Toolbar labels, live-region announcements, and clear-selection hints use the
+framework global i18n `common.*` keys with Chinese fallbacks; explicit
+`entityName` and action slots remain caller-owned.
 
 `DataTableRowActions` accepts `iconOnly` and `ariaLabel` for the new-api
 static row-action pattern. Icon-only actions use the `icon-sm` ghost button

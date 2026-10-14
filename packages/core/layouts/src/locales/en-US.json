@@ -18,6 +18,12 @@
         "error": "Something went wrong",
         "retry": "Retry",
         "loading": "Loading…",
+        "records": "records",
+        "selected": "selected",
+        "clearSelection": "Clear selection",
+        "clearSelectionWithEscape": "Clear selection (Escape)",
+        "bulkActions": "Bulk actions for {count} selected records",
+        "bulkAnnouncement": "{count} {entity} selected. Bulk actions are available.",
         "untitledPage": "Untitled page"
     },
     "user": {
