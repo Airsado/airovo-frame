@@ -290,6 +290,8 @@ shows a spinner even when the caller did not provide an icon; callback and
 permission ownership remain with the caller. The dropdown accepts
 `dropdownAriaLabel`, `dropdownContentClass`, and `dropdownModal`, and emits
 `dropdown-open-change` so callers can coordinate focus or overlay state.
+The default dropdown aria-label uses the global `common.moreActions` locale key
+with a Chinese fallback; `dropdownAriaLabel` remains caller-authoritative.
 
 `DataTableToolbar` follows the new-api toolbar composition. Existing search,
 faceted filters, refresh, reset and column visibility props remain compatible;

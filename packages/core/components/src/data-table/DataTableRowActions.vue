@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@airovo/uikit-shadcnui'
 import type { DataTableRowAction } from './types'
@@ -13,8 +14,10 @@ const props = withDefaults(defineProps<{
   dropdownAriaLabel?: string
   dropdownContentClass?: string
   dropdownModal?: boolean
-}>(), { actions: () => [], dropdownActions: () => [], dropdownAriaLabel: '更多操作' })
+}>(), { actions: () => [], dropdownActions: () => [] })
 const emit = defineEmits<{ (event: 'dropdown-open-change', open: boolean): void }>()
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedDropdownAriaLabel = computed(() => props.dropdownAriaLabel ?? (te('common.moreActions') ? t('common.moreActions') : '更多操作'))
 function allowed(action: DataTableRowAction<T>): boolean {
   if (action.permission && props.hasPermission && !props.hasPermission(action.permission)) return false
   return typeof action.visible === 'function' ? action.visible(props.row) : action.visible !== false
@@ -32,7 +35,7 @@ function select(action: DataTableRowAction<T>): void { if (!state(action.disable
       <Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" :class="[action.iconOnly ? 'size-4' : 'size-3.5', loading(action) && 'animate-spin']" /><span v-if="!action.iconOnly">{{ action.label }}</span>
     </Button>
     <DropdownMenu v-if="visibleDropdownActions.length" :modal="props.dropdownModal" @update:open="(open) => emit('dropdown-open-change', open)">
-      <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="data-popup-open:bg-muted size-8" :aria-label="props.dropdownAriaLabel"><Icon icon="lucide:ellipsis" class="size-4" /></Button></DropdownMenuTrigger>
+      <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="data-popup-open:bg-muted size-8" :aria-label="resolvedDropdownAriaLabel"><Icon icon="lucide:ellipsis" class="size-4" /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end" :class="['w-48', props.dropdownContentClass]">
         <template v-for="(action, index) in visibleDropdownActions" :key="action.key">
           <DropdownMenuSeparator v-if="index > 0" />
