@@ -18,7 +18,7 @@
 | `web/src/components/ui/dialog.tsx`、`web/src/components/confirm-dialog.tsx` | Modal / Dialog | `packages/core/components/src/overlay`、`packages/ui-kit/shadcn-vue` | 已存在但行为不完整 | 组合层 API、焦点、Escape/outside、主题 surface 和业务无关性需继续核对 | P0 | overlay 单测、焦点/Escape/outside 浏览器验证 |
 | `web/src/components/date-picker.tsx` | DatePicker | `packages/core/components/src/date-picker/DatePicker.vue` | 已存在但行为不完整 | locale、边界日期、键盘、触发器文案和主题视觉需继续对照 | P1 | 单测、demo、键盘/主题浏览器验证 |
 | `web/src/components/datetime-picker.tsx` | DateTimePicker | `packages/core/components/src/date-picker/DateTimePicker.vue` | 已存在但行为不完整 | 秒级输入、清除、日期时间合并、移动布局和 invalid 状态需继续对照 | P1 | 单测、表单 demo、键盘/移动浏览器验证 |
-| `web/src/components/status-badge.tsx` | StatusBadge | `packages/core/components/src/status-badge` | 已存在但行为不完整 | 颜色映射、dot/pulse、copyable、text/underline 类型和 dark token 需逐项核对 | P1 | 单测、demo、light/dark/键盘浏览器验证 |
+| `web/src/components/status-badge.tsx` | StatusBadge | `packages/core/components/src/status-badge` | 已存在但行为不完整 | 已补颜色映射、dot/pulse、copyable、text/underline 类型、dark token 和 copyable focus-visible ring；仍需跨主题与移动密度矩阵 | P1 | 单测、demo、light/dark/键盘浏览器验证 |
 | `web/src/components/empty-state.tsx` | EmptyState | `packages/core/components/src/empty-state/EmptyState.vue` | 已存在但行为不完整 | icon、密度、action slot、无障碍和 new-api 空态尺寸需继续对照 | P1 | 单测、demo、light/dark 浏览器验证 |
 | `web/src/components/error-state.tsx` | ErrorState | `packages/core/components/src/empty-state/ErrorState.vue` | 已存在但行为不完整 | retry/action 语义、alert/live 区域和错误视觉需继续对照 | P1 | 单测、错误状态 demo、键盘/读屏属性检查 |
 | `web/src/components/loading-state.tsx` | LoadingState | `packages/core/components/src/empty-state/LoadingState.vue` | 已存在但行为不完整 | block/inline 密度、尺寸、aria-busy/live 和主题动画需继续对照 | P1 | 单测、loading demo、prefers-reduced-motion/主题验证 |

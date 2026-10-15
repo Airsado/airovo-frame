@@ -51,6 +51,14 @@ describe('StatusBadge', () => {
         expect(writeText).toHaveBeenCalledWith('渠道')
         expect(writeText).toHaveBeenCalledTimes(3)
         expect(wrapper.emitted('copy')).toEqual([['渠道'], ['渠道'], ['渠道']])
+        expect(badge.classes()).toContain('focus-visible:ring-2')
+    })
+
+    it('does not make non-copyable badges focusable', () => {
+        const wrapper = mount(StatusBadge, { props: { label: '展示', copyable: false } })
+        const badge = wrapper.get('[data-slot="status-badge"]')
+        expect(badge.attributes('tabindex')).toBeUndefined()
+        expect(badge.classes()).not.toContain('focus-visible:ring-2')
     })
 
     it('derives a stable text color from autoColor', () => {
