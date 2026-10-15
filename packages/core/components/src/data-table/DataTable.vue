@@ -309,6 +309,69 @@ function initialColumnSize(column: DataTableColumn): number {
     return Number.isFinite(width) ? width : 160
 }
 
+function resizeColumnByKeyboard(column: DataTableColumn, delta: number): void {
+    const current = initialColumnSize(column)
+    const min = column.minSize ?? 72
+    const max = column.maxSize
+    const next = Math.max(min, max === undefined ? current + delta : Math.min(max, current + delta))
+    updateColumnSizing({ ...currentColumnSizing.value, [columnId(column)]: next })
+}
+
+function measureColumnContentWidth(handle: HTMLElement, column: DataTableColumn): number | undefined {
+    const table = handle.closest('table')
+    if (!table) return undefined
+    const cells = [...table.querySelectorAll<HTMLElement>('[data-column-id]')]
+        .filter((cell) => cell.dataset.columnId === columnId(column))
+    if (cells.length === 0) return undefined
+
+    const measuredWidth = cells.reduce((maxWidth, cell) => {
+        const clone = cell.cloneNode(true) as HTMLElement
+        clone.querySelectorAll('[data-column-resizer]').forEach((resizer) => resizer.remove())
+        clone.style.position = 'absolute'
+        clone.style.visibility = 'hidden'
+        clone.style.pointerEvents = 'none'
+        clone.style.left = '-10000px'
+        clone.style.top = '0'
+        clone.style.width = 'max-content'
+        clone.style.minWidth = '0'
+        clone.style.maxWidth = 'none'
+        clone.style.height = 'auto'
+        clone.style.whiteSpace = 'nowrap'
+        document.body.append(clone)
+        const width = clone.scrollWidth
+        clone.remove()
+        return Math.max(maxWidth, width)
+    }, 0)
+
+    return measuredWidth > 0 ? Math.ceil(measuredWidth) : undefined
+}
+
+function autoSizeColumn(handle: HTMLElement, column: DataTableColumn): void {
+    const measuredWidth = measureColumnContentWidth(handle, column)
+    if (measuredWidth === undefined) return
+    const min = column.minSize ?? 72
+    const max = column.maxSize
+    const next = Math.max(min, max === undefined ? measuredWidth : Math.min(max, measuredWidth))
+    updateColumnSizing({ ...currentColumnSizing.value, [columnId(column)]: next })
+}
+
+function handleResizeKeydown(event: KeyboardEvent, column: DataTableColumn): void {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault()
+        resizeColumnByKeyboard(column, event.key === 'ArrowLeft' ? -(event.shiftKey ? 50 : 10) : (event.shiftKey ? 50 : 10))
+        return
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        autoSizeColumn(event.currentTarget as HTMLElement, column)
+    }
+}
+
+function handleResizeDoubleClick(event: MouseEvent, column: DataTableColumn): void {
+    event.preventDefault()
+    autoSizeColumn(event.currentTarget as HTMLElement, column)
+}
+
 function updateColumnSizing(next: Record<string, number>): void {
     const normalized = normalizeDataTableColumnSizing(props.columns, next)
     if (props.columnSizing === undefined) internalColumnSizing.value = normalized
@@ -433,9 +496,15 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         <template v-else>{{ column.title }}</template>
                         <span
                             v-if="column.resizable"
-                            class="absolute inset-y-0 right-0 z-10 w-1 cursor-col-resize touch-none select-none hover:bg-primary/40"
-                            aria-hidden="true"
+                            class="absolute inset-y-0 right-0 z-10 flex w-2 cursor-col-resize touch-none select-none items-center justify-end outline-none after:h-[calc(100%-1rem)] after:w-px after:bg-border after:transition-colors hover:after:bg-primary focus-visible:after:bg-primary"
+                            role="separator"
+                            aria-orientation="vertical"
+                            :aria-label="te('common.resizeColumn') ? t('common.resizeColumn', { column: column.title }) : `调整列宽：${column.title}`"
+                            tabindex="0"
+                            data-column-resizer
                             @pointerdown="startResize($event, column)"
+                            @keydown="handleResizeKeydown($event, column)"
+                            @dblclick="handleResizeDoubleClick($event, column)"
                         />
                     </th>
                     <th v-if="hasActions" data-column-id="actions" scope="col" class="data-table-pinned-header h-10 whitespace-nowrap px-2 text-right align-middle font-medium text-foreground" :style="pinnedStyle('actions', 'header')">操作</th>

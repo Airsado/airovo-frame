@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import DataTable from './DataTable.vue'
 
@@ -153,6 +153,29 @@ describe('DataTable', () => {
         window.dispatchEvent(new PointerEvent('pointermove', { clientX: 350 }))
         expect(wrapper.emitted('update:columnSizing')?.at(-1)?.[0]).toEqual({ name: 220 })
         window.dispatchEvent(new PointerEvent('pointerup', { clientX: 350 }))
+    })
+
+    it('exposes a keyboard resize separator with bounded and auto-size controls', async () => {
+        const wrapper = mountTable({
+            columns: [{ key: 'name', title: '名称', width: '120px', resizable: true, minSize: 100, maxSize: 220 }],
+        })
+        const handle = wrapper.find('[data-column-resizer]')
+        expect(handle.attributes('role')).toBe('separator')
+        expect(handle.attributes('aria-orientation')).toBe('vertical')
+        expect(handle.attributes('aria-label')).toBe('调整列宽：名称')
+        expect(handle.attributes('tabindex')).toBe('0')
+
+        await handle.trigger('keydown', { key: 'ArrowRight' })
+        expect(wrapper.emitted('update:columnSizing')?.at(-1)?.[0]).toEqual({ name: 130 })
+        await handle.trigger('keydown', { key: 'ArrowLeft', shiftKey: true })
+        expect(wrapper.emitted('update:columnSizing')?.at(-1)?.[0]).toEqual({ name: 100 })
+
+        const originalScrollWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollWidth')
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', { configurable: true, get: () => 180 })
+        await handle.trigger('keydown', { key: 'Enter' })
+        expect(wrapper.emitted('update:columnSizing')?.at(-1)?.[0]).toEqual({ name: 180 })
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', originalScrollWidth ?? { configurable: true, value: 0 })
+        vi.restoreAllMocks()
     })
 
     it('migrates persisted sizing to the current schema and bounds', async () => {
