@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import ChartCard from './ChartCard.vue'
-import { ChartContainer, ChartTooltip } from '@airovo/uikit-shadcnui'
+import { ChartContainer, ChartLegend, ChartTooltip } from '@airovo/uikit-shadcnui'
 import { resolveChartColors } from '@airovo/uikit-shadcnui'
 
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { chartLoading: '正在加载图表', chartError: '图表加载失败', chartEmpty: '暂无图表数据', retry: '重试' } } } })] }
@@ -41,6 +41,33 @@ describe('ChartCard', () => {
         expect(wrapper.text()).toContain('周一')
         expect(wrapper.text()).toContain('请求量')
         expect(wrapper.findComponent(ChartTooltip).classes()).toContain('shadow-xl')
+    })
+
+    it('keeps tooltip and legend surfaces aligned with the new-api chart contract', () => {
+        const tooltip = mount(ChartTooltip, {
+            props: {
+                label: '周一',
+                payload: [
+                    { color: '#123456', name: '这是一个需要截断但仍然可读的长指标名称', value: 2400 },
+                    { color: '#abcdef', name: '成功率', value: '98%' },
+                ],
+            },
+        })
+        expect(tooltip.classes()).toEqual(expect.arrayContaining(['min-w-32', 'rounded-lg', 'border-border/50', 'bg-background', 'shadow-xl']))
+        expect(tooltip.find('ul').classes()).toEqual(expect.arrayContaining(['grid', 'gap-1.5']))
+        expect(tooltip.find('li').classes()).toEqual(expect.arrayContaining(['flex', 'w-full', 'items-center', 'gap-2']))
+        expect(tooltip.find('li > span').classes()).toEqual(expect.arrayContaining(['h-2.5', 'w-2.5', 'rounded-sm']))
+        expect(tooltip.find('li span.text-foreground').classes()).toEqual(expect.arrayContaining(['font-mono', 'font-medium', 'tabular-nums']))
+        expect(tooltip.findAll('li')).toHaveLength(2)
+        expect(tooltip.text()).toContain('98%')
+
+        const emptyTooltip = mount(ChartTooltip, { props: { payload: [] } })
+        expect(emptyTooltip.find('ul').exists()).toBe(false)
+
+        const legend = mount(ChartLegend, { props: { items: [{ label: '请求量', color: '#123456' }] } })
+        expect(legend.classes()).toEqual(expect.arrayContaining(['items-center', 'justify-center', 'gap-4']))
+        expect(legend.classes()).toContain('flex-wrap')
+        expect(legend.find('li > span').classes()).toEqual(expect.arrayContaining(['h-2', 'w-2', 'rounded-sm']))
     })
 
     it('renders retry and empty states without a misleading chart', async () => {

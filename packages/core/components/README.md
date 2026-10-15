@@ -492,9 +492,11 @@ framework composition concerns.
 
 `ChartCard` accepts optional `tooltipLabel`/`tooltipItems` and a `tooltip` slot;
 without a custom slot it renders the shared ui-kit `ChartTooltip` composition
-with the new-api border, rounded surface, indicator colors and shadow. The slot
-receives the normalized label/items model and is only rendered for a loaded
-non-empty chart. Chart.js options and actual hover wiring remain caller-owned.
+with the new-api border, rounded surface, min-width, indicator colors, spacing,
+foreground tokens and shadow. `ChartLegend` uses the same new-api centered,
+wrapping legend density and square indicator treatment. The slot receives the
+normalized label/items model and is only rendered for a loaded non-empty chart.
+Chart.js options and actual hover wiring remain caller-owned.
 The ChartCard also installs a Chart.js external tooltip adapter: hovered label,
 dataset name, color and formatted value are normalized into the same tooltip
 slot/model, while the existing props remain a static fallback. Loading, empty
