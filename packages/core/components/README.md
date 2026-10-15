@@ -59,8 +59,17 @@ storage key for column visibility. `DataTableRowActions` accepts typed row
 actions with visible/disabled/loading predicates and an optional permission
 callback. `DataTablePage` provides separate `table` and `mobile` slots so the
 same query, pagination and selection state can render as a desktop table and a
-mobile card list. Channel fields, API calls and edit dialogs remain application
-code.
+mobile card list. Set `enable-view-mode-toggle` to expose the new-api table/card
+segmented control. `default-view-mode` chooses the uncontrolled initial mode,
+`view-mode` makes the state controlled, and `view-mode-storage-key` persists a
+per-table choice as the literal `table` or `card` value. The component emits
+`update:viewMode`; card mode renders the `mobile` slot across all widths.
+Channel fields, API calls and edit dialogs remain application code.
+
+`DataTableViewModeToggle` is also available as a standalone controlled control.
+It exposes `modelValue`, `update:modelValue`, and `change`, with `role="group"`,
+`aria-pressed` buttons, new-api `bg-muted/60`/`rounded-lg` density, and tooltip
+labels for the table and card choices.
 
 `DataTable` also accepts `columnPinning` as a record keyed by column id/key:
 
