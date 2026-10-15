@@ -107,8 +107,10 @@ describe('status state components', () => {
         expect(block.attributes('aria-busy')).toBe('true')
         expect(block.attributes('role')).toBe('status')
         expect(block.attributes('aria-label')).toBe('加载中…')
+        expect(block.findAll('[role="status"]')).toHaveLength(1)
         expect(block.classes()).toContain('min-h-[200px]')
         expect(block.find('.size-8').exists()).toBe(true)
+        expect(block.find('.motion-reduce\\:animate-none').exists()).toBe(true)
         const inline = mount(LoadingState, { global, props: { inline: true, message: '保存中', size: 'sm' } })
         expect(inline.element.tagName).toBe('SPAN')
         expect(inline.attributes('role')).toBe('status')
@@ -120,6 +122,7 @@ describe('status state components', () => {
         const withoutMessage = mount(LoadingState, { global, props: { inline: true } })
         expect(withoutMessage.find('.text-sm.text-muted-foreground').exists()).toBe(false)
         expect(withoutMessage.find('.animate-spin').exists()).toBe(true)
+        expect(withoutMessage.findAll('[role="status"]')).toHaveLength(1)
 
         const emptyMessage = mount(LoadingState, { global, props: { inline: true, message: '' } })
         expect(emptyMessage.find('.text-sm.text-muted-foreground').exists()).toBe(true)

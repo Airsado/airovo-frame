@@ -717,8 +717,9 @@ function sseItemData(item: unknown): unknown {
                 <div class="grid gap-4 lg:grid-cols-3">
                     <div data-testid="error-state-retry" class="bg-card"><ErrorState title="加载渠道失败" description="服务暂时不可用，请稍后重试。" show-retry @retry="onAdd" /></div>
                     <div data-testid="error-state-no-retry" class="bg-card"><ErrorState title="无需重试" description="当前状态只需要提示用户。" /></div>
-                    <div class="rounded-lg border bg-card"><LoadingState message="正在加载渠道…" size="lg" /></div>
-                    <div class="flex items-center rounded-lg border bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
+                    <div data-testid="loading-state-block" class="bg-card"><LoadingState message="正在加载渠道…" size="lg" /></div>
+                    <div data-testid="loading-state-inline" class="flex items-center bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
+                    <div data-testid="loading-state-inline-empty" class="flex items-center gap-2 bg-card p-4"><span class="text-xs text-muted-foreground">inline 无文案</span><LoadingState inline size="sm" /></div>
                 </div>
                 <h2 class="text-lg font-semibold">Menubar primitive</h2>
                 <Menubar>
