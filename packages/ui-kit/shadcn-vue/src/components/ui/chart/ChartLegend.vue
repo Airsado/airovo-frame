@@ -17,8 +17,8 @@ defineProps<{
 <template>
     <ul
         :class="cn(
-            'flex gap-3 text-xs text-muted-foreground',
-            vertical ? 'flex-col' : 'flex-wrap items-center',
+            'flex items-center justify-center gap-4 text-xs text-muted-foreground',
+            vertical ? 'flex-col items-start' : 'flex-wrap',
             $props.class,
         )"
     >
@@ -28,7 +28,8 @@ defineProps<{
             class="inline-flex items-center gap-1.5"
         >
             <span
-                class="size-2 shrink-0 rounded-full"
+                aria-hidden="true"
+                class="h-2 w-2 shrink-0 rounded-sm"
                 :style="{ background: item.color }"
             />
             <span>{{ item.label }}</span>
