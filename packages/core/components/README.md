@@ -344,7 +344,9 @@ success/failure through the framework toaster without discarding the draft. Its
 the validation state, and `heightClassName` can replace the fixed `height`
 style for theme/layout utility classes. `id`, `name`, `ariaDescribedby` and
 `dataFormRoot` are forwarded to the textarea, while `parse-error` keeps the
-invalid draft visible for correction.
+invalid draft visible for correction. The line-number layer follows textarea
+scrollTop and removes its scroll listener on unmount, matching new-api's long
+text editor behavior.
 
 `DataTableRowActions` exposes a stable `data-action-key` for each inline and
 dropdown action. A loading action is disabled, announces `aria-busy`, and

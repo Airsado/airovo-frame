@@ -82,4 +82,18 @@ describe('JsonCodeEditor', () => {
         expect(toast.error).toHaveBeenCalledWith('复制失败')
         expect(wrapper.get('textarea').element.value).toBe('{"a":1}')
     })
+
+    it('keeps the line-number layer aligned with textarea scrolling and cleans up the listener', async () => {
+        const value = Array.from({ length: 12 }, (_, index) => `{"line":${index}}`).join('\n')
+        const wrapper = mount(JsonCodeEditor, { global, props: { modelValue: value } })
+        const textarea = wrapper.get('textarea').element as HTMLTextAreaElement
+        const removeEventListener = vi.spyOn(textarea, 'removeEventListener')
+        textarea.scrollTop = 48
+        textarea.dispatchEvent(new Event('scroll'))
+        await wrapper.vm.$nextTick()
+
+        expect(wrapper.get('.json-code-editor-line-numbers').attributes('style')).toContain('translateY(-48px)')
+        wrapper.unmount()
+        expect(removeEventListener).toHaveBeenCalledWith('scroll', expect.any(Function))
+    })
 })

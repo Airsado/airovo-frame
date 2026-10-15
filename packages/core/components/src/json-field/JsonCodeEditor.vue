@@ -36,6 +36,7 @@ const emit = defineEmits<{
 
 const textarea = ref<HTMLTextAreaElement | null>(null)
 const root = ref<HTMLElement | null>(null)
+const lineNumberLayer = ref<HTMLElement | null>(null)
 const draft = ref(props.modelValue)
 const cursor = ref({ line: 1, column: 1 })
 const status = computed(() => getJsonValidationState(draft.value))
@@ -46,11 +47,18 @@ watch(() => props.modelValue, value => { if (value !== draft.value) draft.value 
 onMounted(() => {
     textarea.value = root.value?.querySelector('textarea') ?? null
     props.textareaRef?.(textarea.value)
+    textarea.value?.addEventListener('scroll', syncScroll)
 })
 onBeforeUnmount(() => {
+    textarea.value?.removeEventListener('scroll', syncScroll)
     textarea.value = null
     props.textareaRef?.(null)
 })
+
+function syncScroll(): void {
+    const scrollTop = textarea.value?.scrollTop ?? 0
+    if (lineNumberLayer.value) lineNumberLayer.value.style.transform = `translateY(-${scrollTop}px)`
+}
 
 function updateCursor(): void {
     const el = textarea.value
@@ -102,7 +110,7 @@ async function copy(): Promise<void> {
             </div>
         </div>
         <div :class="['relative overflow-hidden bg-background', props.heightClassName]" :style="props.heightClassName ? undefined : { height: props.height }">
-            <div aria-hidden="true" class="pointer-events-none absolute inset-y-0 left-0 w-9 select-none overflow-hidden border-r bg-muted/20 py-2 text-right font-mono text-xs leading-5 text-muted-foreground/60">
+            <div ref="lineNumberLayer" aria-hidden="true" class="json-code-editor-line-numbers pointer-events-none absolute inset-y-0 left-0 w-9 select-none overflow-hidden border-r bg-muted/20 py-2 text-right font-mono text-xs leading-5 text-muted-foreground/60">
                 <div v-for="line in lines" :key="line" class="pr-2">{{ line }}</div>
             </div>
                 <Textarea :model-value="draft" :id="id" :name="name" :disabled="disabled" :placeholder="placeholder" :aria-label="ariaLabel" :aria-describedby="ariaDescribedby" :data-form-root="dataFormRoot" :aria-invalid="resolvedAriaInvalid" class="h-full min-h-0 resize-none border-0 rounded-none py-2 pl-12 pr-3 font-mono text-xs leading-5 focus-visible:ring-0" @update:model-value="publish(String($event))" @keydown="onKeydown" @click="updateCursor" @keyup="updateCursor" @select="updateCursor" @blur="emit('blur')" />
