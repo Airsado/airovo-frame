@@ -125,6 +125,8 @@ rules.
 The optional `config` maps dataset keys or labels to `{ label, color }`; when
 `legend` is omitted, ChartCard derives the legend from this config and falls
 back to the active `chart-1..5` tokens. Explicit `legend` remains authoritative.
+Each config entry may also provide `theme: { light, dark }`; the ui-kit selects
+the value from the document root theme and falls back to `color`.
 
 ## JsonField
 

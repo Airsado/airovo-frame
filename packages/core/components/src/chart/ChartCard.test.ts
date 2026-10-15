@@ -4,6 +4,7 @@ import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import ChartCard from './ChartCard.vue'
 import { ChartContainer, ChartTooltip } from '@airovo/uikit-shadcnui'
+import { resolveChartColors } from '@airovo/uikit-shadcnui'
 
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { chartLoading: '正在加载图表', chartError: '图表加载失败', chartEmpty: '暂无图表数据', retry: '重试' } } } })] }
 
@@ -92,5 +93,14 @@ describe('ChartCard', () => {
         expect(wrapper.text()).toContain('请求量')
         expect(wrapper.text()).toContain('成功量')
         expect(wrapper.findAll('li')).toHaveLength(2)
+    })
+
+    it('resolves light and dark config colors from the root theme', () => {
+        const data = { datasets: [{ label: 'requests', data: [1] }] }
+        const config = { requests: { theme: { light: '#111111', dark: '#eeeeee' }, color: '#999999' } }
+        expect(resolveChartColors(data, config).datasets[0].borderColor).toBe('#111111')
+        document.documentElement.classList.add('dark')
+        expect(resolveChartColors(data, config).datasets[0].borderColor).toBe('#eeeeee')
+        document.documentElement.classList.remove('dark')
     })
 })

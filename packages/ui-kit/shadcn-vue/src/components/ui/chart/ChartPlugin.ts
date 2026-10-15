@@ -46,13 +46,20 @@ function readPalette(): string[] {
     })
 }
 
+function isDarkTheme(): boolean {
+    if (typeof document === 'undefined') return false
+    return document.documentElement.classList.contains('dark')
+        || document.documentElement.dataset.theme === 'dark'
+}
+
 export function resolveChartColors(input: any, config: ChartSeriesConfigMap = {}): any {
     if (!input || !Array.isArray(input.datasets)) return input
     const palette = readPalette()
     const datasets = input.datasets.map((ds: any, i: number) => {
         const key = String(ds.key ?? ds.label ?? i)
         const series = config[key] ?? config[String(ds.label ?? '')]
-        const color = series?.color ?? palette[i % palette.length] ?? '#888'
+        const themedColor = isDarkTheme() ? series?.theme?.dark : series?.theme?.light
+        const color = themedColor ?? series?.color ?? palette[i % palette.length] ?? '#888'
         return {
             ...ds,
             label: series?.label ?? ds.label,
