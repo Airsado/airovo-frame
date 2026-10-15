@@ -66,7 +66,7 @@ describe('status state components', () => {
     })
 
     it('emits retry and action from ErrorState and exposes alert semantics', async () => {
-        const wrapper = mount(ErrorState, { global, props: { description: '网络暂时不可用', actionText: '返回' } })
+        const wrapper = mount(ErrorState, { global, props: { description: '网络暂时不可用', showRetry: true, actionText: '返回' } })
         expect(wrapper.attributes('role')).toBe('alert')
         expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
         expect(wrapper.get('[data-slot="empty-icon"]').attributes('data-variant')).toBe('icon')
@@ -78,6 +78,14 @@ describe('status state components', () => {
         expect(wrapper.emitted('retry')).toHaveLength(1)
         expect(wrapper.emitted('action')).toHaveLength(1)
         expect(wrapper.get('[data-slot="empty"]').classes()).toContain('min-h-[300px]')
+    })
+
+    it('does not render retry without an explicit retry capability', () => {
+        const withoutRetry = mount(ErrorState, { global, props: { description: '网络暂时不可用' } })
+        expect(withoutRetry.find('button').exists()).toBe(false)
+
+        const withRetryText = mount(ErrorState, { global, props: { retryText: '再试一次' } })
+        expect(withRetryText.get('button').text()).toBe('再试一次')
     })
 
     it('supports block and inline loading sizes', () => {
