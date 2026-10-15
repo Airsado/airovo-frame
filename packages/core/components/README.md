@@ -217,7 +217,10 @@ user's reduced-motion preference. Default empty/error/loading text is read from 
 keys (`common.noData`, `common.error`, `common.retry`, `common.loading`) with
 the existing Chinese strings as fallback; explicit text props always win.
 `ErrorState`
-provides retry/action events and slots with an alert role. `LoadingState`
+provides retry/action events and slots with an alert role. Set `showRetry` (or
+provide `retryText`) to render its outline retry button; without an explicit
+retry capability no retry button is shown, matching new-api's optional
+`onRetry` callback. `LoadingState`
 uses the new-api 300px error / 200px loading block densities and supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
 and `aria-busy`/`aria-live` attributes. Inline loading only renders the message
 when the caller provides one, matching new-api; block loading keeps the localized
