@@ -24,7 +24,7 @@ import {
     Filler,
 } from 'chart.js'
 import { Line, Bar, Pie, Doughnut, Radar } from 'vue-chartjs'
-import { resolveChartColors, type ChartConfig } from './ChartPlugin'
+import { resolveChartColors, type ChartConfig, type ChartSeriesConfigMap } from './ChartPlugin'
 import { cn } from '@/lib/utils'
 
 ChartJS.register(
@@ -45,6 +45,7 @@ const props = withDefaults(defineProps<{
     type: 'line' | 'bar' | 'pie' | 'doughnut' | 'radar'
     data: ChartConfig['data']
     options?: ChartConfig['options']
+    config?: ChartSeriesConfigMap
     class?: string
     height?: number | string
 }>(), {
@@ -54,7 +55,7 @@ const props = withDefaults(defineProps<{
 
 const CompMap = { line: Line, bar: Bar, pie: Pie, doughnut: Doughnut, radar: Radar } as const
 
-const chartData = computed(() => resolveChartColors(props.data as any))
+const chartData = computed(() => resolveChartColors(props.data as any, props.config))
 const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,

@@ -1,8 +1,9 @@
-import type { ChartConfig } from '@airovo/uikit-shadcnui'
+import type { ChartConfig, ChartSeriesConfigMap } from '@airovo/uikit-shadcnui'
 
 export type FrameworkChartType = 'line' | 'bar' | 'pie' | 'doughnut' | 'radar'
 export type FrameworkChartData = ChartConfig['data']
 export type FrameworkChartOptions = ChartConfig['options']
+export type FrameworkChartConfig = ChartSeriesConfigMap
 
 export interface ChartLegendItem {
     label: string
