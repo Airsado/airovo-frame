@@ -336,6 +336,9 @@ lifecycle; JsonField owns JSON parsing and draft preservation.
 `JsonField` accepts `nested` for recursive visual editing. Object paths use dot
 notation and array entries use bracket indexes; switching to JSON mode still
 edits the same draft string, and serialization reconstructs the nested object.
+For `valueType="number"`, empty values retain the existing zero conversion, but
+non-finite input remains in the visual draft and emits `parse-error` instead of
+being serialized as `null`.
 
 `JsonCodeEditor` follows the new-api header spacing and reports clipboard
 success/failure through the framework toaster without discarding the draft. Its

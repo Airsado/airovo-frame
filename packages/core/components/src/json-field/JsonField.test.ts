@@ -29,4 +29,17 @@ describe('JsonField', () => {
         const wrapper = mount(JsonField, { global, props: { modelValue: '{"server":{"host":"localhost"}}', nested: true } })
         expect(wrapper.findAll('input').map((input) => (input.element as HTMLInputElement).value)).toContain('server.host')
     })
+
+    it('keeps an invalid number draft visible and does not publish null', async () => {
+        const wrapper = mount(JsonField, { global, props: { modelValue: '{"age":30}', valueType: 'number' } })
+        const valueInput = wrapper.findAll('input')[1]!
+        await valueInput.setValue('oops')
+
+        expect((valueInput.element as HTMLInputElement).value).toBe('oops')
+        expect(wrapper.emitted('update:modelValue') ?? []).toHaveLength(0)
+        expect(wrapper.emitted('parse-error')?.at(-1)?.[0]).toContain('必须是数字')
+
+        await valueInput.setValue('42')
+        expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toContain('42')
+    })
 })

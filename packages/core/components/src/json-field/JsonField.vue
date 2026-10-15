@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Input } from '@airovo/uikit-shadcnui'
-import { formatJson, jsonError, parseJsonRows, serializeJsonRows, type JsonFieldRow, type JsonFieldValueType } from './json-field-utils'
+import { formatJson, jsonError, jsonRowsError, parseJsonRows, serializeJsonRows, type JsonFieldRow, type JsonFieldValueType } from './json-field-utils'
 import JsonCodeEditor from './JsonCodeEditor.vue'
 
 defineOptions({ name: 'JsonField' })
@@ -65,6 +65,11 @@ function publish(value: string): void {
 
 function updateRows(next: JsonFieldRow[]): void {
     rows.value = next
+    const rowError = jsonRowsError(next, props.valueType)
+    if (rowError) {
+        emit('parse-error', rowError)
+        return
+    }
     publish(serializeJsonRows(next, props.valueType, props.nested))
 }
 
@@ -82,6 +87,11 @@ function removeRow(id: string): void {
 
 function toggleMode(): void {
     if (mode.value === 'visual') {
+        const rowError = jsonRowsError(rows.value, props.valueType)
+        if (rowError) {
+            emit('parse-error', rowError)
+            return
+        }
         publish(serializeJsonRows(rows.value, props.valueType, props.nested))
         mode.value = 'json'
     } else {
