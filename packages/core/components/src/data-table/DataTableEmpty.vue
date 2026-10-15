@@ -1,0 +1,37 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Icon } from '@airovo/shared/icons'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle, TableCell, TableRow } from '@airovo/uikit-shadcnui'
+
+defineOptions({ name: 'DataTableEmpty' })
+
+const props = withDefaults(defineProps<{
+    colSpan: number
+    title?: string
+    description?: string
+    icon?: string
+}>(), { icon: 'lucide:database' })
+
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedTitle = computed(() => props.title ?? (te('common.noData') ? t('common.noData') : '暂无数据'))
+const resolvedDescription = computed(() => props.description ?? (te('common.noDataDescription') ? t('common.noDataDescription') : '当前筛选条件下没有可展示的数据。'))
+</script>
+
+<template>
+    <TableRow>
+        <TableCell :colspan="props.colSpan" class="h-[400px] p-0">
+            <Empty class="border-0">
+                <EmptyHeader>
+                    <EmptyMedia variant="icon"><Icon :icon="props.icon" class="size-6" /></EmptyMedia>
+                    <EmptyTitle>{{ resolvedTitle }}</EmptyTitle>
+                    <EmptyDescription v-if="resolvedDescription">{{ resolvedDescription }}</EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent v-if="$slots.actions || $slots.action">
+                    <slot name="actions" />
+                    <slot name="action" />
+                </EmptyContent>
+            </Empty>
+        </TableCell>
+    </TableRow>
+</template>

@@ -10,7 +10,7 @@
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 缺口 | 优先级 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `web/src/components/data-table/**`、`toolbar/view-mode-toggle.tsx`、`layout/card-grid.tsx`、`layout/card-row-content.tsx` | DataTable core/layout/toolbar/hooks/view mode/card grid | `packages/core/components/src/data-table` | 已存在但行为不完整 | 已补 ViewModeToggle、DataTableCardGrid、DataTablePage 自动 card fallback、table/card 受控与非受控状态及 storage key、new-api 键盘列宽分隔柄；仍需逐项核对列尺寸、固定列、服务端查询、跨页选择和 URL 状态 | P0 | 单测、demo、桌面/移动浏览器矩阵 |
+| `web/src/components/data-table/**`、`toolbar/view-mode-toggle.tsx`、`layout/card-grid.tsx`、`layout/card-row-content.tsx` | DataTable core/layout/toolbar/hooks/view mode/card grid | `packages/core/components/src/data-table` | 已存在但行为不完整 | 已补 ViewModeToggle、DataTableCardGrid、DataTablePage 自动 card fallback、DataTableEmpty、table/card 受控与非受控状态及 storage key、new-api 键盘列宽分隔柄；仍需逐项核对列尺寸、固定列、服务端查询、跨页选择和 URL 状态 | P0 | 单测、demo、桌面/移动浏览器矩阵 |
 | `web/src/components/json-editor.tsx` | JsonEditor / JsonField | `packages/core/components/src/json-field/JsonField.vue` | 已存在但行为不完整 | 已补对象/数组编辑、模板回填、number 非法值拒绝和 parse-error 保留；仍需更复杂类型推断和表单矩阵 | P0 | 单测、表单 demo、键盘/错误/回填浏览器验证 |
 | `web/src/components/json-code-editor.tsx` | JsonCodeEditor | `packages/core/components/src/json-field/JsonCodeEditor.vue` | 已存在但行为不完整 | 已补行号层滚动同步、格式化、光标/草稿保留、剪贴板、错误提示和表单属性；仍需大文本与跨浏览器矩阵 | P0 | 单测、demo、键盘/剪贴板/非法 JSON 浏览器验证 |
 | `web/src/components/layout/components/section-page-layout.tsx` | SectionPageLayout | `packages/core/components/src/section-page/SectionPage.vue` | 已存在但行为不完整 | 标题固定、tabs 不重复偏移、footer portal、滚动容器和移动间距需持续对照 | P0 | layout 单测、SectionPage 浏览器矩阵 |

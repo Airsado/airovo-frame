@@ -89,6 +89,32 @@ describe('DataTable', () => {
         expect(withoutActions.findAll('thead th')).toHaveLength(1)
     })
 
+    it('renders the new-api empty surface with configurable content and actions', () => {
+        const wrapper = mountTable({
+            data: [],
+            emptyTitle: '没有渠道',
+            emptyDescription: '调整筛选条件后重试',
+            emptyIcon: 'lucide:inbox',
+        }, {
+            'empty-action': '<button type="button">清除筛选</button>',
+        })
+
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('border-0')
+        expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('没有渠道')
+        expect(wrapper.get('[data-slot="empty-description"]').text()).toBe('调整筛选条件后重试')
+        expect(wrapper.get('tbody td').classes()).toContain('h-[400px]')
+        expect(wrapper.text()).toContain('清除筛选')
+    })
+
+    it('keeps legacy emptyText and custom empty slots compatible', () => {
+        const legacy = mountTable({ data: [], emptyText: '自定义暂无数据' })
+        expect(legacy.get('[data-slot="empty-title"]').text()).toBe('自定义暂无数据')
+
+        const custom = mountTable({ data: [] }, { empty: '<span data-custom-empty>自定义空内容</span>' })
+        expect(custom.get('[data-custom-empty]').text()).toBe('自定义空内容')
+        expect(custom.find('[data-slot="empty"]').exists()).toBe(false)
+    })
+
     it('uses the configured stable row key for selection and DOM identity', async () => {
         const wrapper = mountTable({
             selectable: true,

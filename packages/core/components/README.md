@@ -190,6 +190,12 @@ focusable vertical separator like new-api: ArrowLeft/ArrowRight change the
 width by 10px (50px with Shift), while Enter/Space and double-click auto-size
 from the rendered column content. Pointer dragging remains supported.
 
+When `DataTable` has no rows, it renders `DataTableEmpty` with the new-api
+Database icon, `common.noData` title, `common.noDataDescription` description,
+and a 400px table cell surface. Use `emptyTitle`, `emptyDescription`, and
+`emptyIcon` to customize the framework state, `empty-action` for an action,
+or the existing `empty` slot when a caller needs to replace the whole cell.
+
 ## Status states
 
 `StatusBadge` follows the new-api status-badge contract. Use `variant` with
