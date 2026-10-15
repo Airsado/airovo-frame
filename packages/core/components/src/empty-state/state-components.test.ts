@@ -19,8 +19,17 @@ describe('status state components', () => {
 
         expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('暂无数据')
         expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain('size-8')
+        expect(wrapper.get('[data-slot="empty-title"]').classes()).toEqual(expect.arrayContaining(['text-sm', 'font-medium']))
+        expect(wrapper.get('[data-slot="empty"]').classes()).toEqual(expect.arrayContaining(['w-full', 'gap-4', 'rounded-xl', 'p-6']))
         expect(wrapper.get('[data-slot="empty"]').classes()).toContain('motion-safe:animate-in')
         expect(wrapper.classes()).toContain('min-h-[300px]')
+    })
+
+    it('keeps the new-api default title when the i18n key is unavailable', () => {
+        const i18n = createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: {} } } })
+        const wrapper = mount(EmptyState, { global: { plugins: [i18n] } })
+
+        expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('暂无数据')
     })
 
     it('uses the active locale for defaults while explicit props remain authoritative', () => {
@@ -45,6 +54,7 @@ describe('status state components', () => {
         expect(wrapper.classes()).toContain('border')
         expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
         expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('空')
+        expect(wrapper.get('[data-slot="empty-content"]').classes()).toContain('gap-2.5')
         expect(wrapper.text()).toContain('辅助动作')
         const actionButton = wrapper.findAll('button').find((button) => button.text() === '新增')
         await actionButton?.trigger('click')

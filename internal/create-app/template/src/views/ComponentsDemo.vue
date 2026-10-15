@@ -1300,7 +1300,7 @@ function sseItemData(item: unknown): unknown {
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">EmptyState 空状态</h2>
                 <div class="grid gap-4 lg:grid-cols-2">
-                    <div class="rounded-lg border bg-card">
+                    <div data-testid="empty-state-default" class="bg-card">
                         <EmptyState
                             icon="lucide:inbox"
                             title="暂无数据"
@@ -1309,12 +1309,13 @@ function sseItemData(item: unknown): unknown {
                             @action="onAdd"
                         />
                     </div>
-                    <div class="rounded-lg border bg-card">
+                    <div data-testid="empty-state-bordered" class="rounded-lg border bg-card">
                         <EmptyState
                             icon="lucide:search-x"
                             title="未找到匹配结果"
                             description="尝试使用其他关键词"
                             size="lg"
+                            bordered
                         />
                     </div>
                     <div class="rounded-lg border bg-card">
