@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import ChartCard from './ChartCard.vue'
-import { ChartContainer } from '@airovo/uikit-shadcnui'
+import { ChartContainer, ChartTooltip } from '@airovo/uikit-shadcnui'
 
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { chartLoading: '正在加载图表', chartError: '图表加载失败', chartEmpty: '暂无图表数据', retry: '重试' } } } })] }
 
@@ -39,7 +39,7 @@ describe('ChartCard', () => {
 
         expect(wrapper.text()).toContain('周一')
         expect(wrapper.text()).toContain('请求量')
-        expect(wrapper.find('.mt-3').classes()).toContain('shadow-xl')
+        expect(wrapper.findComponent(ChartTooltip).classes()).toContain('shadow-xl')
     })
 
     it('renders retry and empty states without a misleading chart', async () => {
@@ -75,5 +75,22 @@ describe('ChartCard', () => {
         expect(wrapper.text()).toContain('1,240')
         expect(wrapper.text()).toContain('请求')
         external!({ tooltip: { opacity: 0 } })
+    })
+
+    it('derives theme-token legend items from config when legend is omitted', () => {
+        const wrapper = mount(ChartCard, {
+            global,
+            props: {
+                title: '趋势',
+                data: { labels: ['一'], datasets: [{ label: 'requests', data: [1] }, { label: 'success', data: [1] }] },
+                config: {
+                    requests: { label: '请求量', color: 'var(--color-chart-1)' },
+                    success: { label: '成功量', color: 'var(--color-chart-2)' },
+                },
+            },
+        })
+        expect(wrapper.text()).toContain('请求量')
+        expect(wrapper.text()).toContain('成功量')
+        expect(wrapper.findAll('li')).toHaveLength(2)
     })
 })

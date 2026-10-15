@@ -21,6 +21,14 @@ export interface ChartConfig {
     options?: Record<string, any>
 }
 
+export interface ChartSeriesConfig {
+    label?: string
+    color?: string
+    theme?: { light?: string; dark?: string }
+}
+
+export type ChartSeriesConfigMap = Record<string, ChartSeriesConfig>
+
 const PALETTE_VAR_NAMES = [
     '--color-chart-1',
     '--color-chart-2',
@@ -38,13 +46,16 @@ function readPalette(): string[] {
     })
 }
 
-export function resolveChartColors(input: any): any {
+export function resolveChartColors(input: any, config: ChartSeriesConfigMap = {}): any {
     if (!input || !Array.isArray(input.datasets)) return input
     const palette = readPalette()
     const datasets = input.datasets.map((ds: any, i: number) => {
-        const color = palette[i % palette.length] ?? '#888'
+        const key = String(ds.key ?? ds.label ?? i)
+        const series = config[key] ?? config[String(ds.label ?? '')]
+        const color = series?.color ?? palette[i % palette.length] ?? '#888'
         return {
             ...ds,
+            label: series?.label ?? ds.label,
             backgroundColor: ds.backgroundColor ?? color,
             borderColor: ds.borderColor ?? color,
         }

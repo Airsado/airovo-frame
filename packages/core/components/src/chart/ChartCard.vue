@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { ChartContainer, ChartLegend, ChartTooltip, Button, Skeleton } from '@airovo/uikit-shadcnui'
-import type { ChartLegendItem, ChartTooltipItem, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
+import type { ChartLegendItem, ChartTooltipItem, FrameworkChartConfig, FrameworkChartData, FrameworkChartOptions, FrameworkChartType } from './types'
 
 defineOptions({ name: 'ChartCard' })
 
@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<{
     errorText?: string
     emptyText?: string
     legend?: ChartLegendItem[]
+    config?: FrameworkChartConfig
     tooltipLabel?: string
     tooltipItems?: ChartTooltipItem[]
     class?: string
@@ -60,6 +61,11 @@ const tooltipItems = computed(() => hoveredItems.value.length ? hoveredItems.val
 const hasChartData = computed(() => Boolean(props.data?.datasets?.some((dataset) => Array.isArray(dataset.data) && dataset.data.length > 0)))
 const isEmpty = computed(() => props.empty || !hasChartData.value)
 const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [] })
+const resolvedLegend = computed<ChartLegendItem[]>(() => props.legend ?? (props.data?.datasets ?? []).map((dataset, index) => {
+    const key = String((dataset as any).key ?? dataset.label ?? index)
+    const item = props.config?.[key] ?? props.config?.[String(dataset.label ?? '')]
+    return { label: item?.label ?? dataset.label ?? key, color: item?.color ?? `var(--color-chart-${(index % 5) + 1})` }
+}))
 </script>
 
 <template>
@@ -85,8 +91,8 @@ const chartData = computed<FrameworkChartData>(() => props.data ?? { datasets: [
             <p class="text-sm text-muted-foreground">{{ resolvedEmptyText }}</p>
         </div>
         <template v-else>
-            <ChartContainer class="mt-4" :type="type" :data="chartData" :options="chartOptions" :height="height" :aria-label="title" role="img" />
-            <ChartLegend v-if="legend?.length" class="mt-3" :items="legend" />
+            <ChartContainer class="mt-4" :type="type" :data="chartData" :config="config" :options="chartOptions" :height="height" :aria-label="title" role="img" />
+            <ChartLegend v-if="resolvedLegend.length" class="mt-3" :items="resolvedLegend" />
             <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems" />
             <ChartTooltip v-else-if="tooltipLabel || tooltipItems.length" class="mt-3 border-border/50 bg-background shadow-xl" :label="tooltipLabel" :payload="tooltipItems" />
         </template>
