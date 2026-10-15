@@ -64,6 +64,11 @@ segmented control. `default-view-mode` chooses the uncontrolled initial mode,
 `view-mode` makes the state controlled, and `view-mode-storage-key` persists a
 per-table choice as the literal `table` or `card` value. The component emits
 `update:viewMode`; card mode renders the `mobile` slot across all widths.
+When `card-rows` and `card-columns` are provided, the page automatically uses
+`DataTableCardGrid` for card/mobile rendering when no `mobile` slot is supplied.
+Its selection events are `update:cardSelectedKeys` and
+`card-selection-change`; `card-cell-{key}` slots forward into the generic cell
+slots, while `card` and `card-actions` override row content and actions.
 Channel fields, API calls and edit dialogs remain application code.
 
 `DataTableViewModeToggle` is also available as a standalone controlled control.

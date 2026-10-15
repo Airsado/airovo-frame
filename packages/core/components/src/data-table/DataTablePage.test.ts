@@ -53,4 +53,48 @@ describe('DataTablePage view mode', () => {
     expect(wrapper.emitted('update:viewMode')?.at(-1)).toEqual(['table'])
     expect(wrapper.find('[data-card]').exists()).toBe(true)
   })
+
+  it('automatically renders DataTableCardGrid when card rows and columns are provided', async () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      props: {
+        enableViewModeToggle: true,
+        viewMode: 'card',
+        cardRows: [{ id: 1, name: 'one', status: 'ready' }],
+        cardColumns: [
+          { key: 'name', title: '名称', mobileTitle: true },
+          { key: 'status', title: '状态', mobileBadge: true },
+        ],
+        cardRowKey: 'id',
+        cardSelectable: true,
+      },
+      slots: {
+        table: '<div data-table>table</div>',
+        'card-cell-status': '<strong data-status>{{ value }}</strong>',
+        'card-actions': '<span data-actions>actions</span>',
+      },
+    })
+
+    expect(wrapper.find('[data-slot="data-table-card"]').exists()).toBe(true)
+    expect(wrapper.get('[data-status]').text()).toBe('ready')
+    expect(wrapper.get('[data-actions]').text()).toBe('actions')
+    await wrapper.get('input[type="checkbox"]').setValue(true)
+    expect(wrapper.emitted('update:cardSelectedKeys')?.at(-1)).toEqual([[1]])
+  })
+
+  it('uses the automatic card fallback for mobileCards without a mobile slot', () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      props: {
+        mobileCards: true,
+        cardRows: [{ id: 1, name: 'one' }],
+        cardColumns: [{ key: 'name', title: '名称' }],
+      },
+      slots: { table: '<div data-table>table</div>' },
+    })
+
+    expect(wrapper.find('[data-slot="data-table-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-table]').exists()).toBe(true)
+    expect(wrapper.find('[data-table]').element.parentElement?.className).toContain('hidden')
+  })
 })
