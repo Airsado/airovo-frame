@@ -63,8 +63,10 @@ function onCloseAutoFocus(event: Event): void {
 }
 
 const selected = ref<DateValue | undefined>(props.modelValue ? toCalendarDate(fromDate(props.modelValue, getLocalTimeZone())) as DateValue : undefined)
-const minValue = computed(() => props.minDate ? toCalendarDate(fromDate(props.minDate, getLocalTimeZone())) as DateValue : undefined)
-const maxValue = computed(() => props.maxDate ? toCalendarDate(fromDate(props.maxDate, getLocalTimeZone())) as DateValue : undefined)
+const defaultMinDate = new Date(1900, 0, 1)
+const defaultMaxDate = new Date()
+const minValue = computed(() => toCalendarDate(fromDate(props.minDate ?? defaultMinDate, getLocalTimeZone())) as DateValue)
+const maxValue = computed(() => toCalendarDate(fromDate(props.maxDate ?? defaultMaxDate, getLocalTimeZone())) as DateValue)
 
 watch(() => props.modelValue, (value) => {
   selected.value = value ? toCalendarDate(fromDate(value, getLocalTimeZone())) as DateValue : undefined
@@ -101,7 +103,7 @@ function selectDate(value: DateValue | undefined): void {
         :aria-label="label"
       >
         <span class="truncate">{{ label }}</span>
-        <CalendarDays v-if="props.triggerIcon !== 'chevron'" data-date-picker-trigger-icon="calendar" data-icon="inline-end" class="ml-auto opacity-60" />
+        <CalendarDays v-if="props.triggerIcon !== 'chevron'" data-date-picker-trigger-icon="calendar" data-icon="inline-end" class="ml-auto size-4 opacity-50" />
         <ChevronDown v-else data-date-picker-trigger-icon="chevron" data-icon="inline-end" class="ml-auto size-4 opacity-60" />
       </Button>
     </PopoverTrigger>

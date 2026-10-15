@@ -38,6 +38,17 @@ describe('DatePicker boundaries', () => {
         expect(calendar.attributes('data-locale')).toBe('zh-CN')
     })
 
+    it('uses the new-api default date boundaries when callers omit them', () => {
+        const wrapper = mount(DatePicker, { global })
+        const calendar = wrapper.get('[data-calendar]')
+        const today = new Date()
+        const expectedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+        expect(calendar.attributes('data-min')).toBe('1900-01-01')
+        expect(calendar.attributes('data-max')).toBe(expectedToday)
+        expect(wrapper.get('[data-date-picker-trigger-icon="calendar"]').classes()).toContain('opacity-50')
+    })
+
     it('uses the stable new-api YYYY-MM-DD trigger format across locales', () => {
         const value = new Date(2024, 0, 2, 12)
         const wrapper = mount(DatePicker, {
