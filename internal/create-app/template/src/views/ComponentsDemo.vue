@@ -4,7 +4,6 @@ import {
     DataPanel,
     CommandMenu,
     DataTable,
-    DataTableCardGrid,
     TruncatedCell,
     TruncatedText,
     DataTableBulkActions,
@@ -1161,7 +1160,17 @@ function sseItemData(item: unknown): unknown {
                     </p>
                 </div>
                 <DataPanel>
-                    <DataTablePage mobile-cards enable-view-mode-toggle view-mode-storage-key="playwright-channel-table-view-mode">
+                    <DataTablePage
+                        mobile-cards
+                        enable-view-mode-toggle
+                        view-mode-storage-key="playwright-channel-table-view-mode"
+                        :card-rows="serverTable.rows.value"
+                        :card-columns="serverTableColumns"
+                        card-row-key="id"
+                        card-selectable
+                        :card-selected-keys="serverSelectedKeys"
+                        @update:card-selected-keys="serverSelectedKeys = $event"
+                    >
                         <template #toolbar>
                             <DataTableToolbar
                                 v-model="serverTableSearch"
@@ -1218,12 +1227,8 @@ function sseItemData(item: unknown): unknown {
                                 </template>
                             </DataTable>
                         </template>
-                        <template #mobile>
-                            <DataTableCardGrid :rows="serverTable.rows.value" :columns="serverTableColumns" row-key="id" selectable :selected-keys="serverSelectedKeys" @update:selected-keys="serverSelectedKeys = $event">
-                                <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
-                                <template #card-actions="{ row }"><DataTableRowActions :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" /></template>
-                            </DataTableCardGrid>
-                        </template>
+                        <template #card-cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
+                        <template #card-actions="{ row }"><DataTableRowActions :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" /></template>
                     </DataTablePage>
                     <DataTableBulkActions :selected-count="serverSelectedKeys.length" entity-name="渠道" @clear-selection="clearServerSelection">
                         <template #actions="{ selectedCount }">

@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
-import { computed, ref, watch, type HTMLAttributes } from 'vue'
+import { computed, ref, useSlots, watch, type HTMLAttributes, type Slot } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import type { DataTableColumn, DataTableRowKey, DataTableSelectionScope } from './types'
@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<{
     selectable?: boolean
     selectedKeys?: DataTableRowKey[]
     selectionScope?: DataTableSelectionScope
+    cellSlots?: Record<string, Slot>
     class?: HTMLAttributes['class']
     gridClass?: HTMLAttributes['class']
 }>(), {
@@ -33,6 +34,7 @@ const emit = defineEmits<{
     (event: 'update:selectedKeys', value: DataTableRowKey[]): void
     (event: 'selection-change', value: DataTableRowKey[]): void
 }>()
+const slots = useSlots()
 
 const { t, te } = useI18n({ useScope: 'global' })
 function copy(key: string, fallback: string): string { return te(key) ? t(key) : fallback }
@@ -63,14 +65,23 @@ function rowKey(row: T, index: number): string | number {
     return typeof key === 'string' || typeof key === 'number' ? key : index
 }
 
-function cellValue(row: T, column: DataTableColumn<T>, index: number): unknown {
+function cellValue(row: T, column: DataTableColumn<T> | undefined, index: number): unknown {
+    if (!column) return undefined
     const value = column.value ? column.value(row) : row[column.key]
     return column.formatter ? column.formatter(value, row, index) : value
 }
 
-function displayValue(row: T, column: DataTableColumn<T>, index: number): string {
+function displayValue(row: T, column: DataTableColumn<T> | undefined, index: number): string {
     const value = cellValue(row, column, index)
     return value === undefined || value === null || value === '' ? '—' : String(value)
+}
+
+function propSlotFor(column: DataTableColumn<T> | undefined): Slot | undefined {
+    return column ? props.cellSlots?.[column.key] : undefined
+}
+
+function directSlotFor(column: DataTableColumn<T> | undefined): Slot | undefined {
+    return column ? slots[`cell-${column.key}`] : undefined
 }
 
 function changeSelection(next: DataTableRowKey[]): void {
@@ -131,10 +142,14 @@ watch(visibleKeySet, () => {
                         <div v-if="compact" class="flex items-center justify-between gap-2">
                             <div class="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium">
                                 <input v-if="props.selectable" type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="selectRowText.replace('{index}', String(index + 1))" @change="toggleRow(row, index)">
-                                <slot v-if="titleColumn" :name="`cell-${titleColumn.key}`" :row="row" :value="cellValue(row, titleColumn, index)" :index="index">{{ titleColumn ? displayValue(row, titleColumn, index) : '' }}</slot>
+                                <slot v-if="directSlotFor(titleColumn)" :name="`cell-${titleColumn?.key}`" :row="row" :value="cellValue(row, titleColumn, index)" :index="index" />
+                                <component v-else-if="propSlotFor(titleColumn)" :is="propSlotFor(titleColumn)" :row="row" :value="cellValue(row, titleColumn, index)" :index="index" />
+                                <template v-else>{{ titleColumn ? displayValue(row, titleColumn, index) : '' }}</template>
                             </div>
                             <div v-if="badgeColumn" class="flex-none text-xs">
-                                <slot :name="`cell-${badgeColumn.key}`" :row="row" :value="cellValue(row, badgeColumn, index)" :index="index">{{ displayValue(row, badgeColumn, index) }}</slot>
+                                <slot v-if="directSlotFor(badgeColumn)" :name="`cell-${badgeColumn?.key}`" :row="row" :value="cellValue(row, badgeColumn, index)" :index="index" />
+                                <component v-else-if="propSlotFor(badgeColumn)" :is="propSlotFor(badgeColumn)" :row="row" :value="cellValue(row, badgeColumn, index)" :index="index" />
+                                <template v-else>{{ displayValue(row, badgeColumn, index) }}</template>
                             </div>
                         </div>
                         <div v-if="!compact && props.selectable" class="mb-1 flex justify-end">
@@ -143,16 +158,16 @@ watch(visibleKeySet, () => {
                         <div v-if="compact && fieldColumns.length" class="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
                             <div v-for="column in fieldColumns" :key="column.key" class="min-w-0 overflow-hidden">
                                 <div class="mb-0.5 select-none text-[10px] leading-none text-muted-foreground">{{ column.title }}</div>
-                                <div class="min-w-0 truncate text-xs"><slot :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column, index)" :index="index">{{ displayValue(row, column, index) }}</slot></div>
+                                <div class="min-w-0 truncate text-xs"><slot v-if="directSlotFor(column)" :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column, index)" :index="index" /><component v-else-if="propSlotFor(column)" :is="propSlotFor(column)" :row="row" :value="cellValue(row, column, index)" :index="index" /><template v-else>{{ displayValue(row, column, index) }}</template></div>
                             </div>
                         </div>
                         <template v-else>
                             <div v-for="column in fieldColumns" :key="column.key" class="flex items-start justify-between gap-2 overflow-hidden py-0.5 text-xs">
                                 <span class="shrink-0 font-medium text-muted-foreground">{{ column.title }}</span>
-                                <div class="min-w-0 flex-1 truncate text-right"><slot :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column, index)" :index="index">{{ displayValue(row, column, index) }}</slot></div>
+                                <div class="min-w-0 flex-1 truncate text-right"><slot v-if="directSlotFor(column)" :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column, index)" :index="index" /><component v-else-if="propSlotFor(column)" :is="propSlotFor(column)" :row="row" :value="cellValue(row, column, index)" :index="index" /><template v-else>{{ displayValue(row, column, index) }}</template></div>
                             </div>
                         </template>
-                        <div v-if="actionsColumn" class="mt-1 flex justify-end"><slot :name="`cell-${actionsColumn.key}`" :row="row" :value="cellValue(row, actionsColumn, index)" :index="index">{{ displayValue(row, actionsColumn, index) }}</slot></div>
+                        <div v-if="actionsColumn" class="mt-1 flex justify-end"><slot v-if="directSlotFor(actionsColumn)" :name="`cell-${actionsColumn?.key}`" :row="row" :value="cellValue(row, actionsColumn, index)" :index="index" /><component v-else-if="propSlotFor(actionsColumn)" :is="propSlotFor(actionsColumn)" :row="row" :value="cellValue(row, actionsColumn, index)" :index="index" /><template v-else>{{ displayValue(row, actionsColumn, index) }}</template></div>
                         <div v-if="$slots['card-actions']" class="mt-1 flex justify-end">
                             <slot name="card-actions" :row="row" :index="index" :row-key="rowKey(row, index)" :selected="selected.includes(rowKey(row, index))" :toggle-row="() => toggleRow(row, index)" />
                         </div>
