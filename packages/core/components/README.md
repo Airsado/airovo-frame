@@ -140,6 +140,11 @@ while `JsonField` owns JSON serialization and visual editing.
 Default labels, placeholders, mode actions, empty text and field action
 labels use the global `common.json*`/`common.*` locale keys; explicit props
 remain authoritative.
+When the component receives form attributes such as `id`, `name`,
+`aria-describedby`, `aria-invalid` or `data-form-root`, JsonField forwards them
+to the actual JsonCodeEditor textarea in JSON mode while retaining the
+`data-form-root` marker on its wrapper. This keeps labels and validation tied to
+the native control instead of the visual composition container.
 
 ## Select option hierarchy
 

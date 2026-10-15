@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, useAttrs, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Input } from '@airovo/uikit-shadcnui'
 import { formatJson, jsonError, jsonRowsError, parseJsonRows, serializeJsonRows, type JsonFieldRow, type JsonFieldValueType } from './json-field-utils'
 import JsonCodeEditor from './JsonCodeEditor.vue'
 
-defineOptions({ name: 'JsonField' })
+defineOptions({ name: 'JsonField', inheritAttrs: false })
+
+const attrs = useAttrs()
+// FormFieldRender attaches the field id/name and validation attributes to the
+// custom component. In JSON mode those attributes belong on the actual
+// textarea, so keep them out of the visual wrapper and forward them to the
+// JsonCodeEditor contract instead.
+const editorAttrs = computed(() => {
+    const { class: _class, ...rest } = attrs
+    return rest
+})
 
 const props = withDefaults(defineProps<{
     modelValue?: string
@@ -46,6 +56,13 @@ const deleteFieldText = computed(() => copy('common.deleteField', '删除字段'
 const addFieldText = computed(() => copy('common.addField', '添加字段'))
 
 const mode = ref<'visual' | 'json'>('visual')
+const rootAttrs = computed(() => {
+    const { class: _class, id, name, ...rest } = attrs
+    // The textarea owns the field identity in JSON mode. Keeping id/name off
+    // the wrapper avoids duplicate IDs while preserving the old visual-mode
+    // wrapper contract for labels and validation surfaces.
+    return mode.value === 'json' ? rest : { ...rest, id, name }
+})
 const draft = ref(props.modelValue)
 const rows = ref<JsonFieldRow[]>(parseJsonRows(props.modelValue, props.nested))
 const error = computed(() => jsonError(draft.value))
@@ -114,7 +131,7 @@ function formatDraft(): void {
 </script>
 
 <template>
-    <div :class="['space-y-3', props.class]" :aria-disabled="disabled">
+    <div v-bind="rootAttrs" :class="['space-y-3', props.class]" :aria-disabled="disabled">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <Button type="button" size="sm" variant="outline" :disabled="disabled" @click="toggleMode">
@@ -139,7 +156,7 @@ function formatDraft(): void {
             <Button type="button" variant="outline" size="sm" class="w-full" :disabled="disabled" @click="addRow"><Icon icon="lucide:plus" class="mr-1.5 size-4" />{{ addFieldText }}</Button>
         </div>
         <div v-else class="space-y-1.5">
-            <JsonCodeEditor :model-value="draft" :disabled="disabled" @update:model-value="publish" @parse-error="(message) => emit('parse-error', message)" />
+            <JsonCodeEditor v-bind="editorAttrs" :model-value="draft" :disabled="disabled" @update:model-value="publish" @parse-error="(message) => emit('parse-error', message)" />
         </div>
     </div>
 </template>
