@@ -6,6 +6,12 @@ export interface JsonFieldRow {
     value: string
 }
 
+export function jsonRowsError(rows: JsonFieldRow[], valueType: JsonFieldValueType): string | undefined {
+    if (valueType !== 'number') return undefined
+    const invalid = rows.find((row) => row.value.trim() !== '' && !Number.isFinite(Number(row.value)))
+    return invalid ? `字段“${invalid.key || '未命名'}”必须是数字` : undefined
+}
+
 function scalarText(value: unknown): string {
     return typeof value === 'string' ? value : JSON.stringify(value)
 }
