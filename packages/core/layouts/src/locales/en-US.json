@@ -11,6 +11,9 @@
     },
     "common": {
         "toggle": "Toggle",
+        "viewMode": "View mode",
+        "cardView": "Card view",
+        "tableView": "Table view",
         "search": "Search…",
         "clearSearch": "Clear search",
         "noData": "No data",

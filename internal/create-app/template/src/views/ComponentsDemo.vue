@@ -1161,7 +1161,7 @@ function sseItemData(item: unknown): unknown {
                     </p>
                 </div>
                 <DataPanel>
-                    <DataTablePage mobile-cards>
+                    <DataTablePage mobile-cards enable-view-mode-toggle view-mode-storage-key="playwright-channel-table-view-mode">
                         <template #toolbar>
                             <DataTableToolbar
                                 v-model="serverTableSearch"
