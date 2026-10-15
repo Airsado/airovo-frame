@@ -41,6 +41,19 @@ describe('DataTableBulkActions', () => {
         expect(toolbar.classes()).toContain('hover:scale-105')
     })
 
+    it('matches the new-api inline surface and action sizing', () => {
+        const wrapper = mount(DataTableBulkActions, { global, props: { selectedCount: 2, entityName: 'user', placement: 'inline' } })
+        const toolbar = wrapper.get('[role="toolbar"]')
+        const surface = toolbar.get('div > div')
+        expect(toolbar.classes()).toContain('shrink-0')
+        expect(toolbar.classes()).toContain('rounded-xl')
+        expect(toolbar.classes()).not.toContain('w-full')
+        expect(surface.classes()).toContain('supports-[backdrop-filter]:bg-background/60')
+        expect(surface.classes()).not.toContain('supports-[backdrop-filter]:bg-background/70')
+        expect(wrapper.text()).toContain('users')
+        expect(wrapper.get('button[aria-label="清除选择"]').classes()).toContain('size-6')
+    })
+
     it('moves focus across enabled action buttons with Home, End and arrows', async () => {
         const wrapper = mount(DataTableBulkActions, {
             global, props: { selectedCount: 2 },

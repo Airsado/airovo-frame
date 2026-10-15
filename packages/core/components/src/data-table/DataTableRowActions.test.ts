@@ -82,4 +82,14 @@ describe('DataTableRowActions', () => {
         await menu.vm.$emit('update:open', true)
         expect(wrapper.emitted('dropdown-open-change')).toEqual([[true]])
     })
+
+    it('keeps the new-api ellipsis trigger at the icon size token', () => {
+        const wrapper = mount(DataTableRowActions, {
+            global,
+            props: { row: { id: 1 }, dropdownActions: [{ key: 'copy', label: '复制' }] },
+        })
+        const trigger = wrapper.get('[data-slot="dropdown-menu-trigger"]')
+        expect(trigger.attributes('data-size')).toBe('icon')
+        expect(trigger.classes()).not.toContain('size-8')
+    })
 })

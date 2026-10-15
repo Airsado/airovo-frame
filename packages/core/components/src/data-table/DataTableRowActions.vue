@@ -35,7 +35,7 @@ function select(action: DataTableRowAction<T>): void { if (!state(action.disable
       <Icon v-if="loading(action) || action.icon" :icon="loading(action) ? 'lucide:loader-circle' : action.icon!" :class="[action.iconOnly ? 'size-4' : 'size-3.5', loading(action) && 'animate-spin']" /><span v-if="!action.iconOnly">{{ action.label }}</span>
     </Button>
     <DropdownMenu v-if="visibleDropdownActions.length" :modal="props.dropdownModal" @update:open="(open) => emit('dropdown-open-change', open)">
-      <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="data-popup-open:bg-muted size-8" :aria-label="resolvedDropdownAriaLabel"><Icon icon="lucide:ellipsis" class="size-4" /></Button></DropdownMenuTrigger>
+      <DropdownMenuTrigger as-child><Button type="button" variant="ghost" size="icon" class="data-popup-open:bg-muted" :aria-label="resolvedDropdownAriaLabel"><Icon icon="lucide:ellipsis" class="size-4" aria-hidden="true" /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end" :class="['w-48', props.dropdownContentClass]">
         <template v-for="(action, index) in visibleDropdownActions" :key="action.key">
           <DropdownMenuSeparator v-if="index > 0" />
