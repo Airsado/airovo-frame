@@ -14,7 +14,7 @@
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 主要缺口 | 优先级 | 验证方式 |
 |---|---|---|---|---|---|---|
-| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | querySync、storage migration、ViewOptions、sizing/pinning、ViewModeToggle、DataTableCardGrid、DataTablePage 自动 card fallback、键盘列宽分隔柄已补；完整 desktop/mobile/主题/批量交互矩阵仍由 Issue #254 跟踪 | P0 | router/component tests、demo、desktop/mobile browser |
+| `components/data-table/core/*`、`layout/*`、`toolbar/*`、`hooks/*` | DataTable 工程化族 | `packages/core/components/src/data-table/*` | 已存在但行为不完整 | querySync、storage migration、ViewOptions、sizing/pinning、ViewModeToggle、DataTableCardGrid、DataTablePage 自动 card fallback、DataTableEmpty、键盘列宽分隔柄已补；完整 desktop/mobile/主题/批量交互矩阵仍由 Issue #254 跟踪 | P0 | router/component tests、demo、desktop/mobile browser |
 | `components/json-editor.tsx` | JsonField / JsonEditor | `packages/core/components/src/json-field/*` | 已存在但行为不完整 | 已有双模式、回填、复杂嵌套编辑和 number 非法值 parse-error；仍需更完整 FormFieldSchema 组合与 raw editor 矩阵 | P0 | component tests、MyFormDemo、form submit/reset browser |
 | `components/json-code-editor.tsx` | JsonCodeEditor | `packages/core/components/src/json-field/JsonCodeEditor.vue` | 已存在但行为不完整 | 已补 header spacing、clipboard feedback、FormField 属性和行号层滚动同步；仍需大文本、跨浏览器和更复杂光标矩阵 | P1 | utility/component tests、keyboard browser |
 | `components/layout/components/section-page-layout.tsx` | SectionPageLayout | `packages/core/components/src/section-page/SectionPage.vue` | 已存在但行为不完整 | 已补 new-api 标题字重、操作间距和 content padding；SectionPage/tabs/scroll 真实矩阵由 Issue #256 跟踪 | P0 | component tests、scroll browser |

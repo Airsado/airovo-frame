@@ -6,6 +6,7 @@ import { Skeleton } from '@airovo/uikit-shadcnui'
 import { normalizeDataTableColumnPinning, parseStoredDataTableColumnPinning, resolveDataTableColumnPinning, type ResolvedDataTablePinnedColumn } from './column-pinning'
 import { normalizeDataTableColumnSizing } from './column-sizing'
 import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
+import DataTableEmpty from './DataTableEmpty.vue'
 import DataTablePagination from './DataTablePagination.vue'
 
 defineOptions({ name: 'DataTable' })
@@ -18,6 +19,9 @@ const props = withDefaults(defineProps<{
     error?: unknown
     emptyText?: string
     errorText?: string
+    emptyTitle?: string
+    emptyDescription?: string
+    emptyIcon?: string
     caption?: string
     selectable?: boolean
     selectedKeys?: DataTableRowKey[]
@@ -526,11 +530,22 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         </slot>
                     </td>
                 </tr>
-                <tr v-else-if="visibleRows.length === 0">
-                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
-                        <slot name="empty">{{ emptyText ?? t('common.noData') }}</slot>
-                    </td>
-                </tr>
+                <template v-else-if="visibleRows.length === 0">
+                    <tr v-if="$slots.empty">
+                        <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
+                            <slot name="empty" />
+                        </td>
+                    </tr>
+                    <DataTableEmpty
+                        v-else
+                        :col-span="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)"
+                        :title="emptyTitle ?? emptyText"
+                        :description="emptyDescription"
+                        :icon="emptyIcon"
+                    >
+                        <template #actions><slot name="empty-action" /></template>
+                    </DataTableEmpty>
+                </template>
                 <template v-else>
                     <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group border-b transition-colors last:border-0 data-[state=selected]:bg-muted hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))]" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
                         <td v-if="selectable" data-column-id="selection" class="data-table-pinned-cell w-10 p-2 align-middle" :style="pinnedStyle('selection', 'cell')">

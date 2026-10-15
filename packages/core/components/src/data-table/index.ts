@@ -1,4 +1,5 @@
 export { default as DataTable } from './DataTable.vue'
+export { default as DataTableEmpty } from './DataTableEmpty.vue'
 export { default as DataTableBulkActions } from './DataTableBulkActions.vue'
 export { default as DataTableCardGrid } from './DataTableCardGrid.vue'
 export { default as ResponsiveCardList } from './ResponsiveCardList.vue'

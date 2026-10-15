@@ -1131,10 +1131,15 @@ function sseItemData(item: unknown): unknown {
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">DataTable 框架表格</h2>
                 <DataPanel>
-                    <DataTable :columns="coreTableColumns" :data="tableRows" caption="框架通用组件列表">
+                    <DataTable :columns="coreTableColumns" :data="tableRows" caption="框架通用组件列表" empty-description="当前筛选条件下没有可展示的组件。">
                         <template #cell-name="{ value }">
                             <span class="font-medium">{{ value }}</span>
                         </template>
+                    </DataTable>
+                </DataPanel>
+                <DataPanel>
+                    <DataTable data-testid="datatable-empty-demo" :columns="coreTableColumns" :data="[]" empty-title="暂无组件" empty-description="调整筛选条件后重试" empty-icon="lucide:inbox">
+                        <template #empty-action><Button size="sm" variant="outline">清除筛选</Button></template>
                     </DataTable>
                 </DataPanel>
             </section>
