@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
+import { Input } from '@airovo/uikit-shadcnui'
 import DateTimePicker from './DateTimePicker.vue'
 
 const DatePickerStub = {
@@ -65,5 +66,42 @@ describe('DateTimePicker time and controlled state', () => {
         expect(emitted.getHours()).toBe(6)
         expect(emitted.getMinutes()).toBe(7)
         expect(emitted.getSeconds()).toBe(8)
+    })
+
+    it('preserves the last valid draft when time input is empty or invalid', async () => {
+        const initial = new Date(2024, 0, 2, 3, 4, 5)
+        const wrapper = mount(DateTimePicker, { props: { modelValue: initial, ariaDescribedby: 'time-error' }, global })
+        const input = wrapper.findComponent(Input)
+
+        expect(input.attributes('aria-describedby')).toBe('time-error')
+        await input.vm.$emit('update:modelValue', '25:61:99')
+        expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+        expect((input.element as HTMLInputElement).value).toBe('03:04:05')
+        expect(input.attributes('aria-invalid')).toBe('true')
+        expect(input.classes()).toContain('border-destructive')
+
+        await input.vm.$emit('update:modelValue', '')
+        expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+        expect((input.element as HTMLInputElement).value).toBe('03:04:05')
+        expect(input.attributes('aria-invalid')).toBeUndefined()
+    })
+
+    it('accepts HH:mm with zero seconds and clears invalid state after controlled sync', async () => {
+        const initial = new Date(2024, 0, 2, 3, 4, 5)
+        const wrapper = mount(DateTimePicker, { props: { modelValue: initial }, global })
+        const input = wrapper.findComponent(Input)
+
+        await input.vm.$emit('update:modelValue', '07:08')
+        const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as Date
+        expect(emitted.getHours()).toBe(7)
+        expect(emitted.getMinutes()).toBe(8)
+        expect(emitted.getSeconds()).toBe(0)
+        expect(input.attributes('aria-invalid')).toBeUndefined()
+
+        await input.vm.$emit('update:modelValue', 'not-a-time')
+        expect(input.attributes('aria-invalid')).toBe('true')
+        await wrapper.setProps({ modelValue: new Date(2024, 0, 4, 11, 12, 13) })
+        expect(input.attributes('aria-invalid')).toBeUndefined()
+        expect((input.element as HTMLInputElement).value).toBe('11:12:13')
     })
 })
