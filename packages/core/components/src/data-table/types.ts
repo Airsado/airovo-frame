@@ -23,6 +23,14 @@ export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
     maxSize?: number
     /** Hide the column while retaining it in the column configuration. */
     hidden?: boolean
+    /** Prefer this column as the generic card title. */
+    mobileTitle?: boolean
+    /** Render this column beside the generic card title as a badge/status. */
+    mobileBadge?: boolean
+    /** Hide this column from the generic card renderer. */
+    mobileHidden?: boolean
+    /** Order this column within generic card fields. */
+    mobileOrder?: number
     /** Read a value from a row (useful for nested or computed values). */
     value?: (row: T) => unknown
     /** Format the displayed value without changing the value exposed to slots. */

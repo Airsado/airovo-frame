@@ -4,7 +4,7 @@ import {
     DataPanel,
     CommandMenu,
     DataTable,
-    ResponsiveCardList,
+    DataTableCardGrid,
     TruncatedCell,
     TruncatedText,
     DataTableBulkActions,
@@ -340,9 +340,9 @@ const serverTableRows = Array.from({ length: 37 }, (_, index) => ({
     status: index % 5 === 0 ? '已停用' : '运行中',
 }))
 const serverTableColumns: DataTableColumn[] = [
-    { key: 'name', title: '渠道名称', sortable: true, width: '280px', resizable: true, minSize: 140, maxSize: 320 },
+    { key: 'name', title: '渠道名称', sortable: true, width: '280px', resizable: true, minSize: 140, maxSize: 320, mobileTitle: true, mobileOrder: 1 },
     { key: 'type', title: '类型', sortable: true, width: '180px', resizable: true, minSize: 100, maxSize: 220 },
-    { key: 'status', title: '状态', sortable: true, width: '160px', resizable: true, minSize: 100, maxSize: 220 },
+    { key: 'status', title: '状态', sortable: true, width: '160px', resizable: true, minSize: 100, maxSize: 220, mobileBadge: true },
     { key: 'id', title: '内部 ID', hidden: true, width: '120px' },
 ]
 const serverTableFilters: DataTableFilterGroup[] = [
@@ -1219,15 +1219,10 @@ function sseItemData(item: unknown): unknown {
                             </DataTable>
                         </template>
                         <template #mobile>
-                            <ResponsiveCardList :rows="serverTable.rows.value" :columns="serverTableColumns" row-key="id" selectable :selected-keys="serverSelectedKeys" @update:selected-keys="serverSelectedKeys = $event">
-                                <template #card="{ row }">
-                                    <div class="rounded-lg border bg-card p-3 shadow-xs">
-                                        <div class="flex items-center justify-between gap-2"><span class="font-medium">{{ row.name }}</span><StatusBadge :status="row.status === '运行中' ? 'success' : 'disabled'" :text="String(row.status)" /></div>
-                                        <p class="mt-2 text-xs text-muted-foreground">{{ row.type }} · #{{ row.id }}</p>
-                                        <DataTableRowActions class="mt-2" :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" />
-                                    </div>
-                                </template>
-                            </ResponsiveCardList>
+                            <DataTableCardGrid :rows="serverTable.rows.value" :columns="serverTableColumns" row-key="id" selectable :selected-keys="serverSelectedKeys" @update:selected-keys="serverSelectedKeys = $event">
+                                <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
+                                <template #card-actions="{ row }"><DataTableRowActions :row="row" :actions="[{ key: 'view', label: '查看', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }]" /></template>
+                            </DataTableCardGrid>
                         </template>
                     </DataTablePage>
                     <DataTableBulkActions :selected-count="serverSelectedKeys.length" entity-name="渠道" @clear-selection="clearServerSelection">
