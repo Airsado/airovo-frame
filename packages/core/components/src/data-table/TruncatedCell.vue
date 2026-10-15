@@ -18,7 +18,6 @@ const props = withDefaults(defineProps<{
     tooltipClassName?: string
 }>(), {
     side: 'top',
-    tabIndex: 0,
 })
 
 const slots = useSlots()
