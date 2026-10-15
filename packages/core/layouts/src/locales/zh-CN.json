@@ -94,6 +94,7 @@
         "searchAction": "搜索",
         "expand": "展开",
         "collapse": "收起",
+        "resizeColumn": "调整列宽：{column}",
         "chartLoading": "正在加载图表",
         "chartError": "图表加载失败",
         "chartEmpty": "暂无图表数据",

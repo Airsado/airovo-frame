@@ -94,6 +94,7 @@
         "searchAction": "Search",
         "expand": "Expand",
         "collapse": "Collapse",
+        "resizeColumn": "Resize column: {column}",
         "chartLoading": "Loading chart",
         "chartError": "Chart failed to load",
         "chartEmpty": "No chart data",

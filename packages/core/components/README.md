@@ -185,7 +185,10 @@ desktop table behavior; mobile card slots continue to use the same rows and
 selection state. Persisted sizing is migrated against the current column
 schema and min/max bounds; removed columns and invalid widths are discarded
 and written back. Column pinning storage follows the same current-schema
-filtering for left/right sticky offsets.
+filtering for left/right sticky offsets. The resize handle is a keyboard
+focusable vertical separator like new-api: ArrowLeft/ArrowRight change the
+width by 10px (50px with Shift), while Enter/Space and double-click auto-size
+from the rendered column content. Pointer dragging remains supported.
 
 ## Status states
 
