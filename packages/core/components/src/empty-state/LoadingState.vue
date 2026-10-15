@@ -26,7 +26,7 @@ const iconSizeClass = { sm: 'size-4', md: 'size-6', lg: 'size-8' }[props.size]
 <template>
     <span v-if="props.inline" :class="['inline-flex items-center gap-2', props.class]" role="status" :aria-label="resolvedLabel" aria-live="polite" aria-busy="true">
         <Spinner :class="iconSizeClass" aria-hidden="true" />
-        <span v-if="resolvedMessage" class="text-sm text-muted-foreground">{{ resolvedMessage }}</span>
+        <span v-if="props.message != null" class="text-sm text-muted-foreground">{{ props.message }}</span>
     </span>
     <div v-else :class="['flex min-h-[200px] flex-col items-center justify-center gap-3', props.class]" role="status" :aria-label="resolvedLabel" aria-live="polite" aria-busy="true">
         <Spinner :class="iconSizeClass" aria-hidden="true" />

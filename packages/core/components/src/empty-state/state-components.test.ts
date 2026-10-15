@@ -93,4 +93,14 @@ describe('status state components', () => {
         expect(inline.text()).toContain('保存中')
         expect(inline.find('.size-4').exists()).toBe(true)
     })
+
+    it('keeps the new-api inline message optional', () => {
+        const withoutMessage = mount(LoadingState, { global, props: { inline: true } })
+        expect(withoutMessage.find('.text-sm.text-muted-foreground').exists()).toBe(false)
+        expect(withoutMessage.find('.animate-spin').exists()).toBe(true)
+
+        const emptyMessage = mount(LoadingState, { global, props: { inline: true, message: '' } })
+        expect(emptyMessage.find('.text-sm.text-muted-foreground').exists()).toBe(true)
+        expect(emptyMessage.text()).not.toContain('加载中…')
+    })
 })
