@@ -451,6 +451,15 @@ body:has([data-layout-shell]) {
   cursor: pointer;
 }
 
+/* Reka's `as-child` trigger puts the open state on the same button that owns
+ * the chevron. The upstream new-api trigger keeps that state on an outer
+ * group, so its group-data utility cannot match our descendant icon. Keep the
+ * same 90-degree disclosure motion with the actual state attribute. */
+[data-layout-shell] [data-sidebar-menu-kind='parent'][data-state='open'] > svg:last-child,
+[data-layout-shell] [data-sidebar-menu-kind='parent-collapsed'][data-state='open'] > svg:last-child {
+  transform: rotate(90deg);
+}
+
 /* Contextual sidebar views use the same short slide/fade transition as
  * new-api's motion wrapper. The reduced-motion rule keeps navigation instant
  * for users who opt out of movement. */
