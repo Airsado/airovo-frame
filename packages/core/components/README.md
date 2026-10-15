@@ -268,8 +268,10 @@ depend on vue-router or choose URL parameter names.
 
 `DatePicker` uses a stable `YYYY-MM-DD` trigger label like new-api while its
 calendar still receives the caller's locale. It accepts optional `minDate`, `maxDate`, and
-`locale` props. They are converted to the ui-kit Calendar's DateValue
-constraints while the trigger keeps the stable `YYYY-MM-DD` text. `DateTimePicker`
+`locale` props. When omitted, the bounds default to `1900-01-01` and today,
+matching new-api; explicit bounds override those defaults. They are converted to
+the ui-kit Calendar's DateValue constraints while the trigger keeps the stable
+`YYYY-MM-DD` text. `DateTimePicker`
 keeps `HH:mm:ss` precision, accepts legacy `HH:mm` input as `:00`, clones
 dates before merging the selected day and time, and resets the time to
 `00:00:00` when cleared. Disabled state prevents date, time, and clear edits.
