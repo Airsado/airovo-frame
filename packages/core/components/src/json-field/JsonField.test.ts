@@ -42,4 +42,28 @@ describe('JsonField', () => {
         await valueInput.setValue('42')
         expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toContain('42')
     })
+
+    it('forwards form attributes to the JSON editor textarea', async () => {
+        const wrapper = mount(JsonField, {
+            global,
+            attrs: {
+                id: 'config-json',
+                name: 'config',
+                'aria-describedby': 'config-help',
+                'aria-invalid': 'true',
+                'data-form-root': 'settings-form',
+            },
+            props: { modelValue: '{"enabled":true}' },
+        })
+
+        await wrapper.findAll('button')[0]!.trigger('click')
+        const textarea = wrapper.get('textarea')
+
+        expect(textarea.attributes('id')).toBe('config-json')
+        expect(textarea.attributes('name')).toBe('config')
+        expect(textarea.attributes('aria-describedby')).toBe('config-help')
+        expect(textarea.attributes('aria-invalid')).toBe('true')
+        expect(textarea.attributes('data-form-root')).toBe('settings-form')
+        expect(wrapper.attributes('data-form-root')).toBe('settings-form')
+    })
 })
