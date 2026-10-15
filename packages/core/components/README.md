@@ -232,10 +232,12 @@ as `EmptyState`. It provides retry/action events and slots with an alert role. S
 provide `retryText`) to render its outline retry button; without an explicit
 retry capability no retry button is shown, matching new-api's optional
 `onRetry` callback. `LoadingState`
-uses the new-api 300px error / 200px loading block densities and supports block and inline layouts, `sm`/`md`/`lg` sizes, an optional message,
-and `aria-busy`/`aria-live` attributes. Inline loading only renders the message
-when the caller provides one, matching new-api; block loading keeps the localized
-default message. These components render state only and
+uses the new-api 200px loading block density and supports block and inline
+layouts, `sm`/`md`/`lg` sizes, an optional message, and `aria-busy`/`aria-live`
+attributes. The loader is decorative so the outer state region owns the single
+status role; it spins by default and stops under `prefers-reduced-motion`.
+Inline loading only renders the message when the caller provides one, matching
+new-api; block loading keeps the localized default message. These components render state only and
 do not fetch data or own retry logic.
 
 ## TruncatedCell
