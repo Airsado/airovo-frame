@@ -226,8 +226,9 @@ Empty and error surfaces use motion-safe FadeIn classes and respect the user's
 reduced-motion preference. Default empty/error/loading text is read from the framework global i18n
 keys (`common.noData`, `common.error`, `common.retry`, `common.loading`) with
 the existing Chinese strings as fallback; explicit text props always win.
-`ErrorState`
-provides retry/action events and slots with an alert role. Set `showRetry` (or
+`ErrorState` follows the same new-api `w-full`/`min-h-[300px]`/`gap-4`/
+`rounded-xl`/`p-6` surface, compact title, icon media and action content density
+as `EmptyState`. It provides retry/action events and slots with an alert role. Set `showRetry` (or
 provide `retryText`) to render its outline retry button; without an explicit
 retry capability no retry button is shown, matching new-api's optional
 `onRetry` callback. `LoadingState`

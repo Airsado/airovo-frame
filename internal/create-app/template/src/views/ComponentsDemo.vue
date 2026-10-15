@@ -715,8 +715,8 @@ function sseItemData(item: unknown): unknown {
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">ErrorState / LoadingState 状态组件</h2>
                 <div class="grid gap-4 lg:grid-cols-3">
-                    <div class="rounded-lg border bg-card"><ErrorState title="加载渠道失败" description="服务暂时不可用，请稍后重试。" show-retry @retry="onAdd" /></div>
-                    <div data-testid="error-state-no-retry" class="rounded-lg border bg-card"><ErrorState title="无需重试" description="当前状态只需要提示用户。" /></div>
+                    <div data-testid="error-state-retry" class="bg-card"><ErrorState title="加载渠道失败" description="服务暂时不可用，请稍后重试。" show-retry @retry="onAdd" /></div>
+                    <div data-testid="error-state-no-retry" class="bg-card"><ErrorState title="无需重试" description="当前状态只需要提示用户。" /></div>
                     <div class="rounded-lg border bg-card"><LoadingState message="正在加载渠道…" size="lg" /></div>
                     <div class="flex items-center rounded-lg border bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
                 </div>
