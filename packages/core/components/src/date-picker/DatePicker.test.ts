@@ -75,6 +75,22 @@ describe('DatePicker boundaries', () => {
         expect(explicit.get('[data-calendar]').attributes('data-locale')).toBe('fr')
     })
 
+    it('normalizes new-api locale aliases and falls back for unsupported locales', () => {
+        const zh = mount(DatePicker, { props: { locale: 'zhCN' }, global })
+        expect(zh.get('[data-calendar]').attributes('data-locale')).toBe('zh-CN')
+
+        const unknown = mount(DatePicker, { props: { locale: 'not-a-locale' }, global })
+        expect(unknown.get('[data-calendar]').attributes('data-locale')).toBe('en-US')
+    })
+
+    it('exposes the popover trigger state to keyboard and assistive technology', () => {
+        const wrapper = mount(DatePicker, { global })
+        const trigger = wrapper.get('button')
+        expect(trigger.attributes('aria-haspopup')).toBe('dialog')
+        expect(trigger.attributes('aria-expanded')).toBe('false')
+        expect(trigger.attributes('data-state')).toBe('closed')
+    })
+
     it('keeps an invalid or reversed boundary configuration renderable', () => {
         expect(() => mount(DatePicker, {
             props: { minDate: new Date(2025, 0, 1), maxDate: new Date(2024, 0, 1) },
