@@ -25,11 +25,15 @@ function copy(key: string, fallback: string, values?: Record<string, unknown>): 
   return te(key) ? t(key, values ?? {}) : fallback
 }
 const entityName = computed(() => props.entityName ?? copy('common.records', '条记录'))
+const entityLabel = computed(() => {
+  if (props.selectedCount > 1 && /^[a-z]+$/i.test(entityName.value)) return `${entityName.value}s`
+  return entityName.value
+})
 const selectedText = computed(() => copy('common.selected', '已选择'))
 const clearText = computed(() => copy('common.clearSelection', '清除选择'))
 const clearHint = computed(() => copy('common.clearSelectionWithEscape', '清除选择（Escape）'))
 const toolbarLabel = computed(() => copy('common.bulkActions', `批量操作：${props.selectedCount} 项已选择`, { count: props.selectedCount }))
-const announcement = computed(() => copy('common.bulkAnnouncement', `已选择 ${props.selectedCount} ${entityName.value}，可执行批量操作`, { count: props.selectedCount, entity: entityName.value }))
+const announcement = computed(() => copy('common.bulkAnnouncement', `已选择 ${props.selectedCount} ${entityLabel.value}，可执行批量操作`, { count: props.selectedCount, entity: entityLabel.value }))
 
 function clearSelection(): void {
   emit('clear-selection')
@@ -80,13 +84,13 @@ function handleKeydown(event: KeyboardEvent): void {
       :class="[
         props.placement === 'floating'
           ? 'fixed bottom-6 left-1/2 z-50 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-xl transition-all delay-100 duration-300 ease-out hover:scale-105'
-          : 'w-full',
+          : 'shrink-0 rounded-xl',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
         props.class,
       ]"
       @keydown="handleKeydown"
     >
-      <div class="flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 p-2 shadow-xl supports-[backdrop-filter]:bg-background/70 supports-[backdrop-filter]:backdrop-blur-lg">
+      <div class="flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 p-2 shadow-xl supports-[backdrop-filter]:bg-background/60 supports-[backdrop-filter]:backdrop-blur-lg">
         <TooltipProvider :delay-duration="0">
           <Tooltip>
             <TooltipTrigger as-child>
@@ -94,7 +98,7 @@ function handleKeydown(event: KeyboardEvent): void {
                 type="button"
                 variant="outline"
                 size="icon"
-                class="size-7"
+                class="size-6"
                 :aria-label="clearText"
                 :title="clearHint"
                 @click="clearSelection"
@@ -110,7 +114,7 @@ function handleKeydown(event: KeyboardEvent): void {
           <Badge variant="default" class="min-w-8 justify-center rounded-lg" :aria-label="`${props.selectedCount} ${selectedText}`">
             {{ props.selectedCount }}
           </Badge>
-          <span class="hidden sm:inline">{{ entityName }}</span>
+          <span class="hidden sm:inline">{{ entityLabel }}</span>
           <span>{{ selectedText }}</span>
         </div>
         <Separator orientation="vertical" class="h-5" aria-hidden="true" />
