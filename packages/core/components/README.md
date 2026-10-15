@@ -421,6 +421,13 @@ keeps them across row replacement, matching DataTable selection semantics.
 Default loading, empty and selection aria copy uses the global `common.*`
 locale keys; explicit `emptyText` and caller slots remain authoritative.
 
+`DataTableCardGrid` is the new-api-style generic card fallback for table/card
+view modes. It accepts the same rows and `DataTableColumn` definitions, uses
+`value`/`formatter`, supports `mobileTitle`, `mobileBadge`, `mobileHidden` and
+`mobileOrder` metadata, and exposes `card`, `card-actions` and `cell-{key}` slots. It owns
+responsive grid density, loading skeletons, empty state, selected surfaces and
+page/persistent selection without knowing anything about a business API.
+
 ## PageFooter
 
 `PageFooter` provides a reusable semantic footer with default/actions slots and
