@@ -296,7 +296,10 @@ trigger with a Chevron icon, a `w-32` seconds-aware time input with the browser
 picker indicator hidden, and an outline clear icon button that remains
 shrink-0. The standalone `DatePicker` keeps its calendar icon by default;
 `triggerIcon="chevron"` is the DateTimePicker composition hook. Value merge,
-disabled, locale and FormField contracts remain caller-owned.
+disabled, locale and FormField contracts remain caller-owned. Empty, partial or
+out-of-range time drafts never emit a normalized date: the last valid draft is
+restored, the input exposes `aria-invalid` and a destructive focus/border token,
+and controlled `modelValue` updates clear the invalid state.
 
 `DataTableViewOptions` uses a non-modal dropdown by default, exposes an
 optional `modal`/`dropdownContentClass` API and emits `dropdown-open-change`.
