@@ -9,12 +9,17 @@ describe('TruncatedCell', () => {
         const wrapper = mount(TruncatedCell, { props: { text: 'a very long value' } })
         expect(wrapper.text()).toContain('a very long value')
         expect(wrapper.find('[data-slot="tooltip-trigger"]').exists()).toBe(true)
-        expect(wrapper.find('[tabindex="0"]').exists()).toBe(true)
+        expect(wrapper.find('[tabindex]').exists()).toBe(false)
     })
 
     it('does not create an empty tooltip', () => {
         const wrapper = mount(TruncatedCell, { props: { text: '' } })
         expect(wrapper.find('[data-slot="tooltip-trigger"]').exists()).toBe(false)
+        expect(wrapper.find('[tabindex]').exists()).toBe(false)
+    })
+
+    it('keeps the explicit keyboard entry opt-in', () => {
+        const wrapper = mount(TruncatedCell, { props: { text: 'keyboard value', tabIndex: 0 } })
         expect(wrapper.find('[tabindex="0"]').exists()).toBe(true)
     })
 

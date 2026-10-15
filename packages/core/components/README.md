@@ -248,8 +248,10 @@ do not fetch data or own retry logic.
 ## TruncatedCell
 
 `TruncatedCell` and `TruncatedText` provide the new-api DataTable long-text
-pattern: a constrained `truncate` container, keyboard focus, and a Tooltip
-with the full text. `TruncatedCell` extracts text from string, number, array,
+pattern: a constrained `truncate` container and a Tooltip. The cell is not in
+the Tab order by default, matching new-api; pass `tabIndex=0` when a caller
+needs keyboard focus for the tooltip. The tooltip exposes the full text.
+`TruncatedCell` extracts text from string, number, array,
 and ordinary VNode slots when `text` is omitted; pass `tooltipContent` to
 override the extracted value for badges or custom rendering. Empty text does
 not create an empty tooltip. The new-api `cellClassName`, `contentClassName`
