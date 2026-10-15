@@ -9,8 +9,8 @@ const stubs = {
     PopoverTrigger: { template: '<div><slot /></div>' },
     PopoverContent: { template: '<div><slot /></div>' },
     Calendar: {
-        props: ['minValue', 'maxValue', 'locale'],
-        template: '<div data-calendar :data-min="minValue?.toString()" :data-max="maxValue?.toString()" :data-locale="locale" />',
+        props: ['minValue', 'maxValue', 'locale', 'showOutsideDays'],
+        template: '<div data-calendar :data-min="minValue?.toString()" :data-max="maxValue?.toString()" :data-locale="locale" :data-show-outside-days="showOutsideDays" />',
     },
 }
 const global = { stubs, plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { datePickerPlaceholder: '选择日期', dateTimePickerPlaceholder: '选择日期和时间' } } } })] }
@@ -36,6 +36,7 @@ describe('DatePicker boundaries', () => {
         expect(calendar.attributes('data-min')).toContain('2024-01-01')
         expect(calendar.attributes('data-max')).toContain('2024-12-31')
         expect(calendar.attributes('data-locale')).toBe('zh-CN')
+        expect(calendar.attributes('data-show-outside-days')).toBe('true')
     })
 
     it('uses the new-api default date boundaries when callers omit them', () => {

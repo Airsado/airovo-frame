@@ -146,6 +146,7 @@ function selectDate(value: DateValue | undefined): void {
     <PopoverContent class="w-auto p-0" align="start" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <Calendar
         layout="month-and-year"
+        :show-outside-days="true"
         :locale="resolvedLocale"
         :min-value="minValue"
         :max-value="maxValue"
