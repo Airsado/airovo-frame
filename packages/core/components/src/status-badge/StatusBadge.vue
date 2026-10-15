@@ -86,6 +86,7 @@ function onKeydown(event: KeyboardEvent): void {
             STATUS_TEXT_COLOR[variant],
             props.pulse && 'animate-pulse',
             isCopyable && 'cursor-copy hover:brightness-95 active:scale-95 dark:hover:brightness-110',
+            isCopyable && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             props.class,
         ]"
         :title="isCopyable ? `Click to copy: ${copyValue}` : label"

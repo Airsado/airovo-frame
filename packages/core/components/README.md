@@ -195,6 +195,8 @@ filtering for left/right sticky offsets.
 The legacy `status`/`text` props remain supported and use the same new-api
 color and sizing classes. Copyable badges expose a `copy` event after the
 clipboard write succeeds and can be activated with Enter or Space.
+Copyable badges also expose a focus-visible ring for keyboard users; badges
+with `copyable=false` remain non-focusable.
 
 `statusPresets` exports the new-api `active`, `inactive`, `invited`,
 `suspended` and `pending` display presets. `StatusPresetName` types those map
