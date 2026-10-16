@@ -7,6 +7,7 @@ import type { FormFieldSchema, FormRuntimeProps } from './types'
 import { parseRules } from './rules'
 import AForm from './AForm.vue'
 import { registerFormContexts, unregisterFormContexts } from './form-context'
+import { resolveFieldDefault } from './form-defaults'
 
 export interface UseFormOptions extends FormRuntimeProps {
     schema?: FormFieldSchema[]
@@ -161,15 +162,10 @@ function fieldRowInitialValue(
                 ? [fieldRowInitialValue(child, api, values)]
                 : child.children?.length
                     ? fieldRowInitialValue(child, api, values)
-                    : (typeof child.defaultValue === 'function'
-                        ? child.defaultValue({ values, api })
-                        : child.defaultValue) ?? '',
+                    : resolveFieldDefault(child, { values, api }),
         ]))
     }
-    const value = typeof item.defaultValue === 'function'
-        ? item.defaultValue({ values, api })
-        : item.defaultValue
-    return { [item.ArrayField ?? 'value']: value ?? '' }
+    return { [item.ArrayField ?? 'value']: resolveFieldDefault(item, { values, api }) }
 }
 
 function schemaValidation(

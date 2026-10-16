@@ -21,6 +21,7 @@ import { isRequiredRule, parseRules } from './rules'
 import FormFieldNodes from './FormFieldNodes.vue'
 import FormRequiredMark from './FormRequiredMark.vue'
 import { useFieldId } from './form-dom'
+import { resolveFieldDefault } from './form-defaults'
 
 const fieldId = useFieldId()
 
@@ -252,10 +253,10 @@ function createRow(item: FormFieldSchema): Record<string, unknown> {
                 ? [createRow(child)]
                 : child.children?.length
                     ? createRow(child)
-                    : resolve(child.defaultValue, ''),
+                    : resolveFieldDefault(child, { values: props.api.values.value, api: props.api }),
         ]))
     }
-    return { [getArrayField(item)]: resolve(item.defaultValue, '') }
+    return { [getArrayField(item)]: resolveFieldDefault(item, { values: props.api.values.value, api: props.api }) }
 }
 
 watchEffect(() => {
