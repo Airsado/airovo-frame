@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import EmptyState from '../empty-state/EmptyState.vue'
 import ErrorState from '../empty-state/ErrorState.vue'
 import LoadingState from '../empty-state/LoadingState.vue'
@@ -24,6 +26,9 @@ const props = withDefaults(defineProps<{
     emptyIcon: 'lucide:database',
     fixedHeight: false,
 })
+
+const { t, te } = useI18n({ useScope: 'global' })
+const resolvedEmptyDescription = computed(() => props.emptyDescription ?? (te('common.noDataDescription') ? t('common.noDataDescription') : '当前没有数据'))
 
 const emit = defineEmits<{
     (event: 'retry'): void
@@ -57,7 +62,7 @@ function retry(): void {
                     <EmptyState
                         :icon="props.emptyIcon"
                         :title="props.emptyTitle"
-                        :description="props.emptyDescription"
+                        :description="resolvedEmptyDescription"
                     />
                 </slot>
             </div>
