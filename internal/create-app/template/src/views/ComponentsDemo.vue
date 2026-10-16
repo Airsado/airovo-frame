@@ -1230,7 +1230,7 @@ function sseItemData(item: unknown): unknown {
                 <div>
                     <h2 class="text-lg font-semibold">DataTable 服务端查询演示</h2>
                     <p class="text-sm text-muted-foreground">
-                        useDataTable 只管理查询状态，fetcher 由应用提供；演示分页、筛选、排序、选中、取消旧请求、错误重试和 new-api 风格列显示菜单。
+                        useDataTable 只管理查询状态，fetcher 由应用提供；演示分页、筛选、排序、选中、取消旧请求、错误重试和 new-api 风格列显示菜单；移动端自动切换到 new-api 风格的分隔列表。
                     </p>
                 </div>
                 <DataPanel>
