@@ -693,11 +693,16 @@ const groups = [
 Use `v-model:open` when the caller owns visibility. `closeOnSelect` defaults to
 `true`; set it to `false` when a selection should leave the palette open. The
 dialog content follows new-api's top-third, rounded-xl, p-0 command surface;
-`contentClass` is applied to the actual DialogContent element.
+the palette root uses the `bg-popover`/`text-popover-foreground`, `rounded-xl`,
+and `p-1` tokens, while the input, list, group, item, empty, and shortcut parts
+use the corresponding new-api density, muted active state, scroll, and focus
+tokens. `contentClass` is applied to the actual DialogContent element.
 `item` slot receives `{ item, group }`, the `group` slot can replace a complete
 group, and the default slot can append additional ui-kit command content. The
 component does not know about routing, permissions, i18n, API requests or
-application stores.
+application stores. The framework composition keeps the existing shadcn-vue
+primitive boundary and scopes the new-api surface adjustments to CommandMenu,
+so using CommandMenu does not change unrelated Select or Combobox surfaces.
 Default title, description, placeholder and empty-result copy uses the global
 `common.commandTitle`, `common.commandDescription`, `common.commandPlaceholder`
 and `common.commandEmpty` keys; explicit props remain authoritative.
