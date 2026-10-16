@@ -122,6 +122,11 @@ empty and does not mount Chart.js. Pass application-owned Chart.js `data` and
 `options`; use the `actions`, `footer` and `legend` props/slots for page-level
 composition. `ChartCard` does not fetch metrics or define business aggregation
 rules.
+Pass an optional `id` to produce a stable `data-chart="chart-{id}"` root and
+`data-slot="chart"` marker for theme selectors, test locators and resize
+verification. The chart root keeps `min-w-0`, centered layout and `text-xs`
+density while height remains caller-controlled; `aria-label` and `role="img"`
+are forwarded by ChartCard.
 The optional `config` maps dataset keys or labels to `{ label, color }`; when
 `legend` is omitted, ChartCard derives the legend from this config and falls
 back to the active `chart-1..5` tokens. Explicit `legend` remains authoritative.
