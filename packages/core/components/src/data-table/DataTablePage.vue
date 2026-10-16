@@ -190,6 +190,7 @@ const cardGridProps = computed(() => ({
   pageSizeOptions: props.pageSizeOptions,
   emptyText: props.cardEmptyText ?? props.emptyText,
   emptyDescription: props.cardEmptyDescription ?? props.emptyDescription,
+  emptyIcon: props.emptyIcon,
   cellSlots: cardCellSlots.value,
 }))
 
