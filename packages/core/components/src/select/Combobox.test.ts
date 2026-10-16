@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
 import { createI18n } from "vue-i18n";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import Combobox from "./Combobox.vue";
 
 const i18n = createI18n({ legacy: false, locale: "zh-CN", messages: { "zh-CN": { common: { selectSearch: "搜索选项", selectEmpty: "没有匹配的选项", open: "打开" } } } });
@@ -27,8 +27,8 @@ const stubs = {
   CommandGroup: { template: "<div><slot /></div>" },
   CommandItem: {
     template:
-      '<button :disabled="disabled" @click="$emit(\'select\')"><slot /></button>',
-    props: ["disabled"],
+      '<button :id="`option-${value}`" :disabled="disabled" @click="$emit(\'select\')"><slot /></button>',
+    props: ["disabled", "value"],
     emits: ["select"],
   },
 };
@@ -43,6 +43,12 @@ describe("Combobox", () => {
     });
     expect(wrapper.get('[role="combobox"]').attributes("aria-expanded")).toBe(
       "false",
+    );
+    expect(wrapper.get('[role="combobox"]').attributes("aria-haspopup")).toBe(
+      "listbox",
+    );
+    expect(wrapper.get('[role="combobox"]').attributes("aria-autocomplete")).toBe(
+      "list",
     );
     expect(wrapper.get('[role="combobox"]').element.disabled).toBe(false);
   });
@@ -102,8 +108,17 @@ describe("Combobox", () => {
     );
     expect(wrapper.get('[role="combobox"]').attributes("id")).toBe("provider");
     expect(wrapper.get('[data-slot="combobox-selected-icon"]')).toBeTruthy();
+    await wrapper.get('[role="combobox"]').trigger("mousedown");
     await wrapper.get('[role="combobox"]').trigger("click");
+    expect(wrapper.get('[role="combobox"]').attributes("aria-controls")).toMatch(
+      /^combobox-list-/,
+    );
+    expect(wrapper.get('[role="combobox"]').attributes("aria-activedescendant")).toBe(
+      "option-OpenAI openai",
+    );
     const input = wrapper.get('[data-slot="input-group-control"]');
+    const focusSpy = vi.spyOn(HTMLInputElement.prototype, "focus");
+    focusSpy.mockClear();
     await input.setValue("gemini");
     expect(wrapper.text()).toContain("Google");
     expect(wrapper.text()).toContain("备用渠道");
@@ -118,6 +133,8 @@ describe("Combobox", () => {
     expect(wrapper.get('[role="combobox"]').attributes("aria-expanded")).toBe(
       "false",
     );
+    expect(focusSpy).toHaveBeenCalled();
+    focusSpy.mockRestore();
   });
 
   it("renders parent group labels and keeps matching hierarchy during search", async () => {
@@ -176,6 +193,10 @@ describe("Combobox", () => {
     expect(closed.get('[role="combobox"]').attributes("aria-expanded")).toBe(
       "false",
     );
+    await closed.get('[role="combobox"]').trigger("click");
+    expect(closed.get('[role="combobox"]').attributes("aria-expanded")).toBe(
+      "true",
+    );
 
     const open = mount(Combobox, {
       props: { openOnFocus: true, options: [{ label: "A", value: "a" }] },
@@ -185,5 +206,65 @@ describe("Combobox", () => {
     expect(open.get('[role="combobox"]').attributes("aria-expanded")).toBe(
       "true",
     );
+  });
+
+  it("does not expose an active descendant when every leaf is disabled", async () => {
+    const wrapper = mount(Combobox, {
+      props: {
+        options: [
+          { label: "Disabled A", value: "a", disabled: true },
+          { label: "Disabled B", value: "b", disabled: true },
+        ],
+      },
+      global: { stubs, plugins: [i18n] },
+    });
+
+    await wrapper.get('[role="combobox"]').trigger("click");
+
+    expect(wrapper.get('[role="combobox"]').attributes("aria-activedescendant")).toBeUndefined();
+    expect(wrapper.findAll('[data-combobox-option-key]').some((option) => option.classes("bg-accent"))).toBe(false);
+  });
+
+  it("keeps keyboard navigation position while the popup is already open", async () => {
+    const wrapper = mount(Combobox, {
+      props: {
+        options: [
+          { label: "A", value: "a" },
+          { label: "B", value: "b" },
+          { label: "C", value: "c" },
+        ],
+      },
+      global: { stubs, plugins: [i18n] },
+    });
+    const input = wrapper.get('[role="combobox"]');
+
+    await input.trigger("click");
+    await input.trigger("keydown", { key: "ArrowDown" });
+    await input.trigger("keydown", { key: "ArrowDown" });
+
+    expect(input.attributes("aria-activedescendant")).toBe("option-C c");
+  });
+
+  it("does not reopen from openOnFocus while restoring focus after selection", async () => {
+    const wrapper = mount(Combobox, {
+      props: {
+        openOnFocus: true,
+        options: [
+          { label: "A", value: "a" },
+          { label: "B", value: "b" },
+        ],
+      },
+      global: { stubs, plugins: [i18n] },
+    });
+    const input = wrapper.get('[role="combobox"]');
+
+    await input.trigger("click");
+    const optionB = wrapper.findAll("button").find((button) => button.text().includes("B"));
+    expect(optionB).toBeDefined();
+    await optionB!.trigger("click");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await wrapper.vm.$nextTick();
+
+    expect(input.attributes("aria-expanded")).toBe("false");
   });
 });

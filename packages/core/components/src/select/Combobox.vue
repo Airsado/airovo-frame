@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Check, ChevronsUpDown } from '@lucide/vue'
-import { computed, nextTick, ref, type PropType } from 'vue'
+import { computed, nextTick, ref, useId, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cn, InputGroup, InputGroupAddon, InputGroupInput } from '@airovo/uikit-shadcnui'
 import { Command, CommandGroup, CommandItem, CommandList } from '@airovo/uikit-shadcnui/components/ui/command'
@@ -36,8 +36,13 @@ const { t, te } = useI18n({ useScope: 'global' })
 const modelValue = defineModel<string | undefined>()
 const open = ref(false)
 const search = ref('')
-const activeIndex = ref(0)
+const activeIndex = ref(-1)
+const activeDescendant = ref<string | undefined>()
+const restoreFocusOnClose = ref(false)
+const restoringFocus = ref(false)
 const searchInput = ref<{ $el?: HTMLInputElement } | null>(null)
+const popupContent = ref<{ $el?: HTMLElement } | HTMLElement | null>(null)
+const listId = `combobox-list-${useId().replace(/:/g, '')}`
 
 const selectableOptions = computed(() => selectableSelectOptions(props.options))
 const hierarchicalOptions = computed(() => flattenSelectOptions(props.options))
@@ -63,12 +68,64 @@ const resolvedSearchPlaceholder = computed(() => props.searchPlaceholder ?? (te(
 const resolvedEmptyText = computed(() => props.emptyText ?? (te('common.selectEmpty') ? t('common.selectEmpty') : '没有匹配的选项'))
 const triggerLabel = computed(() => props.ariaLabel ?? (te('common.open') ? t('common.open') : '打开'))
 const displayValue = computed(() => open.value ? search.value : selectedLabel.value ?? '')
+const activeOption = computed(() => filteredLeaves.value[activeIndex.value])
+
+function firstEnabledIndex(): number {
+  const index = filteredLeaves.value.findIndex(item => !item.option.disabled)
+  return index
+}
+
+function resetActiveIndex(): void {
+  activeIndex.value = firstEnabledIndex()
+}
+
+function syncActiveDescendant(): boolean {
+  if (!open.value || !activeOption.value || typeof document === 'undefined') {
+    activeDescendant.value = undefined
+    return false
+  }
+  const key = activeOption.value.key.replace(/"/g, '\\"')
+  const content = popupContent.value
+  const root: HTMLElement | null | undefined = content && '$el' in content
+    ? content.$el
+    : content as HTMLElement | null
+  const rootElement = typeof Element !== 'undefined' && root instanceof Element ? root : undefined
+  const listRoot = document.getElementById(listId)
+  const element = listRoot?.querySelector<HTMLElement>(`[data-combobox-option-key="${key}"]`)
+    ?? rootElement?.querySelector<HTMLElement>(`[data-combobox-option-key="${key}"]`)
+    ?? document.querySelector<HTMLElement>(`[data-combobox-option-key="${key}"]`)
+  activeDescendant.value = element?.id || undefined
+  return Boolean(element?.id)
+}
+
+function scheduleActiveDescendantSync(attempt = 0): void {
+  void nextTick(() => {
+    if (syncActiveDescendant() || !open.value || attempt >= 10 || typeof window === 'undefined') return
+    window.setTimeout(() => scheduleActiveDescendantSync(attempt + 1), 20)
+  })
+}
+
+watch(filteredLeaves, resetActiveIndex, { flush: 'sync' })
+watch([open, activeOption, filteredOptions], () => {
+  scheduleActiveDescendantSync()
+}, { flush: 'post' })
 
 function updateOpen(value: boolean): void {
-  open.value = value && !props.disabled
-  activeIndex.value = 0
+  const wasOpen = open.value
+  const nextOpen = value && !props.disabled
+  open.value = nextOpen
+  if (nextOpen && !wasOpen) resetActiveIndex()
   if (!open.value) {
     search.value = ''
+    activeDescendant.value = undefined
+    if (wasOpen && restoreFocusOnClose.value) {
+      restoringFocus.value = true
+      void nextTick(() => {
+        searchInput.value?.$el?.focus()
+        void nextTick(() => { restoringFocus.value = false })
+      })
+    }
+    restoreFocusOnClose.value = false
     return
   }
   void nextTick(() => searchInput.value?.$el?.focus())
@@ -76,12 +133,13 @@ function updateOpen(value: boolean): void {
 
 function select(value: string): void {
   modelValue.value = value
+  restoreFocusOnClose.value = true
   updateOpen(false)
 }
 
 function onSearchInput(value: string): void {
   search.value = value
-  activeIndex.value = 0
+  resetActiveIndex()
 }
 
 function moveActive(delta: number): void {
@@ -91,6 +149,7 @@ function moveActive(delta: number): void {
     next = (next + delta + filteredLeaves.value.length) % filteredLeaves.value.length
     if (!filteredLeaves.value[next]?.option.disabled) {
       activeIndex.value = next
+      scheduleActiveDescendantSync()
       return
     }
   }
@@ -99,6 +158,7 @@ function moveActive(delta: number): void {
 function selectCustom(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
     event.preventDefault()
+    restoreFocusOnClose.value = true
     updateOpen(false)
     return
   }
@@ -139,18 +199,18 @@ function handleGroupInput(event: Event): void {
 }
 
 function handleGroupFocus(event: FocusEvent): void {
-  if (props.openOnFocus && (event.target as HTMLElement).tagName === 'INPUT') updateOpen(true)
+  if (!restoringFocus.value && props.openOnFocus && (event.target as HTMLElement).tagName === 'INPUT') updateOpen(true)
 }
 
 function handleInputFocus(): void {
-  if (props.openOnFocus) updateOpen(true)
+  if (!restoringFocus.value && props.openOnFocus) updateOpen(true)
 }
 </script>
 
 <template>
   <Popover :open="open" @update:open="updateOpen">
     <PopoverAnchor class="block min-w-0">
-      <div class="min-w-0" :class="props.class" @mousedown="handleGroupClick" @input="handleGroupInput" @keydown="selectCustom" @focusin="handleGroupFocus">
+      <div class="min-w-0" :class="props.class" @mousedown="handleGroupClick" @click="handleGroupClick" @input="handleGroupInput" @keydown="selectCustom" @focusin="handleGroupFocus">
         <InputGroup :class="cn('w-full', props.disabled && 'opacity-50')">
           <InputGroupAddon v-if="props.showSelectedIcon && !open && selectedOption?.icon" data-slot="combobox-selected-icon" align="inline-start" aria-hidden="true">
             <Icon :icon="selectedOption.icon" class="size-4" />
@@ -165,6 +225,10 @@ function handleInputFocus(): void {
             :disabled="props.disabled"
             role="combobox"
             :aria-expanded="open"
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            :aria-controls="open ? listId : undefined"
+            :aria-activedescendant="activeDescendant"
             :aria-label="props.ariaLabel"
             :aria-labelledby="props.ariaLabelledby"
             :aria-describedby="props.ariaDescribedby"
@@ -187,8 +251,8 @@ function handleInputFocus(): void {
         </InputGroup>
       </div>
     </PopoverAnchor>
-    <PopoverContent :class="cn('w-(--reka-popover-anchor-width) min-w-48 rounded-lg border-0 p-0 ring-1 ring-foreground/10', props.popupClass)" align="start">
-      <Command>
+    <PopoverContent ref="popupContent" :class="cn('w-(--reka-popover-anchor-width) min-w-[calc(var(--reka-popover-anchor-width)+--spacing(7))] max-h-[min(calc(--spacing(72)),calc(var(--reka-popover-content-available-height)))] overflow-hidden rounded-lg border-0 p-0 shadow-md ring-1 ring-foreground/10', props.popupClass)" align="start">
+      <Command :id="listId">
         <CommandList>
           <div v-if="!filteredLeaves.length" class="py-6 text-center text-sm text-muted-foreground">{{ resolvedEmptyText }}</div>
           <CommandGroup>
@@ -205,10 +269,12 @@ function handleInputFocus(): void {
                 v-else-if="option.option.value !== undefined"
                 :value="`${option.option.label} ${option.option.value}`"
                 :disabled="option.option.disabled"
+                :aria-selected="modelValue === option.option.value"
+                :data-combobox-option-key="option.key"
                 :data-depth="option.depth"
                 :class="cn('relative rounded-md py-1 pr-8 pl-1.5', filteredLeaves[activeIndex]?.key === option.key && 'bg-accent text-accent-foreground')"
                 :style="{ paddingLeft: `${0.375 + option.depth * 0.75}rem` }"
-                @mouseenter="activeIndex = filteredLeaves.findIndex(item => item.key === option.key)"
+                @mouseenter="!option.option.disabled && (activeIndex = filteredLeaves.findIndex(item => item.key === option.key))"
                 @select="select(option.option.value)"
               >
                 <Check v-if="props.showSelectedIcon" :class="cn('size-4 shrink-0', modelValue === option.option.value ? 'opacity-100' : 'opacity-0')" />
