@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Badge, Button, Separator, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@airovo/uikit-shadcnui'
@@ -33,7 +33,35 @@ const selectedText = computed(() => copy('common.selected', '已选择'))
 const clearText = computed(() => copy('common.clearSelection', '清除选择'))
 const clearHint = computed(() => copy('common.clearSelectionWithEscape', '清除选择（Escape）'))
 const toolbarLabel = computed(() => copy('common.bulkActions', `批量操作：${props.selectedCount} 项已选择`, { count: props.selectedCount }))
-const announcement = computed(() => copy('common.bulkAnnouncement', `已选择 ${props.selectedCount} ${entityLabel.value}，可执行批量操作`, { count: props.selectedCount, entity: entityLabel.value }))
+const announcementText = computed(() => copy('common.bulkAnnouncement', `已选择 ${props.selectedCount} ${entityLabel.value}，可执行批量操作`, { count: props.selectedCount, entity: entityLabel.value }))
+const announcement = ref('')
+let announcementTimer: ReturnType<typeof setTimeout> | undefined
+
+function clearAnnouncementTimer(): void {
+  if (announcementTimer !== undefined) {
+    clearTimeout(announcementTimer)
+    announcementTimer = undefined
+  }
+}
+
+function announceSelection(): void {
+  clearAnnouncementTimer()
+  if (props.selectedCount <= 0) {
+    announcement.value = ''
+    return
+  }
+  announcement.value = announcementText.value
+  announcementTimer = setTimeout(() => {
+    announcement.value = ''
+    announcementTimer = undefined
+  }, 3000)
+}
+
+watch([() => props.selectedCount, entityLabel], announceSelection, { immediate: true })
+onBeforeUnmount(() => {
+  clearAnnouncementTimer()
+  announcement.value = ''
+})
 
 function clearSelection(): void {
   emit('clear-selection')
