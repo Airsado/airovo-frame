@@ -79,6 +79,15 @@ describe('DataPanel', () => {
         expect(custom.find('[data-slot="empty-title"]').exists()).toBe(false)
     })
 
+    it('keeps the localized default empty description when no description is provided', () => {
+        const wrapper = mount(DataPanel, {
+            global,
+            props: { empty: true },
+        })
+
+        expect(wrapper.get('[data-slot="data-panel-empty"] [data-slot="empty-description"]').text()).toBe('当前没有数据')
+    })
+
     it('renders ErrorState, emits retry and exposes a scoped error slot callback', async () => {
         const wrapper = mount(DataPanel, {
             global,
