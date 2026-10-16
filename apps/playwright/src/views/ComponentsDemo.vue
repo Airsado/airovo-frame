@@ -1000,7 +1000,7 @@ function sseItemData(item: unknown): unknown {
                     </p>
                     <div class="grid gap-4 md:grid-cols-3">
                         <label class="flex flex-col gap-1.5 text-sm">
-                        <span class="text-xs font-medium text-muted-foreground">渠道（SelectBox）</span>
+                        <span class="text-xs font-medium text-muted-foreground">渠道（SelectBox 父子选项）</span>
                         <SelectBox
                             v-model="selectedProvider"
                             :options="hierarchicalProviderOptions"

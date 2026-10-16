@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { flattenSelectOptions, selectableSelectOptions } from './options'
+import { flattenSelectOptions, groupSelectOptions, selectableSelectOptions } from './options'
 
 describe('select option hierarchy', () => {
     const options = [
@@ -22,5 +22,18 @@ describe('select option hierarchy', () => {
 
     it('keeps only leaf values in selected-label lookup', () => {
         expect(selectableSelectOptions(options).map(option => option.value)).toEqual(['articles', 'videos', 'settings'])
+    })
+
+    it('creates top-level group boundaries while preserving nested labels', () => {
+        const sections = groupSelectOptions([
+            { label: '云服务', children: [{ label: 'OpenAI', value: 'openai' }, { label: '媒体', children: [{ label: '视频', value: 'video' }] }] },
+            { label: '本地', children: [{ label: 'Ollama', value: 'ollama' }] },
+        ])
+        expect(sections.map(section => section.group?.option.label)).toEqual(['云服务', '本地'])
+        expect(sections[0]?.items.map(item => [item.option.label, item.group, item.depth])).toEqual([
+            ['OpenAI', false, 1],
+            ['媒体', true, 1],
+            ['视频', false, 2],
+        ])
     })
 })
