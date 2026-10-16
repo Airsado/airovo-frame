@@ -26,8 +26,12 @@ describe('DrawerLayout', () => {
         expect(wrapper.text()).toContain('操作')
         expect(wrapper.text()).toContain('底部')
         expect(wrapper.get('[data-slot="drawer-content"]').classes()).toContain('h-dvh')
+        expect(wrapper.get('[data-slot="drawer-content"]').classes()).toContain('w-3/4')
+        expect(wrapper.get('[data-slot="drawer-content"]').classes()).toContain('sm:max-w-md')
+        expect(wrapper.get('[data-slot="drawer-content"]').classes()).not.toContain('w-full')
         expect(wrapper.get('[data-slot="drawer-header"]').classes()).toContain('backdrop-blur')
         expect(wrapper.get('[data-slot="drawer-body"]').classes()).toContain('overscroll-contain')
         expect(wrapper.get('[data-slot="drawer-footer"]').classes()).toContain('border-t')
     })
+
 })

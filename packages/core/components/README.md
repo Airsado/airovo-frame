@@ -524,10 +524,12 @@ rendering. This keeps the same query and slot state across responsive layouts.
 
 `DrawerLayout` composes the existing Drawer primitive with a fixed header,
 scrollable body and optional footer. Its right-side layout follows the
-new-api side-drawer surface (`h-dvh`, no extra shadow, backdrop-blurred
-header/footer, overscroll-contained body). It accepts `bottom`/`right` side, title,
-description, `actions`/`footer` slots and class overrides; callers still own
-open state and business actions.
+new-api side-drawer surface (`h-dvh`, `w-3/4` with a `sm:max-w-md` desktop
+bound, no extra shadow, backdrop-blurred header/footer, overscroll-contained
+body). The bottom drawer keeps `max-h-[80vh]` and `mt-24` so it does not cover
+the page content on open. It accepts `bottom`/`right` side, title, description,
+`actions`/`footer` slots and class overrides; callers still own open state and
+business actions.
 
 `DrawerSection`, `DrawerSectionHeader` and `DrawerSwitchItem` provide the
 business-neutral section compositions from new-api's `drawer-layout.ts`.
