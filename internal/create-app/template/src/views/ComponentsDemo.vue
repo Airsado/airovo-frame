@@ -940,7 +940,7 @@ function sseItemData(item: unknown): unknown {
                         <div>
                             <p class="font-medium">Drawer</p>
                             <p class="text-sm text-muted-foreground">
-                                支持底部和右侧抽屉，固定头尾并保持独立可滚动内容区。
+                                支持底部和右侧抽屉，固定头尾并保持独立可滚动内容区；右侧在桌面限制为 28rem，移动端使用 3/4 宽度。
                             </p>
                         </div>
                         <Button class="w-fit" @click="showDrawer = true">打开 Drawer</Button>
@@ -957,7 +957,7 @@ function sseItemData(item: unknown): unknown {
                             </DrawerLayout>
                         </Drawer>
                         <Drawer v-model:open="showRightDrawer">
-                            <DrawerLayout side="right" title="渠道详情" description="右侧 Drawer 适合桌面端详情和编辑面板。">
+                            <DrawerLayout data-testid="drawer-right-demo" side="right" title="渠道详情" description="右侧 Drawer 适合桌面端详情和编辑面板。">
                                 <div class="space-y-3 pb-4">
                                     <DrawerSection>
                                         <DrawerSectionHeader title="请求设置" description="可复用的 new-api 抽屉分区组合" icon="lucide:settings" icon-tone="info" />
