@@ -16,6 +16,24 @@ describe('ChartCard', () => {
         expect(wrapper.text()).not.toContain('暂无图表数据')
     })
 
+    it('forwards a stable chart id and root accessibility contract', () => {
+        const wrapper = mount(ChartCard, {
+            global,
+            props: {
+                id: 'requests-overview',
+                title: '调用趋势',
+                data: { labels: ['一'], datasets: [{ label: '请求', data: [1] }] },
+            },
+        })
+        const chart = wrapper.findComponent(ChartContainer)
+        expect(chart.props('id')).toBe('requests-overview')
+        expect(chart.attributes('data-slot')).toBe('chart')
+        expect(chart.attributes('data-chart')).toBe('chart-requests-overview')
+        expect(chart.attributes('role')).toBe('img')
+        expect(chart.attributes('aria-label')).toBe('调用趋势')
+        expect(chart.classes()).toEqual(expect.arrayContaining(['flex', 'min-w-0', 'justify-center', 'text-xs']))
+    })
+
     it('renders the optional tooltip slot only in the chart state', () => {
         const wrapper = mount(ChartCard, {
             global,

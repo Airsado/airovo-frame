@@ -8,7 +8,7 @@
  * API intentionally matches the official shadcn-vue chart registry
  * component so it's a drop-in replacement.
  */
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -46,6 +46,7 @@ const props = withDefaults(defineProps<{
     data: ChartConfig['data']
     options?: ChartConfig['options']
     config?: ChartSeriesConfigMap
+    id?: string
     class?: string
     height?: number | string
 }>(), {
@@ -54,6 +55,8 @@ const props = withDefaults(defineProps<{
 })
 
 const CompMap = { line: Line, bar: Bar, pie: Pie, doughnut: Doughnut, radar: Radar } as const
+const generatedId = useId().replace(/:/g, '')
+const chartId = computed(() => `chart-${props.id ?? generatedId}`)
 
 const chartData = computed(() => resolveChartColors(props.data as any, props.config))
 const chartOptions = computed(() => ({
@@ -65,7 +68,9 @@ const chartOptions = computed(() => ({
 
 <template>
     <div
-        :class="cn('relative w-full', props.class)"
+        data-slot="chart"
+        :data-chart="chartId"
+        :class="cn('relative flex min-w-0 w-full justify-center text-xs', props.class)"
         :style="{ height: typeof height === 'number' ? `${height}px` : (height as string) }"
     >
         <component

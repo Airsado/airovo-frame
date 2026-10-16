@@ -9,6 +9,7 @@ defineOptions({ name: 'ChartCard' })
 
 const props = withDefaults(defineProps<{
     title: string
+    id?: string
     description?: string
     type?: FrameworkChartType
     data?: FrameworkChartData
@@ -91,7 +92,7 @@ const resolvedLegend = computed<ChartLegendItem[]>(() => props.legend ?? (props.
             <p class="text-sm text-muted-foreground">{{ resolvedEmptyText }}</p>
         </div>
         <template v-else>
-            <ChartContainer class="mt-4" :type="type" :data="chartData" :config="config" :options="chartOptions" :height="height" :aria-label="title" role="img" />
+            <ChartContainer class="mt-4" :id="props.id" :type="type" :data="chartData" :config="config" :options="chartOptions" :height="height" :aria-label="title" role="img" />
             <ChartLegend v-if="resolvedLegend.length" class="mt-3" :items="resolvedLegend" />
             <slot v-if="$slots.tooltip" name="tooltip" :label="tooltipLabel" :items="tooltipItems" />
             <ChartTooltip v-else-if="tooltipLabel || tooltipItems.length" class="mt-3 border-border/50 bg-background shadow-xl" :label="tooltipLabel" :payload="tooltipItems" />
