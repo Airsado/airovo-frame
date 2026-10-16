@@ -192,12 +192,16 @@ compact `h-8 rounded-lg` trigger, anchor-width popup, ring/shadow surface,
 focus token and compact label/item spacing; `allowClear`, disabled and
 overlay-owner behavior remain caller-compatible. `MultiSelect` is
 the chip-style multi-value composition from new-api. Its bordered control
-keeps the chips and a keyboard-searchable input
-in one row, uses the new-api `bg-muted`/`rounded-sm` chip surface and exposes
-the same focus ring, hint marker and `+N more` density pattern. It supports
-search, disabled options, optional custom creation, batch comma/newline input,
-bounded visible chips, hint text and copyable chips while keeping selection
-state caller-owned.
+keeps the chips and a keyboard-searchable input in one row, uses the new-api
+`bg-muted`/`rounded-sm` chip surface and exposes the same focus ring, hint
+marker and `+N more` density pattern. Pass `id` to associate the native input
+with a form label. `renderSelectedSummary(values)` or the `selected-summary`
+slot can replace the chip list with a compact caller-owned summary while
+keeping input and popup behavior unchanged. It supports search, disabled
+options, optional custom creation, batch comma/newline input, bounded visible
+chips, icon/hint text and copyable chips while keeping selection state
+caller-owned. Option icons use Iconify names such as `lucide:cloud` and remain
+decorative through `aria-hidden`.
 Nested labels are indented by depth; `SearchSelect` now reuses the Combobox
 input surface from new-api, so the selected label and search query share one
 control while descendant paths remain visible. Existing flat options keep

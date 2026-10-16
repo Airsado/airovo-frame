@@ -178,6 +178,7 @@ const selectedDateTime = ref<Date>()
 const selectedProvider = ref<string | undefined>('openai')
 const selectedCombobox = ref<string | undefined>()
 const selectedMultiSelect = ref<string[]>(['openai'])
+const multiSelectSummary = (values: string[]) => `${values.length} 个已选`
 const selectedRegion = ref('us-east')
 const searchedProvider = ref<string | undefined>()
 const selectedChannelStatus = ref<string | undefined>()
@@ -1042,7 +1043,7 @@ function sseItemData(item: unknown): unknown {
                         <Combobox v-model="selectedCombobox" :options="hierarchicalProviderOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
                         <span class="text-xs text-muted-foreground">当前值：{{ selectedCombobox ?? '未选择' }}</span>
                         <span class="text-xs font-medium text-muted-foreground">多选渠道（MultiSelect）</span>
-                        <MultiSelect v-model="selectedMultiSelect" :options="[{ label: 'OpenAI', value: 'openai' }, { label: 'Claude', value: 'claude' }, { label: '自定义', value: 'custom' }]" allow-create :max-visible-chips="2" />
+                        <MultiSelect id="demo-multi-select" v-model="selectedMultiSelect" :options="[{ label: 'OpenAI', value: 'openai' }, { label: 'Claude', value: 'claude' }, { label: '自定义', value: 'custom' }]" allow-create :max-visible-chips="2" :render-selected-summary="multiSelectSummary" />
                         <span class="text-xs text-muted-foreground">当前值：{{ selectedMultiSelect.join('、') || '未选择' }}</span>
                         </label>
                     </div>
