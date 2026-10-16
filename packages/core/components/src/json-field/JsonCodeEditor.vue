@@ -41,7 +41,11 @@ const draft = ref(props.modelValue)
 const cursor = ref({ line: 1, column: 1 })
 const status = computed(() => getJsonValidationState(draft.value))
 const lines = computed(() => Math.max(1, draft.value.split('\n').length))
-const resolvedAriaInvalid = computed(() => props.ariaInvalid ?? !status.value.isValid)
+const resolvedAriaInvalid = computed(() => {
+    if (props.ariaInvalid === true || props.ariaInvalid === 'true') return 'true'
+    if (props.ariaInvalid === false || props.ariaInvalid === 'false') return undefined
+    return status.value.isValid ? undefined : 'true'
+})
 
 watch(() => props.modelValue, value => { if (value !== draft.value) draft.value = value })
 onMounted(() => {
@@ -100,16 +104,16 @@ async function copy(): Promise<void> {
 </script>
 
 <template>
-    <div ref="root" class="overflow-hidden rounded-lg border border-input bg-background focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+    <div ref="root" :data-form-root="dataFormRoot" class="overflow-hidden rounded-lg border border-input bg-background transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
         <div class="flex h-8 items-center justify-between border-b bg-muted/30 px-2">
-            <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon icon="lucide:braces" class="size-3.5" /> JSON <span class="font-mono text-muted-foreground/70">{{ cursor.line }}:{{ cursor.column }}</span></div>
+            <div class="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs font-medium"><Icon icon="lucide:braces" class="size-3.5" /> <span>JSON</span> <span class="font-mono text-muted-foreground/70">{{ cursor.line }}:{{ cursor.column }}</span></div>
             <div class="flex items-center gap-2">
                 <span :class="['flex items-center gap-1 text-xs', status.isValid ? 'text-emerald-600' : 'text-destructive']"><Icon :icon="status.isValid ? 'lucide:circle-check' : 'lucide:circle-alert'" class="size-3.5" />{{ status.message }}</span>
                 <Button type="button" variant="ghost" size="sm" class="h-6 px-2 text-xs" :disabled="disabled || !draft" @click="copy"><Icon icon="lucide:copy" class="mr-1 size-3.5" />复制</Button>
                 <Button type="button" variant="ghost" size="sm" class="h-6 px-2 text-xs" :disabled="disabled || !status.isValid || !draft.trim()" @click="format"><Icon icon="lucide:code-2" class="mr-1 size-3.5" />格式化</Button>
             </div>
         </div>
-        <div :class="['relative overflow-hidden bg-background', props.heightClassName]" :style="props.heightClassName ? undefined : { height: props.height }">
+        <div :class="['relative overflow-hidden bg-background has-[textarea:disabled]:bg-input/30 has-[textarea:disabled]:opacity-70', props.heightClassName]" :style="props.heightClassName ? undefined : { height: props.height }">
             <div ref="lineNumberLayer" aria-hidden="true" class="json-code-editor-line-numbers pointer-events-none absolute inset-y-0 left-0 w-9 select-none overflow-hidden border-r bg-muted/20 py-2 text-right font-mono text-xs leading-5 text-muted-foreground/60">
                 <div v-for="line in lines" :key="line" class="pr-2">{{ line }}</div>
             </div>

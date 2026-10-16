@@ -65,5 +65,15 @@ describe('JsonField', () => {
         expect(textarea.attributes('aria-invalid')).toBe('true')
         expect(textarea.attributes('data-form-root')).toBe('settings-form')
         expect(wrapper.attributes('data-form-root')).toBe('settings-form')
+        expect(wrapper.getComponent({ name: 'JsonCodeEditor' }).attributes('data-form-root')).toBe('settings-form')
+    })
+
+    it('matches new-api visual density and uses a template as the JSON placeholder', async () => {
+        const wrapper = mount(JsonField, { global, props: { modelValue: '', template: { endpoint: '/v1' } } })
+        expect(wrapper.classes()).toContain('space-y-2')
+        expect(wrapper.find('.h-24').exists()).toBe(true)
+        await wrapper.findAll('button').find(button => button.text() === 'JSON 模式')?.trigger('click')
+        expect(wrapper.get('textarea').attributes('placeholder')).toContain('endpoint')
+        expect(wrapper.find('.h-10.w-10').exists()).toBe(false)
     })
 })
