@@ -6,7 +6,7 @@
  * Tailwind strings into each page.
  */
 export const staticDataTableClassNames = {
-    container: 'overflow-hidden rounded-md border',
+    container: 'overflow-x-auto overflow-y-hidden rounded-md border',
     sectionContainer: 'border-border/60 rounded-lg',
     embeddedContainer: 'rounded-none border-0',
     compactTable: 'text-sm',
