@@ -30,6 +30,17 @@ try {
     const footerHost = page.locator('[data-slot="section-page-footer-host"]').first()
     assert.ok(await footerHost.count())
     assert.ok((await footerHost.innerText()).includes('SectionPage footer portal'))
+    const desktopFooterStyle = await footerHost.evaluate(element => {
+        const style = getComputedStyle(element)
+        return { background: style.backgroundColor, borderTop: style.borderTopWidth, paddingTop: style.paddingTop, paddingLeft: style.paddingLeft }
+    })
+    assert.notEqual(desktopFooterStyle.background, 'rgba(0, 0, 0, 0)')
+    assert.equal(desktopFooterStyle.borderTop, '1px')
+    assert.equal(desktopFooterStyle.paddingTop, '12px')
+    assert.equal(desktopFooterStyle.paddingLeft, '16px')
+    const footerAction = footerHost.getByRole('button', { name: '保存视图' })
+    await footerAction.focus()
+    assert.equal(await page.evaluate(() => document.activeElement?.textContent), '保存视图')
     const beforeScrollTop = await header.boundingBox()
     await contentScroll.evaluate(element => { element.scrollTop = 500 })
     await page.waitForTimeout(100)
@@ -59,6 +70,12 @@ try {
     const mobileScrollBox = await contentScroll.boundingBox()
     assert.ok(mobileTabsBox && mobileScrollBox && mobileTabsBox.y + mobileTabsBox.height <= mobileScrollBox.y + 2)
     assert.ok((await header.boundingBox())?.width <= 320)
+    const mobileFooterStyle = await footerHost.evaluate(element => {
+        const style = getComputedStyle(element)
+        return { paddingLeft: style.paddingLeft, paddingRight: style.paddingRight }
+    })
+    assert.equal(mobileFooterStyle.paddingLeft, '12px')
+    assert.equal(mobileFooterStyle.paddingRight, '12px')
 
     console.log(JSON.stringify({ baseUrl, desktopSticky: true, tabs: true, footerPortal: true, longScroll: true, lightDark: true, narrow: '320x844' }))
 } finally {

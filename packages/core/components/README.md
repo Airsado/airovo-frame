@@ -524,9 +524,12 @@ page/persistent selection without knowing anything about a business API.
 compact or sticky variants. It owns only layout and styling; page actions remain
 caller-owned.
 
-`PageFooterPortal` can be placed inside `SectionPage` content to render a
-`PageFooter` into the page's stable footer host, keeping it outside the content
-scroll container. Direct `SectionPage` `footer` slots remain supported.
+`PageFooterPortal` can be placed inside `SectionPage` content to render
+pagination or action content into the page's stable new-api footer host,
+keeping it outside the content scroll container. The host owns the
+`bg-background`, top border, responsive `px/py` spacing and `empty:hidden`
+surface; callers can pass a plain row or a `PageFooter`. Direct `SectionPage`
+`footer` slots remain supported.
 
 `SectionPage` keeps the existing sticky title behavior while matching the
 new-api title weight (`font-bold`), responsive action spacing and content

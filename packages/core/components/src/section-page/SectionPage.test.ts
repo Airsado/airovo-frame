@@ -75,8 +75,47 @@ describe('SectionPage', () => {
         })
         await nextTick()
         await nextTick()
-        expect(wrapper.get('[data-slot="section-page-footer-host"]').find('[data-slot="page-footer"]').text()).toContain('状态')
+        const host = wrapper.get('[data-slot="section-page-footer-host"]')
+        expect(host.find('[data-slot="page-footer"]').text()).toContain('状态')
+        expect(host.classes()).toEqual(expect.arrayContaining(['bg-background', 'border-t', 'px-3', 'py-2.5', 'sm:px-4', 'sm:py-3', 'empty:hidden']))
         wrapper.unmount()
+    })
+
+    it('provides the new-api surface for ordinary portal content and keeps an empty host hidden', async () => {
+        const wrapper = mount(SectionPage, {
+            slots: {
+                default: () => h(PageFooterPortal, {}, { default: () => h('button', { type: 'button' }, '保存') }),
+            },
+            attachTo: document.body,
+            global: {
+                plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
+            },
+        })
+        await nextTick()
+        await nextTick()
+        const host = wrapper.get('[data-slot="section-page-footer-host"]')
+        expect(host.find('button').text()).toBe('保存')
+        expect(host.classes()).toContain('empty:hidden')
+        expect(host.find('button').element).toBeInstanceOf(HTMLButtonElement)
+        wrapper.unmount()
+
+        const empty = mount(SectionPage, {
+            global: {
+                plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
+            },
+        })
+        expect(empty.get('[data-slot="section-page-footer-host"]').classes()).toContain('empty:hidden')
+        expect(empty.get('[data-slot="section-page-footer-host"]').text()).toBe('')
+        empty.unmount()
+
+        const direct = mount(SectionPage, {
+            slots: { footer: '<button type="button">直接操作</button>' },
+            global: {
+                plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
+            },
+        })
+        expect(direct.find('footer').classes()).toEqual(expect.arrayContaining(['border-t', 'bg-background', 'px-3', 'py-2.5', 'sm:px-4', 'sm:py-3']))
+        direct.unmount()
     })
 
     it('does not render a footer portal outside SectionPage', () => {

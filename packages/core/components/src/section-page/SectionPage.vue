@@ -53,6 +53,6 @@ withDefaults(defineProps<{
         <footer v-if="$slots.footer" class="shrink-0 border-t bg-background px-3 py-2.5 sm:px-4 sm:py-3">
             <slot name="footer" />
         </footer>
-        <div ref="footerTarget" data-slot="section-page-footer-host" class="shrink-0 empty:hidden" />
+        <div ref="footerTarget" data-slot="section-page-footer-host" class="bg-background shrink-0 border-t px-3 py-2.5 empty:hidden sm:px-4 sm:py-3" />
     </section>
 </template>

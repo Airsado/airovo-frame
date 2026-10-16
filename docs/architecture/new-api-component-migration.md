@@ -68,7 +68,7 @@
 
 `dev` 已合并 ContextMenu 高级组合、DatePicker 秒级时间、TruncatedCell
 slot 文本提取、RowActions/ViewOptions dropdown API、collapsed Sidebar
-parent active、PageFooterPortal、ChartCard 空 dataset 状态、Modal/Drawer layout/
+parent active、PageFooterPortal host surface、ChartCard 空 dataset 状态、Modal/Drawer layout/
 initialFocus、ResponsiveCardList mobile selection、Resizable storageKey、
 Carousel loop/autoplay 和 DataTable querySync subscribe 等后续增量。
 这些能力已有组件测试、demo/template 和部分 Chrome 证据，但完整的
