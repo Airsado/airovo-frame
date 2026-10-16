@@ -110,6 +110,17 @@ describe('CommandMenu', () => {
             await new Promise(resolve => setTimeout(resolve, 0))
 
             expect(document.activeElement).toBe(opener)
+
+            await wrapper.get('[data-command-opener]').trigger('click')
+            await nextTick()
+            await nextTick()
+            await new Promise(resolve => setTimeout(resolve, 0))
+            document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 }))
+            await nextTick()
+            await nextTick()
+            await new Promise(resolve => setTimeout(resolve, 0))
+
+            expect(document.activeElement).toBe(opener)
         } finally {
             wrapper.unmount()
         }
