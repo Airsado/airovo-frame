@@ -12,7 +12,7 @@ import {
     Button,
     Textarea,
 } from '@airovo/uikit-shadcnui'
-import { PasswordInput, SelectBox } from '@airovo/components'
+import { DatePickerField, PasswordInput, SelectBox } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -64,7 +64,10 @@ const componentMap: Record<string, any> = {
     Email: Input,
     select: SelectBox,
     Select: SelectBox,
-    // select, checkbox, radio, textarea, datepicker, ...
+    date: DatePickerField,
+    DatePicker: DatePickerField,
+    datetime: DatePickerField,
+    DateTimePicker: DatePickerField,
 }
 const TEXT_INPUT_COMPONENTS = new Set([
     'input', 'Input',
@@ -76,6 +79,10 @@ const TEXT_INPUT_COMPONENTS = new Set([
 const INPUT_TYPES: Record<string, string | undefined> = {
     Number: 'number', number: 'number',
     Email: 'email', email: 'email',
+}
+const DATE_TYPES: Record<string, 'date' | 'datetime' | undefined> = {
+    DatePicker: 'date', date: 'date',
+    DateTimePicker: 'datetime', datetime: 'datetime',
 }
 
 function isTextInput(component: FormFieldSchema['component']): boolean {
@@ -108,7 +115,7 @@ function getExtraProps(item: FormFieldSchema): Record<string, unknown> {
         ...userProps,
         placeholder: userProps.placeholder ?? defaultPlaceholder,
         type: userProps.type ?? (typeof item.component === 'string'
-            ? INPUT_TYPES[item.component]
+            ? DATE_TYPES[item.component] ?? INPUT_TYPES[item.component]
             : undefined),
     }
 }
