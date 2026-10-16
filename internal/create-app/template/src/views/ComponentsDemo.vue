@@ -4,6 +4,7 @@ import {
     DataPanel,
     CommandMenu,
     DataTable,
+    StaticDataTable,
     TruncatedCell,
     TruncatedText,
     DataTableBulkActions,
@@ -40,6 +41,7 @@ import {
     FrameworkTooltip,
     FrameworkCalendar,
     type DataTableColumn,
+    type StaticDataTableColumn,
     type DataTableColumnPinning,
     type DataTableFilterGroup,
     type DataTableFetcher,
@@ -341,6 +343,15 @@ const coreTableColumns: DataTableColumn[] = [
     { key: 'name', title: '组件', sortable: true },
     { key: 'category', title: '类别', sortable: true },
     { key: 'purpose', title: '用途' },
+]
+const staticTableRows = [
+    { id: 'local-1', name: '本地配置', value: '启用', owner: '平台组' },
+    { id: 'local-2', name: '缓存策略', value: '按需', owner: '基础设施组' },
+]
+const staticTableColumns: StaticDataTableColumn<typeof staticTableRows[number]>[] = [
+    { id: 'name', header: '配置项', cell: (row) => row.name, cellClassName: 'font-medium' },
+    { id: 'value', header: '值', cell: (row) => row.value },
+    { id: 'owner', header: '维护组', cell: (row) => row.owner, cellClassName: 'text-muted-foreground' },
 ]
 const serverTableRows = Array.from({ length: 37 }, (_, index) => ({
     id: index + 1,
@@ -1183,6 +1194,22 @@ function sseItemData(item: unknown): unknown {
                         <template #empty-action><Button size="sm" variant="outline">清除筛选</Button></template>
                     </DataTable>
                 </DataPanel>
+            </section>
+
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-lg font-semibold">StaticDataTable 本地数据表格</h2>
+                    <p class="text-xs text-muted-foreground">适合不需要请求、分页或选择状态的本地数组；长文本单元格会复用 new-api tooltip。</p>
+                </div>
+                <StaticDataTable data-testid="static-datatable-demo" :columns="staticTableColumns" :data="staticTableRows">
+                    <template #row="{ row, index }">
+                        <TableRow :data-row-index="index">
+                            <TableCell class="font-medium">{{ row.name }}</TableCell>
+                            <TableCell>{{ row.value }}</TableCell>
+                            <TableCell class="text-muted-foreground">{{ row.owner }}</TableCell>
+                        </TableRow>
+                    </template>
+                </StaticDataTable>
             </section>
 
             <section class="space-y-4">
