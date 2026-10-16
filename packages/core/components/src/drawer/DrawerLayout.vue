@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<{
 </script>
 
 <template>
-    <DrawerContent :side="props.side" :show-handle="props.showHandle" :class="[props.side === 'right' && 'h-dvh w-full gap-0 overflow-hidden p-0 shadow-none', props.class]">
+    <DrawerContent :side="props.side" :show-handle="props.showHandle" :class="[props.side === 'right' && 'h-dvh w-3/4 sm:max-w-md gap-0 overflow-hidden p-0 shadow-none', props.class]">
         <DrawerHeader v-if="$slots.header || props.title || props.description" :class="['border-border/70 bg-background/95 border-b px-4 py-3 text-start backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6 sm:py-4', props.headerClass]">
             <slot name="header">
                 <div class="flex items-start justify-between gap-3">

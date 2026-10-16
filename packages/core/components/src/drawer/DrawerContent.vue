@@ -31,7 +31,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         'bg-background text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col overflow-hidden text-sm shadow-lg outline-none will-change-transform duration-200',
         props.side === 'right'
           ? 'inset-y-0 right-0 h-full w-[min(100%,28rem)] max-w-[90vw] rounded-l-xl border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right'
-          : 'inset-x-0 bottom-0 max-h-[80vh] rounded-t-xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
+          : 'inset-x-0 bottom-0 mt-24 max-h-[80vh] rounded-t-xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
         props.class,
       )"
     >
