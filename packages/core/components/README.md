@@ -103,6 +103,14 @@ static row-action pattern. Icon-only actions use the `icon-sm` ghost button
 contract; dropdown actions preserve `permission`, `visible`, `loading` and
 `variant="destructive"` state ownership with the caller.
 
+`StaticRowActions` is the direct new-api static composition: an edit
+`icon-sm` ghost button and an ellipsis menu with a `w-48` destructive delete
+item. It accepts `editLabel`, `deleteLabel`, `menuLabel`, optional edit/delete
+callbacks, independent disabled props, `contentClass`, and `modal`; it emits
+`edit`, `delete`, and `menu-open-change` as well. It has no row type, request,
+permission, or business dependency, so callers can use it in a channel-style
+table or provide their own authorization before rendering.
+
 ## LiveLog and follow-tail
 
 The useFollowTail composable and LiveLog component keep auto-scroll in the

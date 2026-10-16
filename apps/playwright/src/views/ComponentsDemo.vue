@@ -9,6 +9,7 @@ import {
     DataTableBulkActions,
     DataTablePage,
     DataTableRowActions,
+    StaticRowActions,
     DataTableToolbar,
     ChartCard,
     useDataTable,
@@ -1254,6 +1255,10 @@ function sseItemData(item: unknown): unknown {
                     </DataTableBulkActions>
                     <p class="px-4 pb-1 text-xs text-muted-foreground">当前演示默认只保留当前页选择；“模拟错误”会让下一次请求失败，表格内重试后恢复。分页、排序和筛选会同步到 URL query，刷新后可恢复。</p>
                     <p class="px-4 pb-3 text-xs text-muted-foreground">{{ batchActionResult }}</p>
+                    <div class="flex items-center justify-between border-t px-4 py-3">
+                        <span class="text-xs text-muted-foreground">StaticRowActions：编辑按钮与 destructive 删除菜单</span>
+                        <StaticRowActions edit-label="编辑记录" delete-label="删除记录" menu-label="更多操作" @edit="batchActionResult = '编辑静态行'" @delete="batchActionResult = '删除静态行'" />
+                    </div>
                 </DataPanel>
             </section>
 
