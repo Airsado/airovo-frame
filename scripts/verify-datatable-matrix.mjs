@@ -21,6 +21,13 @@ try {
     const table = page.locator('table').filter({ has: page.locator('.data-table-row') }).first()
     assert.ok(await table.count())
     assert.ok(await table.locator('.data-table-row').count())
+    const serverSection = page.getByRole('heading', { name: 'DataTable 服务端查询演示' }).locator('xpath=ancestor::section[1]')
+    const truncatedTrigger = serverSection.locator('[data-slot="tooltip-trigger"]').filter({ hasText: '演示渠道 01' }).first()
+    assert.ok(await truncatedTrigger.count())
+    assert.ok((await truncatedTrigger.getAttribute('class')).includes('truncate'))
+    await truncatedTrigger.hover()
+    await page.waitForTimeout(350)
+    assert.ok((await page.locator('[data-slot="tooltip-content"]').last().innerText()).includes('完整名称'))
 
     const viewTrigger = page.locator('[data-slot="data-table-view-options-trigger"]').first()
     assert.ok(await viewTrigger.count())
@@ -43,6 +50,9 @@ try {
 
     await page.getByRole('button', { name: '切换主题' }).click()
     assert.equal(await page.locator('html').evaluate(element => element.classList.contains('dark')), true)
+    await truncatedTrigger.hover()
+    await page.waitForTimeout(150)
+    assert.ok((await page.locator('[data-slot="tooltip-content"]').last().innerText()).includes('完整名称'))
 
     await page.setViewportSize({ width: 390, height: 844 })
     await page.waitForTimeout(400)

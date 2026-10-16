@@ -283,8 +283,10 @@ the Tab order by default, matching new-api; pass `tabIndex=0` when a caller
 needs keyboard focus for the tooltip. The tooltip exposes the full text.
 `TruncatedCell` extracts text from string, number, array,
 and ordinary VNode slots when `text` is omitted; pass `tooltipContent` to
-override the extracted value for badges or custom rendering. Empty text does
-not create an empty tooltip. The new-api `cellClassName`, `contentClassName`
+override the extracted value for plain text, or use the named `tooltip` slot
+for rich Vue content such as badges and code fragments. The slot receives
+`{ text }` with the extracted tooltip text. Empty text does not create an empty
+tooltip. The new-api `cellClassName`, `contentClassName`
 and `tooltipClassName` names are also accepted as aliases for the Vue `class`,
 `contentClass` and `tooltipClass` props; aliases are merged rather than
 replacing existing Vue props.
