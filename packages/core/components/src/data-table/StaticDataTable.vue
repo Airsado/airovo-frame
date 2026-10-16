@@ -105,7 +105,6 @@ function cellText(content: VNodeChild): string | null {
         <Table
             v-bind="props.tableProps"
             :class="resolvedTableClass"
-            :with-container="false"
             data-slot="static-data-table"
         >
             <template v-if="dataProps">

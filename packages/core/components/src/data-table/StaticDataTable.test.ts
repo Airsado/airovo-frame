@@ -39,10 +39,13 @@ describe('StaticDataTable', () => {
         ]))
         expect(wrapper.get('[data-slot="static-data-table-container"]').classes()).toContain('container-extra')
         expect(wrapper.get('[data-slot="static-data-table-container"]').attributes('data-container')).toBe('yes')
-        expect(wrapper.get('[data-slot="static-data-table"]').classes()).toContain('table-extra')
-        expect(wrapper.get('[data-slot="static-data-table"]').classes()).toContain('table-prop-extra')
+        expect(wrapper.get('[data-slot="static-data-table"]').classes()).toEqual(expect.arrayContaining([
+            'relative', 'overflow-x-auto', 'overflow-y-hidden',
+        ]))
         expect(wrapper.get('[data-slot="static-data-table"]').attributes('data-table-prop')).toBe('yes')
-        expect(wrapper.get('[data-slot="static-data-table"]').attributes('data-slot')).toBe('static-data-table')
+        expect(wrapper.get('[data-slot="table"]').classes()).toContain('table-extra')
+        expect(wrapper.get('[data-slot="table"]').classes()).toContain('table-prop-extra')
+        expect(wrapper.get('[data-slot="table"]').attributes('data-slot')).toBe('table')
         expect(wrapper.findAll('thead th').map((item) => item.text())).toEqual(['名称', '状态'])
         expect(wrapper.findAll('tbody tr')).toHaveLength(2)
         expect(wrapper.text()).toContain('Alpha')
@@ -83,12 +86,6 @@ describe('StaticDataTable', () => {
 
         expect(wrapper.find('[data-slot="static-data-table-empty-row"]').exists()).toBe(false)
         expect(wrapper.findAll('tbody tr')).toHaveLength(0)
-    })
-
-    it('allows an explicit empty=false to suppress the generated empty row', () => {
-        const wrapper = mountTable({ data: [], empty: false })
-
-        expect(wrapper.find('[data-slot="static-data-table-empty-row"]').exists()).toBe(false)
     })
 
     it('supports children mode for pre-composed table content', () => {
