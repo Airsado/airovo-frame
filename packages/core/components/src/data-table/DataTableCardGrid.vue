@@ -59,7 +59,9 @@ const resolvedEmptyDescription = computed(() => props.emptyDescription ?? copy('
 const loadingText = computed(() => copy('common.loading', '加载中…'))
 const resolvedErrorText = computed(() => props.errorText ?? copy('common.errorLoading', '加载失败'))
 const retryText = computed(() => copy('common.retry', '重试'))
-const selectRowText = computed(() => copy('common.selectRow', '选择第 {index} 行'))
+function selectRowText(index: number): string {
+    return te('common.selectRow') ? t('common.selectRow', { index: index + 1 }) : `选择第 ${index + 1} 行`
+}
 
 const internalSelectedKeys = ref<DataTableRowKey[]>([...(props.selectedKeys ?? [])])
 const currentSelectedKeys = computed(() => props.selectedKeys ?? internalSelectedKeys.value)
@@ -171,7 +173,7 @@ watch(visibleKeySet, () => {
                     <template v-else>
                         <div v-if="compact" class="flex items-center justify-between gap-2">
                             <div class="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium">
-                                <input v-if="props.selectable" type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="selectRowText.replace('{index}', String(index + 1))" @change="toggleRow(row, index)">
+                                <input v-if="props.selectable" type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="selectRowText(index)" @change="toggleRow(row, index)">
                                 <slot v-if="directSlotFor(titleColumn)" :name="`cell-${titleColumn?.key}`" :row="row" :value="cellValue(row, titleColumn, index)" :index="index" />
                                 <component v-else-if="propSlotFor(titleColumn)" :is="propSlotFor(titleColumn)" :row="row" :value="cellValue(row, titleColumn, index)" :index="index" />
                                 <template v-else>{{ titleColumn ? displayValue(row, titleColumn, index) : '' }}</template>
@@ -183,7 +185,7 @@ watch(visibleKeySet, () => {
                             </div>
                         </div>
                         <div v-if="!compact && props.selectable" class="mb-1 flex justify-end">
-                            <input type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="selectRowText.replace('{index}', String(index + 1))" @change="toggleRow(row, index)">
+                            <input type="checkbox" :checked="selected.includes(rowKey(row, index))" :aria-label="selectRowText(index)" @change="toggleRow(row, index)">
                         </div>
                         <div v-if="compact && fieldColumns.length" class="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
                             <div v-for="column in fieldColumns" :key="column.key" class="min-w-0 overflow-hidden">

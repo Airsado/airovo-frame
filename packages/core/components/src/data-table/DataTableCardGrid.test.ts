@@ -59,6 +59,7 @@ describe('DataTableCardGrid', () => {
     expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: Number.NaN }], columns } })).toThrow(/stable row key/i)
     expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: Number.POSITIVE_INFINITY }], columns } })).toThrow(/stable row key/i)
     expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: 1 }, { id: 1 }], columns } })).toThrow(/unique/i)
+    expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: 1 }, { id: '1' }], columns } })).toThrow(/unique/i)
 
     const reorderRows: Row[] = [
       rows[0],
@@ -83,6 +84,11 @@ describe('DataTableCardGrid', () => {
     expect(wrapper.get('[role="alert"]').text()).toContain('加载失败')
     await wrapper.get('[role="alert"] button').trigger('click')
     expect(wrapper.emitted('retry')).toHaveLength(1)
+  })
+
+  it('interpolates the localized row selection label', () => {
+    const wrapper = mount(DataTableCardGrid, { global, props: { rows, columns, selectable: true } })
+    expect(wrapper.get('input[type="checkbox"]').attributes('aria-label')).toBe('选择第 1 行')
   })
 
   it('allows a custom card slot while exposing the row selection helper', async () => {

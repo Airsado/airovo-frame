@@ -14,11 +14,15 @@ export function resolveDataTableRowKey(value: unknown): DataTableRowKey {
 }
 
 export function assertUniqueDataTableRowKeys(keys: DataTableRowKey[]): void {
-    const duplicates = new Set<DataTableRowKey>()
-    const seen = new Set<DataTableRowKey>()
+    // Both table renderers use String(key) for Vue's DOM key. Treat numeric
+    // and string values with the same rendered identity as duplicates too;
+    // otherwise `1` and `'1'` would pass this check and collide in the DOM.
+    const duplicates = new Set<string>()
+    const seen = new Set<string>()
     for (const key of keys) {
-        if (seen.has(key)) duplicates.add(key)
-        seen.add(key)
+        const renderedKey = String(key)
+        if (seen.has(renderedKey)) duplicates.add(renderedKey)
+        seen.add(renderedKey)
     }
     if (duplicates.size > 0) {
         throw new Error(`DataTable row keys must be unique: ${[...duplicates].join(', ')}`)
