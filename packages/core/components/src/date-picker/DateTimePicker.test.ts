@@ -17,7 +17,7 @@ describe('DateTimePicker time and controlled state', () => {
     it('keeps seconds and does not mutate the caller Date when changing time', async () => {
         const initial = new Date(2024, 0, 2, 3, 4, 5)
         const wrapper = mount(DateTimePicker, { props: { modelValue: initial }, global })
-        const input = wrapper.get('input[type="time"]')
+        const input = wrapper.findComponent(Input)
         expect((input.element as HTMLInputElement).value).toBe('03:04:05')
         expect(input.attributes('step')).toBe('1')
 
@@ -103,5 +103,39 @@ describe('DateTimePicker time and controlled state', () => {
         await wrapper.setProps({ modelValue: new Date(2024, 0, 4, 11, 12, 13) })
         expect(input.attributes('aria-invalid')).toBeUndefined()
         expect((input.element as HTMLInputElement).value).toBe('11:12:13')
+    })
+
+    it('blocks time edits for a controlled date outside the explicit range', async () => {
+        const wrapper = mount(DateTimePicker, {
+            props: {
+                modelValue: new Date(2024, 0, 2, 3, 4, 5),
+                minDate: new Date(2024, 0, 3),
+                maxDate: new Date(2024, 0, 5),
+            },
+            global,
+        })
+        const input = wrapper.findComponent(Input)
+        expect((input.element as HTMLInputElement).disabled).toBe(true)
+        expect(input.attributes('aria-invalid')).toBe('true')
+
+        await input.vm.$emit('update:modelValue', '07:08:09')
+        expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    it('allows edits on inclusive min/max date boundaries', async () => {
+        const wrapper = mount(DateTimePicker, {
+            props: {
+                modelValue: new Date(2024, 0, 3, 3, 4, 5),
+                minDate: new Date(2024, 0, 3),
+                maxDate: new Date(2024, 0, 3),
+            },
+            global,
+        })
+        const input = wrapper.findComponent(Input)
+        expect((input.element as HTMLInputElement).disabled).toBe(false)
+        await input.vm.$emit('update:modelValue', '07:08:09')
+        const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as Date
+        expect(emitted.getDate()).toBe(3)
+        expect(emitted.getHours()).toBe(7)
     })
 })
