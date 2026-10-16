@@ -47,4 +47,35 @@ describe('TruncatedCell', () => {
         expect(wrapper.text()).toContain('first')
         expect(wrapper.text()).toContain('second')
     })
+
+    it('renders rich tooltip content through the Vue tooltip slot', () => {
+        const wrapper = mount(TruncatedCell, {
+            props: { text: 'display' },
+            slots: {
+                default: () => h('span', 'display'),
+                tooltip: (slotProps: { text: string }) => h('strong', { class: 'rich-tooltip' }, `${slotProps.text} · full`),
+            },
+            global: {
+                stubs: {
+                    TooltipProvider: { template: '<div><slot /></div>' },
+                    Tooltip: { template: '<div><slot /></div>' },
+                    TooltipTrigger: { template: '<div data-slot="tooltip-trigger"><slot /></div>' },
+                    TooltipContent: { template: '<div data-slot="tooltip-content"><slot /></div>' },
+                },
+            },
+        })
+
+        expect(wrapper.find('[data-slot="tooltip-trigger"]').exists()).toBe(true)
+        expect(wrapper.get('.rich-tooltip').text()).toBe('display · full')
+    })
+
+    it('does not create a tooltip for an icon-only or empty default slot', () => {
+        const wrapper = mount(TruncatedCell, {
+            slots: {
+                default: () => h('svg'),
+                tooltip: () => h('strong', 'full value'),
+            },
+        })
+        expect(wrapper.find('[data-slot="tooltip-trigger"]').exists()).toBe(false)
+    })
 })

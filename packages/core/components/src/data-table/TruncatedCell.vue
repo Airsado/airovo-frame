@@ -37,7 +37,10 @@ const content = computed(() => props.tooltipContent !== undefined
                     <div :class="['truncate', props.contentClass, props.contentClassName]"><slot>{{ text }}</slot></div>
                 </div>
             </TooltipTrigger>
-            <TooltipContent :side="side" :class="['max-w-xs break-all', props.tooltipClass, props.tooltipClassName]">{{ content }}</TooltipContent>
+            <TooltipContent :side="side" :class="['max-w-xs break-all', props.tooltipClass, props.tooltipClassName]">
+                <slot v-if="$slots.tooltip" name="tooltip" :text="content">{{ content }}</slot>
+                <template v-else>{{ content }}</template>
+            </TooltipContent>
         </Tooltip>
     </TooltipProvider>
     <div v-else :class="['block min-w-0 max-w-full truncate', props.class, props.cellClassName]" :tabindex="tabIndex">

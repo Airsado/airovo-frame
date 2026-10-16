@@ -38,8 +38,8 @@
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 缺口 | 优先级 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `web/src/components/truncated-text.tsx` | TruncatedText | `packages/core/components/src/data-table/TruncatedText.vue` | 已存在但行为不完整 | 长文本抽取、tooltip、键盘焦点和空值语义需继续对照 | P1 | 单测、DataTable demo、键盘/hover 验证 |
-| `web/src/components/data-table/core/truncated-cell.tsx` | TruncatedCell | `packages/core/components/src/data-table/TruncatedCell.vue` | 已存在但行为不完整 | badge/VNode 文本抽取、列宽和 tooltip 内容需继续对照 | P1 | 单测、DataTable 浏览器验证 |
+| `web/src/components/truncated-text.tsx` | TruncatedText | `packages/core/components/src/data-table/TruncatedText.vue` | 已存在但行为不完整 | 已保留长文本抽取、tooltip、键盘焦点和空值语义；富内容 tooltip slot 与完整 DataTable 组合矩阵仍需持续对照 | P1 | 单测、DataTable demo、键盘/hover 验证 |
+| `web/src/components/data-table/core/truncated-cell.tsx` | TruncatedCell | `packages/core/components/src/data-table/TruncatedCell.vue` | 已存在但行为不完整 | 已增加 Vue `#tooltip` 富内容 slot，并保留 badge/VNode 文本抽取、列宽和 tooltip 内容；跨浏览器矩阵仍需持续对照 | P1 | 单测、DataTable 浏览器验证 |
 | `web/src/components/multi-select.tsx` | MultiSelect | `packages/core/components/src/select/MultiSelect.vue` | 已存在但行为不完整 | 已补 chip 多选、搜索、disabled、allowCreate、批量输入、maxVisibleChips、hint/icon、copy chip；远程异步搜索和复杂跨浏览器矩阵另立 Issue | P1 | 单测、demo/template、Chrome 交互验证 |
 | `web/src/components/layout/components/page-footer.tsx` | PageFooter | `packages/core/components/src/section-page/PageFooter.vue` | 已存在但行为不完整 | 已对齐 SectionPage portal host 的 new-api `bg/border/px/py/empty` surface，并保留 sticky/compact；仍需完整 footer action 组合矩阵 | P2 | 单测、SectionPage 浏览器验证 |
 | `web/src/components/config-drawer.tsx` | ConfigDrawer | `packages/core/layouts` / app preference composition | 业务组件，不迁移 | 依赖 new-api 业务偏好和应用状态；仅迁移通用 Drawer/表单/设置项组合能力 | P2 | 记录边界，不迁移业务实现 |

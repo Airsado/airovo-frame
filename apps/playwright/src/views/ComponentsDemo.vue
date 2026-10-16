@@ -1237,7 +1237,12 @@ function sseItemData(item: unknown): unknown {
                                 @update:page-size="serverTable.setPageSize"
                                 @retry="serverTable.retry"
                             >
-                                <template #cell-name="{ value }"><TruncatedCell class="max-w-40"><span class="font-medium">{{ value }}</span></TruncatedCell></template>
+                                <template #cell-name="{ value }">
+                                    <TruncatedCell class="max-w-40">
+                                        <span class="font-medium">{{ value }}</span>
+                                        <template #tooltip><span class="font-mono">{{ value }} · 完整名称</span></template>
+                                    </TruncatedCell>
+                                </template>
                                 <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
                                 <template #actions="{ row }">
                                     <DataTableRowActions dropdown-aria-label="渠道行操作" dropdown-content-class="w-56" :row="row" :actions="[{ key: 'view', label: '查看', icon: 'lucide:eye', iconOnly: true, ariaLabel: '查看渠道', onSelect: () => { batchActionResult = `打开记录 ${String(row.id)}` } }, { key: 'sync', label: '同步', loading: () => row.id === 1, onSelect: () => { batchActionResult = `同步记录 ${String(row.id)}` } }]" :dropdown-actions="[{ key: 'copy', label: '复制 ID', icon: 'lucide:copy', onSelect: () => { batchActionResult = `复制记录 ${String(row.id)}` } }]" />
