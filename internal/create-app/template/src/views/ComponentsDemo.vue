@@ -161,6 +161,11 @@ function onAdd() {
     globalThis.alert('新增')
 }
 
+function retryDataPanel() {
+    dataPanelRetryCount.value += 1
+    dataPanelState.value = 'ready'
+}
+
 defineOptions({ name: 'ComponentsDemo' })
 
 const showResult = ref(false)
@@ -169,6 +174,8 @@ const showDialog = ref(false)
 const showAlertDialog = ref(false)
 const showDrawer = ref(false)
 const showRightDrawer = ref(false)
+const dataPanelState = ref<'loading' | 'empty' | 'error' | 'ready'>('loading')
+const dataPanelRetryCount = ref(0)
 const commandMenuOpen = ref(false)
 const selectedCommand = ref('尚未选择')
 const contextMenuPinned = ref(true)
@@ -731,6 +738,27 @@ function sseItemData(item: unknown): unknown {
                     <div data-testid="loading-state-block" class="bg-card"><LoadingState message="正在加载渠道…" size="lg" /></div>
                     <div data-testid="loading-state-inline" class="flex items-center bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
                     <div data-testid="loading-state-inline-empty" class="flex items-center gap-2 bg-card p-4"><span class="text-xs text-muted-foreground">inline 无文案</span><LoadingState inline size="sm" /></div>
+                </div>
+                <h2 class="text-lg font-semibold">DataPanel 状态组合</h2>
+                <div data-testid="data-panel-state-demo" class="space-y-3">
+                    <div class="flex flex-wrap gap-2" role="group" aria-label="DataPanel 状态">
+                        <Button size="sm" :variant="dataPanelState === 'loading' ? 'default' : 'outline'" @click="dataPanelState = 'loading'">加载中</Button>
+                        <Button size="sm" :variant="dataPanelState === 'empty' ? 'default' : 'outline'" @click="dataPanelState = 'empty'">空数据</Button>
+                        <Button size="sm" :variant="dataPanelState === 'error' ? 'default' : 'outline'" @click="dataPanelState = 'error'">错误</Button>
+                        <Button size="sm" :variant="dataPanelState === 'ready' ? 'default' : 'outline'" @click="dataPanelState = 'ready'">正常内容</Button>
+                    </div>
+                    <DataPanel
+                        :loading="dataPanelState === 'loading'"
+                        :empty="dataPanelState === 'empty'"
+                        :error="dataPanelState === 'error' ? 'demo-error' : undefined"
+                        error-text="服务暂时不可用，请稍后重试。"
+                        show-retry
+                        @retry="retryDataPanel"
+                    >
+                        <template #toolbar><span class="text-sm font-medium">可切换的状态面板</span></template>
+                        <div data-testid="data-panel-ready" class="p-6 text-sm">状态正常，已加载 {{ dataPanelRetryCount }} 次重试后的内容。</div>
+                    </DataPanel>
+                    <p class="text-xs text-muted-foreground" aria-live="polite">当前状态：{{ dataPanelState }} · 重试次数：{{ dataPanelRetryCount }}</p>
                 </div>
                 <h2 class="text-lg font-semibold">Menubar primitive</h2>
                 <Menubar>
