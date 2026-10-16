@@ -43,7 +43,8 @@ describe('JsonCodeEditor', () => {
         expect(textarea.attributes('name')).toBe('config')
         expect(textarea.attributes('aria-describedby')).toBe('config-help')
         expect(textarea.attributes('data-form-root')).toBe('settings-form')
-        expect(textarea.attributes('aria-invalid')).toBe('false')
+        expect(textarea.attributes('aria-invalid')).toBeUndefined()
+        expect(wrapper.attributes('data-form-root')).toBe('settings-form')
     })
 
     it('exposes the inner textarea and honors an explicit aria-invalid state', () => {

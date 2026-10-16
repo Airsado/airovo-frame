@@ -649,7 +649,7 @@ async function openTagDialog(): Promise<void> {
 
             <section class="rounded-xl border bg-card p-4 sm:p-5">
                 <h2 class="text-lg font-semibold">JsonField 回填与可视化编辑</h2>
-                <p class="mt-1 text-sm text-muted-foreground">表单只绑定 JSON 字符串，用户可以用键值行编辑或切换原始 JSON 模式。</p>
+                <p class="mt-1 text-sm text-muted-foreground">表单只绑定 JSON 字符串，用户可以用键值行编辑或切换原始 JSON 模式；模板会同时作为 JSON 编辑器的占位提示。</p>
                 <JsonField v-model="jsonFieldValue" class="mt-4" :template="{ endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'demo' } }" value-type="any" nested />
                 <pre class="mt-3 max-h-40 overflow-auto rounded-lg bg-muted/60 p-3 text-xs">{{ jsonFieldValue }}</pre>
                 <div class="mt-6 border-t border-border/70 pt-5">

@@ -29,7 +29,9 @@ try {
     assert.ok(await editor.count())
     assert.ok(await editor.getAttribute('id'))
     assert.ok(await editor.getAttribute('name'))
-    assert.equal(await editor.getAttribute('aria-invalid'), 'false')
+    // new-api removes aria-invalid from a valid native control; the form
+    // wrapper may still carry its own validation marker.
+    assert.equal(await editor.getAttribute('aria-invalid'), null)
     await editor.fill('{"broken":}')
     await page.waitForTimeout(100)
     assert.ok((await jsonField.innerText()).includes('JSON 格式无效'))

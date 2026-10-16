@@ -145,19 +145,25 @@ the value from the document root theme and falls back to `color`.
 
 `JsonField` keeps JSON-backed form values readable for end users. Visual mode
 edits top-level key/value rows, JSON mode edits the formatted string, and both
-use the same `v-model` string. `template` provides a one-click backfill,
-`valueType` can be `string`, `number`, or `any`, and `parse-error` reports an
-invalid raw draft without discarding it. It can be passed as a component object
-in a `FormFieldSchema`; the form owns the field path and submission lifecycle,
-while `JsonField` owns JSON serialization and visual editing.
+use the same `v-model` string. `template` provides a one-click backfill and the
+formatted template is also used as the JSON-mode placeholder; pass `placeholder`
+to override it. `valueType` can be `string`, `number`, or `any`, and
+`parse-error` reports an invalid raw draft without discarding it. It can be
+passed as a component object in a `FormFieldSchema`; the form owns the field
+path and submission lifecycle, while `JsonField` owns JSON serialization and
+visual editing.
 Default labels, placeholders, mode actions, empty text and field action
 labels use the global `common.json*`/`common.*` locale keys; explicit props
 remain authoritative.
 When the component receives form attributes such as `id`, `name`,
 `aria-describedby`, `aria-invalid` or `data-form-root`, JsonField forwards them
 to the actual JsonCodeEditor textarea in JSON mode while retaining the
-`data-form-root` marker on its wrapper. This keeps labels and validation tied to
-the native control instead of the visual composition container.
+`data-form-root` marker on both composition surfaces. This keeps labels and
+validation tied to the native control instead of the visual composition
+container. The visual editor follows new-api's compact `space-y-2` layout,
+`h-10 w-10` row actions and `h-24` dashed empty surface. JsonCodeEditor keeps
+the `rounded-lg` bordered surface, `h-8` toolbar and disabled overlay while
+preserving invalid drafts.
 
 ## Select option hierarchy
 

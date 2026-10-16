@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<{
     keyPlaceholder?: string
     valuePlaceholder?: string
     emptyText?: string
+    placeholder?: string
     class?: string
 }>(), {
     modelValue: '',
@@ -54,6 +55,7 @@ const fillTemplateText = computed(() => copy('common.fillTemplate', '回填模�
 const formatText = computed(() => copy('common.format', '格式化'))
 const deleteFieldText = computed(() => copy('common.deleteField', '删除字段'))
 const addFieldText = computed(() => copy('common.addField', '添加字段'))
+const jsonPlaceholder = computed(() => props.placeholder ?? (props.template ? JSON.stringify(props.template, null, 2) : '{"key": "value"}'))
 
 const mode = ref<'visual' | 'json'>('visual')
 const rootAttrs = computed(() => {
@@ -131,32 +133,32 @@ function formatDraft(): void {
 </script>
 
 <template>
-    <div v-bind="rootAttrs" :class="['space-y-3', props.class]" :aria-disabled="disabled">
+    <div v-bind="rootAttrs" :class="['space-y-2', props.class]" :aria-disabled="disabled">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <Button type="button" size="sm" variant="outline" :disabled="disabled" @click="toggleMode">
-                    <Icon :icon="mode === 'visual' ? 'lucide:code-2' : 'lucide:table-2'" class="mr-1.5 size-4" />
+                    <Icon :icon="mode === 'visual' ? 'lucide:code-2' : 'lucide:table-2'" class="mr-2 size-4" />
                     {{ mode === 'visual' ? jsonModeText : visualModeText }}
                 </Button>
-                <Button v-if="template" type="button" size="sm" variant="link" :disabled="disabled" @click="fillTemplate">{{ fillTemplateText }}</Button>
+                <Button v-if="template" type="button" size="sm" variant="link" class="h-auto p-0" :disabled="disabled" @click="fillTemplate">{{ fillTemplateText }}</Button>
             </div>
             <Button v-if="mode === 'json'" type="button" size="sm" variant="ghost" :disabled="disabled || !!error" @click="formatDraft">{{ formatText }}</Button>
         </div>
 
         <div v-if="mode === 'visual'" class="space-y-2">
-            <div v-if="rows.length" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-2 text-xs font-medium text-muted-foreground">
+            <div v-if="rows.length" class="grid grid-cols-[1fr_1fr_auto] gap-2 text-sm font-medium">
                 <span>{{ keyLabel }}</span><span>{{ valueLabel }}</span><span />
             </div>
-            <div v-for="row in rows" :key="row.id" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-2">
+            <div v-for="row in rows" :key="row.id" class="grid grid-cols-[1fr_1fr_auto] gap-2">
                 <Input :model-value="row.key" :placeholder="keyPlaceholder" :disabled="disabled" @update:model-value="updateRow(row.id, 'key', String($event))" />
                 <Input :model-value="row.value" :placeholder="valuePlaceholder" :disabled="disabled" @update:model-value="updateRow(row.id, 'value', String($event))" />
-                <Button type="button" variant="ghost" size="icon" class="size-9" :disabled="disabled" :aria-label="deleteFieldText" @click="removeRow(row.id)"><Icon icon="lucide:trash-2" class="size-4" /></Button>
+                <Button type="button" variant="ghost" size="icon" class="h-10 w-10" :disabled="disabled" :aria-label="deleteFieldText" @click="removeRow(row.id)"><Icon icon="lucide:trash-2" class="size-4" /></Button>
             </div>
-            <p v-if="!rows.length" class="rounded-md border border-dashed p-5 text-center text-sm text-muted-foreground">{{ emptyText }}</p>
-            <Button type="button" variant="outline" size="sm" class="w-full" :disabled="disabled" @click="addRow"><Icon icon="lucide:plus" class="mr-1.5 size-4" />{{ addFieldText }}</Button>
+            <div v-if="!rows.length" class="flex h-24 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">{{ emptyText }}</div>
+            <Button type="button" variant="outline" size="sm" class="w-full" :disabled="disabled" @click="addRow"><Icon icon="lucide:plus" class="mr-2 size-4" />{{ addFieldText }}</Button>
         </div>
         <div v-else class="space-y-1.5">
-            <JsonCodeEditor v-bind="editorAttrs" :model-value="draft" :disabled="disabled" @update:model-value="publish" @parse-error="(message) => emit('parse-error', message)" />
+            <JsonCodeEditor v-bind="editorAttrs" :model-value="draft" :placeholder="jsonPlaceholder" :disabled="disabled" @update:model-value="publish" @parse-error="(message) => emit('parse-error', message)" />
         </div>
     </div>
 </template>
