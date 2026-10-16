@@ -8,6 +8,29 @@ with primary/secondary action events. Default title, description and secondary
 action copy uses `common.result.<status>.*` locale keys; explicit props remain
 authoritative.
 
+## DataPanel
+
+`DataPanel` is a framework-level surface for content that can be loading,
+failed, empty, or ready. It keeps the existing `toolbar`, `empty`, `footer` and
+`fixedHeight` contracts while composing the shared `LoadingState`, `ErrorState`
+and `EmptyState` implementations so those states use the same new-api density,
+surface and accessibility behavior as the rest of the framework.
+
+State priority is deterministic: `loading` renders first, then a non-null
+`error`, then `empty`, and finally the default content slot. This means a stale
+empty flag cannot hide an active request error, and callers do not need to
+coordinate mutually exclusive flags themselves. The panel sets `aria-busy` on
+the root while loading and marks each state surface with a `data-slot` value:
+`data-panel-loading`, `data-panel-error` or `data-panel-empty`.
+
+Use `errorText`, `retryText` and `showRetry` to configure the default error
+state. The `retry` event is emitted when the retry action is activated. The
+`#error` slot receives `{ error, retry }`, so a caller can keep the original
+error object for diagnostics while owning the action UI. The `#loading` slot
+replaces the default loading state; `#empty` continues to replace the default
+empty state. Toolbar and footer slots remain outside the state content and are
+preserved in all four states.
+
 ## DataTable
 
 `DataTable` is the presentation layer. It supports stable row keys, controlled
@@ -530,7 +553,9 @@ composition.
 When the popup is open, the input exposes `aria-haspopup="listbox"`,
 `aria-autocomplete="list"`, `aria-controls` and an `aria-activedescendant`
 that points at the actual listbox and highlighted leaf. Arrow navigation skips disabled leaves;
-Enter selects the highlighted leaf and restores focus to the input, while+Escape closes the popup without replacing the current value. Parent options+remain non-selectable labels, and filtering keeps every matching parent path.
+Enter selects the highlighted leaf and restores focus to the input, while
++Escape closes the popup without replacing the current value. Parent options
++remain non-selectable labels, and filtering keeps every matching parent path.
 
 ## Tabs
 
