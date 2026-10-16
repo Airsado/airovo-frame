@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import FrameworkCalendar from './FrameworkCalendar.vue'
 
 const CalendarStub = {
-    props: ['modelValue', 'minValue', 'maxValue', 'locale', 'layout', 'yearRange'],
+    props: ['modelValue', 'minValue', 'maxValue', 'locale', 'layout', 'yearRange', 'showOutsideDays'],
     template: '<div v-bind="$attrs" data-stub="calendar"><slot name="calendar-heading" :date="modelValue" /></div>',
 }
 
@@ -26,6 +26,12 @@ describe('FrameworkCalendar', () => {
         expect(wrapper.getComponent(CalendarStub).attributes('class')).toContain('group/calendar')
         expect(wrapper.get('[data-test="heading"]').text()).toBe('自定义月份')
         expect(wrapper.getComponent(CalendarStub).props('layout')).toBe('month-and-year')
+        expect(wrapper.getComponent(CalendarStub).props('showOutsideDays')).toBe(true)
+    })
+
+    it('allows callers to hide outside-month days explicitly', () => {
+        const wrapper = mount(FrameworkCalendar, { props: { showOutsideDays: false }, global: { stubs: { Calendar: CalendarStub } } })
+        expect(wrapper.getComponent(CalendarStub).props('showOutsideDays')).toBe(false)
     })
 
     it('forwards model updates', async () => {
