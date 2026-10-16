@@ -154,6 +154,7 @@ import OverlayDatePickerExample from './_examples/OverlayDatePickerExample.vue'
 import { getDemoEventsUrl } from '../api/core/events'
 
 const frameworkPopoverOpen = ref(false)
+const frameworkTooltipOpen = ref(false)
 
 function onAdd() {
     globalThis.alert('新增')
@@ -583,8 +584,8 @@ function sseItemData(item: unknown): unknown {
                 <h2 class="text-lg font-semibold">Tooltip / Popover 框架组合</h2>
                 <p class="text-sm text-muted-foreground">复用 Reka primitive，统一 new-api surface、尺寸、箭头、focus 和 outside 行为。</p>
                 <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
-                    <FrameworkTooltip content="这是统一的 tooltip surface" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
-                        <template #trigger><button type="button">悬停查看 Tooltip</button></template>
+                    <FrameworkTooltip v-model:open="frameworkTooltipOpen" content="这是统一的 tooltip surface" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
+                        <template #trigger><button type="button">悬停查看 Tooltip（{{ frameworkTooltipOpen ? '已打开' : '已关闭' }}）</button></template>
                     </FrameworkTooltip>
                     <FrameworkPopover v-model:open="frameworkPopoverOpen" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
                         <template #trigger><button type="button">打开 Popover</button></template>

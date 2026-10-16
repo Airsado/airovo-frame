@@ -322,8 +322,11 @@ outline trigger compact, and exposes a keyboard-focusable reset menu item.
 compositions around the existing Reka/shadcn primitives. Both expose a
 content-only `trigger` slot and optional `triggerClass`; Tooltip uses direct
 as-child trigger semantics so a caller's button or link is not wrapped again.
-It accepts `content` or a `content` slot plus `side`, `align`, offsets,
-`delayDuration`, `disabled`, and `contentClass`. Popover exposes default
+Tooltip accepts `content` or a `content` slot plus `open`, `defaultOpen`,
+`update:open`, `side`, `align`, offsets, `delayDuration`, `disabled`, and
+`contentClass`. Omit `open` for the uncontrolled primitive state; bind
+`v-model:open` when the caller needs to observe or control focus/hover state.
+Popover exposes default
 content, `open`/`defaultOpen`, `update:open`, `modal`, `side`, `align`, offsets
 and `disabled`; its trigger slot also uses direct as-child semantics and must
 provide the interactive root element. Their content classes match new-api's foreground/popover
