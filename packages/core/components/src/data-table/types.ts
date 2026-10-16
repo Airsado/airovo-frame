@@ -13,6 +13,8 @@ export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
     /** Stable id used by column visibility and persisted table settings. */
     id?: string
     sortable?: boolean
+    /** Allow the new-api column-header menu to hide this column. */
+    hideable?: boolean
     align?: 'left' | 'center' | 'right'
     width?: string
     minWidth?: string

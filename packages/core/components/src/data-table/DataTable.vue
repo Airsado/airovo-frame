@@ -2,9 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
-import { Skeleton } from '@airovo/uikit-shadcnui'
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, Skeleton } from '@airovo/uikit-shadcnui'
 import { normalizeDataTableColumnPinning, parseStoredDataTableColumnPinning, resolveDataTableColumnPinning, type ResolvedDataTablePinnedColumn } from './column-pinning'
 import { normalizeDataTableColumnSizing } from './column-sizing'
+import { normalizeDataTableColumnVisibility } from './column-visibility'
 import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import DataTableEmpty from './DataTableEmpty.vue'
 import DataTablePagination from './DataTablePagination.vue'
@@ -81,12 +82,16 @@ const { t, te } = useI18n({ useScope: 'global' })
 const errorLoadingText = computed(() => props.errorText ?? (te('common.errorLoading') ? t('common.errorLoading') : '加载失败'))
 const retryText = computed(() => te('common.retry') ? t('common.retry') : '重试')
 const selectCurrentPageText = computed(() => te('common.selectCurrentPage') ? t('common.selectCurrentPage') : '全选当前页')
+const sortAscendingText = computed(() => te('common.sortAscending') ? t('common.sortAscending') : '升序')
+const sortDescendingText = computed(() => te('common.sortDescending') ? t('common.sortDescending') : '降序')
+const hideColumnText = computed(() => te('common.hideColumn') ? t('common.hideColumn') : '隐藏列')
 function selectRowText(index: number): string {
     return (te('common.selectRow') ? t('common.selectRow', { index: index + 1 }) : `选择第 ${index + 1} 行`)
 }
 const slots = useSlots()
 const internalSort = ref<DataTableSort>()
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
+const internalColumnVisibility = ref<DataTableColumnVisibility>(normalizeDataTableColumnVisibility(props.columns, props.columnVisibility))
 const internalColumnSizing = ref<Record<string, number>>(normalizeDataTableColumnSizing(props.columns, props.columnSizing))
 const resizing = ref<{ id: string; startX: number; startWidth: number; min: number; max?: number }>()
 const internalColumnPinning = ref<DataTableColumnPinning>({})
@@ -96,8 +101,10 @@ function columnId(column: DataTableColumn): string {
     return column.id ?? column.key
 }
 
+const currentColumnVisibility = computed(() => props.columnVisibility ?? internalColumnVisibility.value)
 const visibleColumns = computed(() => props.columns.filter((column) => {
-    const visibility = props.columnVisibility?.[columnId(column)]
+    if (column.hideable === false) return !column.hidden
+    const visibility = currentColumnVisibility.value[columnId(column)]
     return visibility === undefined ? !column.hidden : visibility
 }))
 const currentColumnSizing = computed(() => props.columnSizing ?? internalColumnSizing.value)
@@ -290,11 +297,8 @@ function toggleAll(): void {
     changeSelection(next)
 }
 
-function toggleSort(column: DataTableColumn): void {
-    if (!column.sortable) return
-    const sort: DataTableSort = currentSort.value?.key === column.key
-        ? { key: column.key, direction: currentSort.value.direction === 'asc' ? 'desc' : 'asc' }
-        : { key: column.key, direction: 'asc' }
+function setSort(column: DataTableColumn, direction: DataTableSort['direction']): void {
+    const sort: DataTableSort = { key: column.key, direction }
     if (!props.manualSort && props.sort === undefined) internalSort.value = sort
     emit('update:sort', sort)
     emit('sort-change', sort)
@@ -304,6 +308,17 @@ function clearSort(): void {
     internalSort.value = undefined
     emit('update:sort', undefined)
     emit('sort-change', undefined)
+}
+
+function updateColumnVisibility(next: DataTableColumnVisibility): void {
+    const normalized = normalizeDataTableColumnVisibility(props.columns, next)
+    if (props.columnVisibility === undefined) internalColumnVisibility.value = normalized
+    emit('update:columnVisibility', normalized)
+}
+
+function hideColumn(column: DataTableColumn): void {
+    if (column.hideable === false) return
+    updateColumnVisibility({ ...currentColumnVisibility.value, [columnId(column)]: false })
 }
 
 function initialColumnSize(column: DataTableColumn): number {
@@ -430,12 +445,18 @@ onMounted(() => {
 })
 onBeforeUnmount(stopResize)
 watch(() => props.columnSizing, value => { internalColumnSizing.value = normalizeDataTableColumnSizing(props.columns, value) }, { deep: true })
+watch(() => props.columnVisibility, value => {
+    if (value !== undefined) internalColumnVisibility.value = normalizeDataTableColumnVisibility(props.columns, value)
+}, { deep: true })
 watch(() => props.columns, columns => {
     const normalized = normalizeDataTableColumnSizing(columns, currentColumnSizing.value)
     if (props.columnSizing === undefined) internalColumnSizing.value = normalized
     if (props.columnSizingStorageKey && typeof window !== 'undefined') {
         try { window.localStorage.setItem(props.columnSizingStorageKey, JSON.stringify(normalized)) } catch { /* optional storage */ }
     }
+}, { deep: true })
+watch(() => props.columns, columns => {
+    if (props.columnVisibility === undefined) internalColumnVisibility.value = normalizeDataTableColumnVisibility(columns, internalColumnVisibility.value)
 }, { deep: true })
 
 function retry(): void {
@@ -488,15 +509,22 @@ function toCssSize(value: string | number | undefined): string | undefined {
                         class="data-table-pinned-header relative h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground"
                         :class="{ 'text-center': column.align === 'center', 'text-right': column.align === 'right' }"
                     >
-                        <button
-                            v-if="column.sortable"
-                            type="button"
-                            class="inline-flex items-center gap-1.5 rounded-sm hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            @click="toggleSort(column)"
-                        >
-                            {{ column.title }}
-                            <Icon :icon="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down') : 'lucide:arrow-up-down'" class="size-3.5 text-muted-foreground" />
-                        </button>
+                        <DropdownMenu v-if="column.sortable">
+                            <DropdownMenuTrigger as-child>
+                                <Button type="button" variant="ghost" size="sm" class="data-popup-open:bg-accent -ms-3 h-8 gap-1.5" data-slot="data-table-column-header-trigger" :aria-label="column.title">
+                                    <span>{{ column.title }}</span>
+                                    <Icon :icon="currentSort?.key === column.key ? (currentSort.direction === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down') : 'lucide:chevrons-up-down'" class="size-4" aria-hidden="true" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" class="min-w-32" data-slot="data-table-column-header-menu">
+                                <DropdownMenuItem data-slot="data-table-column-header-sort-asc" @select="setSort(column, 'asc')"><Icon icon="lucide:arrow-up" class="size-3.5 text-muted-foreground/70" aria-hidden="true" />{{ sortAscendingText }}</DropdownMenuItem>
+                                <DropdownMenuItem data-slot="data-table-column-header-sort-desc" @select="setSort(column, 'desc')"><Icon icon="lucide:arrow-down" class="size-3.5 text-muted-foreground/70" aria-hidden="true" />{{ sortDescendingText }}</DropdownMenuItem>
+                                <template v-if="column.hideable !== false">
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem data-slot="data-table-column-header-hide" @select="hideColumn(column)"><Icon icon="lucide:eye-off" class="size-3.5 text-muted-foreground/70" aria-hidden="true" />{{ hideColumnText }}</DropdownMenuItem>
+                                </template>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <template v-else>{{ column.title }}</template>
                         <span
                             v-if="column.resizable"

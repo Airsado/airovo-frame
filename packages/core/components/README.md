@@ -26,6 +26,14 @@ while hover blends `muted` and `background` with the same color-mix token;
 pinned cells preserve the corresponding surface while scrolling.
 Desktop headers use `h-10 px-2` and cells use `p-2`, matching the new-api table
 density; mobile card slots keep their caller-owned spacing.
+Sortable columns use the new-api ghost `h-8` header trigger with
+`data-popup-open:bg-accent`, current-state sort icons, and a keyboard-friendly
+menu for ascending, descending and hiding the column. Set
+`hideable: false` on a column that must remain visible; the visibility
+normalizer always retains non-hideable columns and at least one configurable
+column. The menu emits the existing `update:sort`, `sort-change` and
+`update:columnVisibility` events, so server sorting and caller-owned state stay
+unchanged.
 The default error and retry copy uses `common.errorLoading` and `common.retry`
 locale keys; explicit `errorText` and error slots remain authoritative.
 

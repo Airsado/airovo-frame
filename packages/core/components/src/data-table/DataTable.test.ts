@@ -148,7 +148,12 @@ describe('DataTable', () => {
         })
 
         expect(wrapper.text()).toContain('格式化:two')
-        await wrapper.find('th button').trigger('click')
+        await wrapper.get('[data-slot="data-table-column-header-trigger"]').trigger('click')
+        await nextTick()
+        const ascItem = document.body.querySelector('[data-slot="data-table-column-header-sort-asc"]') as HTMLElement
+        expect(ascItem).not.toBeNull()
+        ascItem.click()
+        await nextTick()
         expect(wrapper.emitted('sort-change')?.at(-1)).toEqual([{ key: 'name', direction: 'asc' }])
         expect(wrapper.find('tbody tr').text()).toContain('格式化:two')
 
@@ -159,6 +164,46 @@ describe('DataTable', () => {
         const errorWrapper = mountTable({ error: new Error('failed') })
         await errorWrapper.find('tbody button').trigger('click')
         expect(errorWrapper.emitted('retry')).toHaveLength(1)
+    })
+
+    it('matches the new-api column header menu and exposes explicit sort actions', async () => {
+        const wrapper = mountTable()
+        const trigger = wrapper.get('[data-slot="data-table-column-header-trigger"]')
+        expect(trigger.classes()).toEqual(expect.arrayContaining(['h-8', 'data-popup-open:bg-accent']))
+        expect(trigger.attributes('aria-label')).toBe('名称')
+
+        await trigger.trigger('click')
+        await nextTick()
+        expect(document.body.querySelector('[data-slot="data-table-column-header-menu"]')).not.toBeNull()
+        const descItem = document.body.querySelector('[data-slot="data-table-column-header-sort-desc"]') as HTMLElement
+        descItem.click()
+        await nextTick()
+        expect(wrapper.emitted('sort-change')?.at(-1)).toEqual([{ key: 'name', direction: 'desc' }])
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+        wrapper.unmount()
+    })
+
+    it('hides columns through the header menu while respecting hideable=false', async () => {
+        const wrapper = mountTable({
+            columns: [
+                { key: 'name', title: '名称', sortable: true },
+                { key: 'kind', title: '类型', sortable: true, hideable: false },
+            ],
+        })
+        await wrapper.get('[data-slot="data-table-column-header-trigger"]').trigger('click')
+        await nextTick()
+        expect(document.body.querySelector('[data-slot="data-table-column-header-hide"]')).not.toBeNull()
+        const hideItem = document.body.querySelector('[data-slot="data-table-column-header-hide"]') as HTMLElement
+        hideItem.click()
+        await nextTick()
+        expect(wrapper.emitted('update:columnVisibility')?.at(-1)).toEqual([{ name: false, kind: true }])
+        expect(wrapper.find('th[data-column-id="name"]').exists()).toBe(false)
+
+        const remainingTrigger = wrapper.get('[data-slot="data-table-column-header-trigger"]')
+        await remainingTrigger.trigger('click')
+        await nextTick()
+        expect(document.body.querySelector('[data-slot="data-table-column-header-hide"]')).toBeNull()
+        wrapper.unmount()
     })
 
     it('supports controlled column visibility for view-option integrations', async () => {
