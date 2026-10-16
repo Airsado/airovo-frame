@@ -38,11 +38,11 @@
 
 ### DataPanel 状态组合（Issue #459）
 
-`packages/core/components/src/data-panel/DataPanel.vue` 当前已有 toolbar、footer、
-fixedHeight、loading 和 empty props，但尚未提供 error/retry API、状态 slots 或
-共享状态组件组合。Issue #459 的最小范围是补齐 DataPanel 自身的
-`loading`/`empty`/`error` 状态契约、测试、demo/template 和 API 文档；
-DataTableEmpty、DataTableCardGrid 与 ChartCard 继续作为独立后续 Issue。
+`packages/core/components/src/data-panel/DataPanel.vue` 已提供 toolbar、footer、
+fixedHeight、loading、empty、error/retry props、状态 slots 和共享状态组件组合。
+Issue #459 已补齐 DataPanel 自身的 `loading`/`empty`/`error` 状态契约、测试、
+demo/template 和 API 文档；DataTableEmpty、DataTableCardGrid 与 ChartCard 继续
+作为独立后续 Issue。
 
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 缺口 | 优先级 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
