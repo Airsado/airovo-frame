@@ -24,7 +24,8 @@
         "./json-field": "./src/json-field/index.ts",
         "./command-menu": "./src/command-menu/index.ts",
         "./overlay": "./src/overlay/index.ts",
-        "./calendar": "./src/calendar/index.ts"
+        "./calendar": "./src/calendar/index.ts",
+        "./password-input": "./src/password-input/index.ts"
     },
     "license": "MIT",
     "scripts": {

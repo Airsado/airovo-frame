@@ -12,7 +12,7 @@ import {
     Button,
     Textarea,
 } from '@airovo/uikit-shadcnui'
-import { SelectBox } from '@airovo/components'
+import { PasswordInput, SelectBox } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -56,8 +56,8 @@ const componentMap: Record<string, any> = {
     Input,
     textarea: Textarea,
     Textarea,
-    password: Input,
-    Password: Input,
+    password: PasswordInput,
+    Password: PasswordInput,
     number: Input,
     Number: Input,
     email: Input,
@@ -74,7 +74,6 @@ const TEXT_INPUT_COMPONENTS = new Set([
     'email', 'Email',
 ])
 const INPUT_TYPES: Record<string, string | undefined> = {
-    Password: 'password', password: 'password',
     Number: 'number', number: 'number',
     Email: 'email', email: 'email',
 }

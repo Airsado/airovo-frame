@@ -8,6 +8,31 @@ with primary/secondary action events. Default title, description and secondary
 action copy uses `common.result.<status>.*` locale keys; explicit props remain
 authoritative.
 
+## PasswordInput
+
+`PasswordInput` is the framework composition equivalent of new-api's
+`web/src/components/password-input.tsx`. It keeps the value masked by default,
+provides a ghost icon button to switch between `password` and `text`, and
+disables both controls together. The toggle is `type="button"` so it never
+submits a surrounding form; its accessible name defaults to
+`Toggle password visibility` and can be changed with `toggleAriaLabel`.
+
+```vue
+<PasswordInput
+  v-model="password"
+  autocomplete="current-password"
+  aria-describedby="password-help"
+/>
+```
+
+Native input attributes and listeners (`id`, `name`, `autocomplete`, `aria-*`,
+focus/blur and keyboard handlers) are forwarded to the real input. The
+component owns `type`, even if a stale `type` attribute is supplied by a form
+schema. `class` styles the `relative rounded-md` wrapper like new-api;
+`inputClass` is available when a caller needs to style the native input itself.
+The public model is `string | number` for compatibility with the shadcn Input,
+while password form fields conventionally use strings.
+
 ## DataPanel
 
 `DataPanel` is a framework-level surface for content that can be loading,
@@ -65,28 +90,6 @@ column. The menu emits the existing `update:sort`, `sort-change` and
 unchanged.
 The default error and retry copy uses `common.errorLoading` and `common.retry`
 locale keys; explicit `errorText` and error slots remain authoritative.
-
-`StaticDataTable` is the lightweight companion for local arrays that do not
-need TanStack-style query state. It follows the new-api `static/` composition:
-pass `columns` (`id`, `header`, optional `cell` and `cellClassName`) and
-`data`, or provide pre-composed table children through the default slot. The
-component owns the bordered `overflow-hidden rounded-md border` surface,
-compact table primitives, empty-row handling, row keys and row-class callbacks;
-it does not fetch, sort, paginate or select rows. `getRowKey` is preferred when
-rows have stable identities, while the index remains a safe demo fallback.
-
-Plain text and ordinary text-bearing VNodes returned by a column `cell` are
-wrapped in `TruncatedCell` so long local values retain the new-api tooltip
-behavior. Rich cells that do not expose readable text render as-is. Use the
-typed `#row` slot (`{ row, index }`) or the `renderRow` callback when a feature
-needs to provide a complete `TableRow`; the slot takes precedence. `empty` can
-force the empty state, `emptyContent` or `#empty` owns its content, and
-`tableClassName`/`className` plus `tableProps`/`containerProps` allow additive
-layout and native attributes without replacing structural classes.
-
-`staticDataTableClassNames` exports the new-api compact/header/cell/action class
-map (`compactMutedNumericCell`, `topCell`, `actionCell`, and related tokens) so
-feature code can share density and semantic styles without copying strings.
 
 Use the optional `toolbar` slot for controls above the table and the `actions`
 slot for a per-row action column. The toolbar exposes `selectedKeys`, `loading`,

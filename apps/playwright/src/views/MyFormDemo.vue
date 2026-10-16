@@ -139,7 +139,7 @@ const schema: FormFieldSchema[] = [
         description: '规则 DSL：required、min:3；提交或失焦时显示字段级错误。',
     },
     {
-        component: 'Input',
+        component: 'Password',
         label: '用户密码',
         fieldName: 'password',
         rules: 'required,min:6',

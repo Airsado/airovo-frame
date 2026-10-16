@@ -31,6 +31,13 @@ Several `useForm`/`useAForm` calls can share one component setup, including form
 
 Every field value has the existing array shape: `{ name: [{ value: 'Ada' }] }`. Set `ArrayField` to change the row key and `array: true` to allow multiple rows. `initialValues` uses that same shape.
 
+Built-in `component: 'Password'` (and the lowercase `password` alias) maps to
+`@airovo/components` `PasswordInput`. It owns the `password`/`text` type toggle
+and forwards the schema's native attributes to the input. A schema `type` value
+is ignored by that component so callers cannot bypass the visibility state;
+use `toggleAriaLabel` to provide a localized accessible label. The same mapping
+is used for top-level fields and nested `children` fields.
+
 The controller exposes `getValues`, `setValues`, `setFieldValue`, `setFieldError`, `resetForm`, `resetFields`, `validate`, `validateField`, `clearValid`, `submitForm`, `updateSchema`, `resetSchema`, `appendSchemaByField`, `removeSchemaByField`, `setProps` and `scrollToField`. `formApi.values` and `formApi.errors` are reactive refs. Custom components that emit `parse-error` are synchronized into `FormApi.errors` by the renderer, so JSON draft errors participate in FieldError, aria-invalid, validation and reset flows. `setProps({ disabled, loading, showDefaultActions, layout, wrapperClass, handleSubmit })` updates the rendered form. The default layout is horizontal to preserve the existing framework presentation; pass `layout: 'vertical'` when stacked fields are preferred.
 
 Schema fields can use `show`, `disabled`, `defaultValue` and `componentProps` functions with `{ values, api }`. For fields whose state depends on other fields, use the Vben-inspired `dependencies` contract:

@@ -21,4 +21,5 @@ export * from './json-field'
 export * from './command-menu'
 export * from './overlay'
 export * from './calendar'
+export * from './password-input'
 /// <reference path="./shims.d.ts" />
