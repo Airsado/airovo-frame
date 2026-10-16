@@ -279,9 +279,15 @@ dates before merging the selected day and time, and resets the time to
 `00:00:00` when cleared. Disabled state prevents date, time, and clear edits.
 
 When `locale` is omitted, `DatePicker` reads the installed framework i18n
-locale and falls back to `en-US`; an explicit locale always wins. This mirrors
-new-api's language-aware calendar selection without making date values or
-business forms depend on the i18n implementation.
+locale and falls back to `en-US`; an explicit locale always wins. Common
+new-api aliases such as `zhCN`, `zhTW`, `en` and `cn` are normalised before
+being passed to the Calendar, while unsupported BCP-47 values fall back to
+`en-US`. This mirrors new-api's language-aware calendar selection without
+making date values or business forms depend on the i18n implementation.
+The outline trigger exposes `aria-haspopup="dialog"`, `aria-expanded` and a
+`data-state` value (`open`/`closed`) so the Reka popover's Enter, Space, Escape
+and focus-return behavior remains observable to keyboard and assistive
+technology users.
 Default DatePicker and DateTimePicker placeholders use
 `common.datePickerPlaceholder` and `common.dateTimePickerPlaceholder`; explicit
 placeholder props remain authoritative.

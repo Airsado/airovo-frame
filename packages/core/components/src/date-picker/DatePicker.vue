@@ -39,7 +39,40 @@ const activeLocale = computed(() => {
   const locale = globalI18n?.locale
   return typeof locale === 'string' ? locale : locale?.value
 })
-const resolvedLocale = computed(() => props.locale ?? activeLocale.value ?? 'en-US')
+
+/**
+ * new-api keeps a small, predictable locale table for its day-picker. Reka's
+ * formatter accepts BCP-47 strings, so we preserve valid caller locales while
+ * normalising the aliases commonly emitted by app i18n modules.
+ */
+const localeAliases: Record<string, string> = {
+  cn: 'zh-CN',
+  en: 'en-US',
+  'en-us': 'en-US',
+  zh: 'zh-CN',
+  'zh-cn': 'zh-CN',
+  zhcn: 'zh-CN',
+  'zh-tw': 'zh-TW',
+  zhtw: 'zh-TW',
+}
+
+function resolveCalendarLocale(value: string | undefined): string {
+  const normalized = value?.trim().replaceAll('_', '-')
+  if (!normalized) return 'en-US'
+
+  const alias = localeAliases[normalized.toLowerCase()]
+  if (alias) return alias
+
+  try {
+    return Intl.DateTimeFormat.supportedLocalesOf(normalized).length > 0
+      ? normalized
+      : 'en-US'
+  } catch {
+    return 'en-US'
+  }
+}
+
+const resolvedLocale = computed(() => resolveCalendarLocale(props.locale ?? activeLocale.value))
 
 const emit = defineEmits<{ 'update:modelValue': [Date | undefined] }>()
 const owner = useOverlayOwner()
@@ -99,6 +132,9 @@ function selectDate(value: DateValue | undefined): void {
         :name="props.name"
         :aria-describedby="props.ariaDescribedby"
         :aria-invalid="props.ariaInvalid"
+        aria-haspopup="dialog"
+        :aria-expanded="open"
+        :data-state="open ? 'open' : 'closed'"
         :class="cn('w-[240px] justify-start text-start font-normal', !props.modelValue && 'text-muted-foreground', props.class)"
         :aria-label="label"
       >
@@ -110,6 +146,7 @@ function selectDate(value: DateValue | undefined): void {
     <PopoverContent class="w-auto p-0" align="start" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <Calendar
         layout="month-and-year"
+        :show-outside-days="true"
         :locale="resolvedLocale"
         :min-value="minValue"
         :max-value="maxValue"

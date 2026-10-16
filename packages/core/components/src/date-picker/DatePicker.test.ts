@@ -9,8 +9,8 @@ const stubs = {
     PopoverTrigger: { template: '<div><slot /></div>' },
     PopoverContent: { template: '<div><slot /></div>' },
     Calendar: {
-        props: ['minValue', 'maxValue', 'locale'],
-        template: '<div data-calendar :data-min="minValue?.toString()" :data-max="maxValue?.toString()" :data-locale="locale" />',
+        props: ['minValue', 'maxValue', 'locale', 'showOutsideDays'],
+        template: '<div data-calendar :data-min="minValue?.toString()" :data-max="maxValue?.toString()" :data-locale="locale" :data-show-outside-days="showOutsideDays" />',
     },
 }
 const global = { stubs, plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { datePickerPlaceholder: '选择日期', dateTimePickerPlaceholder: '选择日期和时间' } } } })] }
@@ -36,6 +36,7 @@ describe('DatePicker boundaries', () => {
         expect(calendar.attributes('data-min')).toContain('2024-01-01')
         expect(calendar.attributes('data-max')).toContain('2024-12-31')
         expect(calendar.attributes('data-locale')).toBe('zh-CN')
+        expect(calendar.attributes('data-show-outside-days')).toBe('true')
     })
 
     it('uses the new-api default date boundaries when callers omit them', () => {
@@ -73,6 +74,22 @@ describe('DatePicker boundaries', () => {
         expect(wrapper.get('[data-calendar]').attributes('data-locale')).toBe('zh-CN')
         const explicit = mount(DatePicker, { props: { locale: 'fr' }, global: { stubs, plugins: [i18n] } })
         expect(explicit.get('[data-calendar]').attributes('data-locale')).toBe('fr')
+    })
+
+    it('normalizes new-api locale aliases and falls back for unsupported locales', () => {
+        const zh = mount(DatePicker, { props: { locale: 'zhCN' }, global })
+        expect(zh.get('[data-calendar]').attributes('data-locale')).toBe('zh-CN')
+
+        const unknown = mount(DatePicker, { props: { locale: 'not-a-locale' }, global })
+        expect(unknown.get('[data-calendar]').attributes('data-locale')).toBe('en-US')
+    })
+
+    it('exposes the popover trigger state to keyboard and assistive technology', () => {
+        const wrapper = mount(DatePicker, { global })
+        const trigger = wrapper.get('button')
+        expect(trigger.attributes('aria-haspopup')).toBe('dialog')
+        expect(trigger.attributes('aria-expanded')).toBe('false')
+        expect(trigger.attributes('data-state')).toBe('closed')
     })
 
     it('keeps an invalid or reversed boundary configuration renderable', () => {
