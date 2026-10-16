@@ -50,7 +50,8 @@ const isOpen = computed(() => props.open ?? internalOpen.value)
 /** Keep keyboard focus in the command input when the dialog opens. */
 function focusCommandInput(event: Event): void {
     event.preventDefault()
-    const input = document.querySelector<HTMLInputElement>('[data-slot="dialog-content"][data-state="open"] [data-slot="command-input"]')
+    const content = event.target instanceof HTMLElement ? event.target : undefined
+    const input = content?.querySelector<HTMLInputElement>('[data-slot="command-input"]')
     input?.focus()
 }
 
