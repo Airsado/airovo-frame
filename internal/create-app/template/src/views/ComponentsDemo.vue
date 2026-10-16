@@ -951,7 +951,7 @@ function sseItemData(item: unknown): unknown {
                     <div
                         class="flex flex-col gap-3 rounded-lg border bg-card p-4"
                     >
-                        <p class="font-medium">DateTimePicker（支持秒级时间）</p>
+                        <p class="font-medium">DateTimePicker（支持秒级时间与范围保护）</p>
                         <DateTimePicker v-model="selectedDateTime" :min-date="new Date(2024, 0, 1)" :max-date="new Date(2030, 11, 31)" locale="zh-CN" />
                         <p class="text-xs text-muted-foreground">
                             {{

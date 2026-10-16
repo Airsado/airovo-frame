@@ -26,6 +26,18 @@ const resolvedPlaceholder = computed(() => props.placeholder ?? (te('common.date
 const time = ref(props.modelValue ? formatTime(props.modelValue) : '00:00:00')
 const timeInvalid = ref(false)
 
+function dayTimestamp(value: Date): number {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime()
+}
+
+const dateRangeInvalid = computed(() => {
+  if (!props.modelValue || !Number.isFinite(props.modelValue.getTime())) return false
+  const current = dayTimestamp(props.modelValue)
+  const min = props.minDate && Number.isFinite(props.minDate.getTime()) ? dayTimestamp(props.minDate) : undefined
+  const max = props.maxDate && Number.isFinite(props.maxDate.getTime()) ? dayTimestamp(props.maxDate) : undefined
+  return (min !== undefined && current < min) || (max !== undefined && current > max)
+})
+
 watch(() => props.modelValue, (value) => {
   time.value = value ? formatTime(value) : '00:00:00'
   timeInvalid.value = false
@@ -45,6 +57,10 @@ function parseTime(value: string): [number, number, number] | undefined {
 }
 function updateDate(value: Date | undefined): void {
   if (!value) { emit('update:modelValue', undefined); return }
+  const selectedDay = dayTimestamp(value)
+  const min = props.minDate && Number.isFinite(props.minDate.getTime()) ? dayTimestamp(props.minDate) : undefined
+  const max = props.maxDate && Number.isFinite(props.maxDate.getTime()) ? dayTimestamp(props.maxDate) : undefined
+  if ((min !== undefined && selectedDay < min) || (max !== undefined && selectedDay > max)) return
   const next = new Date(value)
   const [hours, minutes, seconds] = parseTime(time.value) ?? [0, 0, 0]
   next.setHours(hours, minutes, seconds, 0)
@@ -66,7 +82,7 @@ function updateTime(valueOrEvent: string | number | Event): void {
   timeInvalid.value = false
   const [hours, minutes, seconds] = parsed
   time.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  if (props.modelValue) updateDate(new Date(props.modelValue))
+  if (props.modelValue && !dateRangeInvalid.value) updateDate(new Date(props.modelValue))
 }
 function clear(): void {
   if (props.disabled) return
@@ -79,8 +95,8 @@ function clear(): void {
 <template>
   <div :class="cn('flex items-center gap-2', props.class)">
     <!-- Override DatePicker's standalone width so this row can shrink in forms. -->
-    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="resolvedPlaceholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" trigger-icon="chevron" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
-    <Input type="time" step="1" :model-value="time" aria-label="时间" :aria-describedby="props.ariaDescribedby" :aria-invalid="timeInvalid || props.ariaInvalid || undefined" :disabled="props.disabled || !props.modelValue" :class="cn('w-32 shrink-0 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none', timeInvalid && 'border-destructive focus-visible:ring-destructive/20')" @update:model-value="updateTime" />
+    <DatePicker :model-value="dateOnly" :disabled="props.disabled" :placeholder="resolvedPlaceholder" :min-date="props.minDate" :max-date="props.maxDate" :locale="props.locale" trigger-icon="chevron" :id="props.id" :name="props.name" :aria-describedby="props.ariaDescribedby" :aria-invalid="props.ariaInvalid || dateRangeInvalid || undefined" class="w-0 min-w-0 flex-1" @update:model-value="updateDate" />
+    <Input type="time" step="1" :model-value="time" aria-label="时间" :aria-describedby="props.ariaDescribedby" :aria-invalid="timeInvalid || dateRangeInvalid || props.ariaInvalid || undefined" :disabled="props.disabled || !props.modelValue || dateRangeInvalid" :class="cn('w-32 shrink-0 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none', (timeInvalid || dateRangeInvalid) && 'border-destructive focus-visible:ring-destructive/20')" @update:model-value="updateTime" />
       <Button v-if="props.modelValue" type="button" variant="outline" size="icon" class="shrink-0" aria-label="清除日期时间" :disabled="props.disabled" @click="clear">
       <X />
     </Button>
