@@ -9,6 +9,7 @@ import { normalizeDataTableColumnVisibility } from './column-visibility'
 import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import DataTableEmpty from './DataTableEmpty.vue'
 import DataTablePagination from './DataTablePagination.vue'
+import { assertUniqueDataTableRowKeys, resolveDataTableRowKey } from './row-key'
 
 defineOptions({ name: 'DataTable' })
 
@@ -149,15 +150,7 @@ const visibleRows = computed(() => {
 const totalRows = computed(() => props.total ?? props.data.length)
 const visibleRowKeys = computed(() => {
     const keys = visibleRows.value.map((row) => rowKeyOf(row))
-    const duplicates = new Set<DataTableRowKey>()
-    const seen = new Set<DataTableRowKey>()
-    for (const key of keys) {
-        if (seen.has(key)) duplicates.add(key)
-        seen.add(key)
-    }
-    if (duplicates.size > 0) {
-        throw new Error(`DataTable row keys must be unique: ${[...duplicates].join(', ')}`)
-    }
+    assertUniqueDataTableRowKeys(keys)
     return keys
 })
 const visibleKeySet = computed(() => new Set(visibleRowKeys.value))
@@ -179,8 +172,7 @@ const hasPinnedColumns = computed(() => resolvedPinnedColumns.value.size > 0)
 
 function rowKeyOf(row: DataTableRow): DataTableRowKey {
     const key = typeof props.rowKey === 'function' ? props.rowKey(row) : row[props.rowKey]
-    if ((typeof key === 'string' && key.length > 0) || (typeof key === 'number' && Number.isFinite(key))) return key
-    throw new Error('DataTable requires a stable row key. Provide rowKey or a rowKey function for every row.')
+    return resolveDataTableRowKey(key)
 }
 
 function cellValue(row: DataTableRow, column: DataTableColumn): unknown {
