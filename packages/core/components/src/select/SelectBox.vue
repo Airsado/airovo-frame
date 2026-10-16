@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
 import { useOverlayOwner } from '@airovo/shared/overlay'
+import { Icon } from '@airovo/shared/icons'
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
 } from '@airovo/uikit-shadcnui/components/ui/select'
 import { computed, ref, useAttrs, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { flattenSelectOptions, type SelectOption } from './options'
+import { groupSelectOptions, type SelectOption } from './options'
 
 export type { SelectOption } from './options'
 
@@ -40,7 +41,7 @@ const open = ref(false)
 const popupStyle = computed(() => owner?.popupZIndex.value === undefined
   ? undefined
   : { zIndex: owner.popupZIndex.value })
-const flattenedOptions = computed(() => flattenSelectOptions(props.options))
+const optionSections = computed(() => groupSelectOptions(props.options))
 
 // Watch the owning main layer rather than raising a popup above every overlay.
 // Reka remains responsible for focus scopes, Escape, outside and body locking.
@@ -87,14 +88,21 @@ function clear(event: MouseEvent): void {
         <X class="size-3.5" />
       </button>
     </div>
-    <SelectContent class="w-(--reka-select-trigger-width) min-w-36 rounded-lg border-0 ring-1 ring-foreground/10" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
-      <SelectGroup>
-        <template v-for="item in flattenedOptions" :key="item.key">
-          <SelectLabel v-if="item.group" class="px-1.5 py-1 text-xs font-medium" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+    <SelectContent class="w-(--reka-select-trigger-width) min-w-36 rounded-lg border-0 shadow-md ring-1 ring-foreground/10" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
+      <SelectGroup v-for="section in optionSections" :key="section.group?.key ?? section.items[0]?.key ?? 'root'">
+        <SelectLabel v-if="section.group" class="px-1.5 py-1 text-xs" :style="{ paddingLeft: `${0.5 + section.group.depth * 0.75}rem` }">
+          {{ section.group.option.label }}
+        </SelectLabel>
+        <template v-for="item in section.items" :key="item.key">
+          <SelectLabel v-if="item.group" class="px-1.5 py-1 text-xs" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
             {{ item.option.label }}
           </SelectLabel>
-          <SelectItem v-else-if="item.option.value !== undefined" class="rounded-md py-1 pr-8 pl-1.5" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
-            {{ item.option.label }}
+          <SelectItem v-else-if="item.option.value !== undefined" class="rounded-md py-1 pr-8 pl-1.5 text-sm focus:bg-accent focus:text-accent-foreground" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+            <Icon v-if="item.option.icon" :icon="item.option.icon" class="size-4 shrink-0" aria-hidden="true" />
+            <span class="min-w-0 flex-1">
+              <span class="block truncate">{{ item.option.label }}</span>
+              <span v-if="item.option.description" class="text-muted-foreground block truncate text-xs font-normal">{{ item.option.description }}</span>
+            </span>
           </SelectItem>
         </template>
       </SelectGroup>

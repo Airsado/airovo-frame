@@ -31,6 +31,7 @@
 | `web/src/components/ui/popover.tsx` | Popover | `packages/core/components/src/overlay/FrameworkPopover.vue` | 已存在但行为不完整 | controlled/uncontrolled、modal、定位、Escape/outside 和移动端需继续对照 | P1 | 单测、键盘/Escape/outside 浏览器验证 |
 | `web/src/components/command-menu.tsx`、`web/src/components/ui/command.tsx` | Command | `packages/core/components/src/command-menu`、ui-kit command | 已存在但行为不完整 | 搜索、分组、空态、快捷键、焦点和 top-third surface 需继续对照 | P1 | 单测、demo、键盘浏览器验证 |
 | `web/src/components/ui/combobox.tsx` | Combobox | `packages/core/components/src/select/Combobox.vue` | 已存在但行为不完整 | 父子选项、搜索路径、custom value、焦点恢复和 ARIA 需继续对照 | P1 | 单测、select demo、键盘/移动浏览器验证 |
+| `web/src/components/ui/select.tsx` | SelectBox | `packages/core/components/src/select/SelectBox.vue` | 已存在但行为不完整 | 已补 SelectGroup 边界、递归层级、叶子 icon/description/disabled 与 new-api surface；仍需真实桌面/移动键盘矩阵 | P1 | 单测、select demo、键盘/主题浏览器验证 |
 | `web/src/components/ui/calendar.tsx` | Calendar | `packages/core/components/src/calendar/FrameworkCalendar.vue`、ui-kit Calendar | 已存在但行为不完整 | 已补 FrameworkCalendar 默认 `showOutsideDays=true` 且允许显式 false；仍需 range/disabled/locale、slot 和主题 token 完整矩阵 | P1 | 单测、date picker demo、键盘/主题浏览器验证 |
 
 ## 源码范围补充盘点
