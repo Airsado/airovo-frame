@@ -68,14 +68,14 @@ try {
     "collapsed",
   );
 
-  await page.goto(`${baseUrl}/dashboard/overview`, {
+  await page.goto(`${baseUrl}/dashboard/navigation`, {
     waitUntil: "domcontentloaded",
   });
   await page.waitForTimeout(500);
   const collapsedParent = page
-    .locator('[data-sidebar-menu-kind="parent-collapsed"]')
-    .first();
+    .locator('[data-sidebar-menu-kind="parent-collapsed"][data-menu-url="/dashboard/navigation-tree"]');
   assert.ok(await collapsedParent.count());
+  assert.equal(await collapsedParent.getAttribute("data-app-sidebar-active"), "true");
   await collapsedParent.click();
   await page.waitForTimeout(200);
   const collapsedChildren = page.locator(

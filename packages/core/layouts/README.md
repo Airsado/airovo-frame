@@ -91,11 +91,12 @@ primitives instead of copying React primitives. The semantic tokens, menu
 states, back affordance and route-driven replacement remain aligned.
 
 Active state follows the new-api split between a parent scope and an exact
-leaf: selecting a child opens its parent group but does not paint the parent
-as selected. Leaf entries use the `sidebar-accent-foreground` token, while an
-active child inside the collapsed dropdown uses the new-api `secondary`
-surface and foreground token; unselected entries only receive the muted hover
-surface. The framework marker
+leaf: in expanded/mobile layouts, selecting a child opens its parent group but
+does not paint the parent as selected; in collapsed desktop, the parent trigger
+uses the active scope because its child is rendered in a dropdown. Leaf entries
+use the `sidebar-accent-foreground` token, while an active child inside the
+collapsed dropdown uses the new-api `secondary` surface and foreground token;
+unselected entries only receive the muted hover surface. The framework marker
 `data-app-sidebar-active="true"` is authoritative over primitive utility
 classes so application CSS order cannot remove the selected text color.
 

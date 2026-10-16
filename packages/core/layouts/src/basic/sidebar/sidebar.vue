@@ -294,14 +294,14 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                 <DropdownMenuTrigger as-child :disabled="isDisabled(item)" class="group/dropdown-trigger">
                                     <SidebarMenuButton
                                         :tooltip="label(item.titleKey, item.title)"
-                                        :is-active="isExactMatch(item)"
+                                        :is-active="isActiveScope(item)"
                                         :disabled="isDisabled(item)"
                                         data-sidebar-menu-kind="parent-collapsed"
                                         :data-menu-url="item.url"
                                         :aria-label="label(item.titleKey, item.title)"
                                         :aria-current="isExactMatch(item) ? 'page' : undefined"
                                         class="app-sidebar-nav-item cursor-pointer"
-                                        :data-app-sidebar-active="isExactMatch(item) ? 'true' : 'false'"
+                                        :data-app-sidebar-active="isActiveScope(item) ? 'true' : 'false'"
                                     >
                                         <Icon :icon="item.icon" v-if="item.icon" />
                                         <span class="min-w-0 flex-1 truncate">{{ label(item.titleKey, item.title) }}</span>
