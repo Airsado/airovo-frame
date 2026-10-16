@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import type { DataTableColumn, DataTableRowKey, DataTableSelectionScope } from './types'
 import DataTablePagination from './DataTablePagination.vue'
+import { assertUniqueDataTableRowKeys, resolveDataTableRowKey } from './row-key'
 
 defineOptions({ name: 'DataTableCardGrid' })
 
@@ -65,7 +66,11 @@ const currentSelectedKeys = computed(() => props.selectedKeys ?? internalSelecte
 const visibleColumns = computed(() => props.columns
     .filter((column) => !column.hidden && !column.mobileHidden)
     .sort((left, right) => (left.mobileOrder ?? Number.MAX_SAFE_INTEGER) - (right.mobileOrder ?? Number.MAX_SAFE_INTEGER)))
-const visibleKeys = computed(() => props.rows.map((row, index) => rowKey(row, index)))
+const visibleKeys = computed(() => {
+    const keys = props.rows.map((row, index) => rowKey(row, index))
+    assertUniqueDataTableRowKeys(keys)
+    return keys
+})
 const visibleKeySet = computed(() => new Set(visibleKeys.value))
 const selected = computed(() => props.selectionScope === 'persistent'
     ? currentSelectedKeys.value
@@ -79,7 +84,7 @@ const actionsColumn = computed(() => visibleColumns.value.find((column) => colum
 
 function rowKey(row: T, index: number): string | number {
     const key = typeof props.rowKey === 'function' ? props.rowKey(row, index) : row[props.rowKey]
-    return typeof key === 'string' || typeof key === 'number' ? key : index
+    return resolveDataTableRowKey(key)
 }
 
 function cellValue(row: T, column: DataTableColumn<T> | undefined, index: number): unknown {

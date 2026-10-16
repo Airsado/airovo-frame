@@ -53,6 +53,31 @@ describe('DataTableCardGrid', () => {
     expect(selected.get('[data-slot="data-table-card"]').attributes('data-state')).toBe('selected')
   })
 
+  it('requires stable unique row keys and keeps selection attached after reordering', async () => {
+    expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ name: 'missing' }], columns } })).toThrow(/stable row key/i)
+    expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: '' }, { id: 2 }], columns } })).toThrow(/stable row key/i)
+    expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: Number.NaN }], columns } })).toThrow(/stable row key/i)
+    expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: Number.POSITIVE_INFINITY }], columns } })).toThrow(/stable row key/i)
+    expect(() => mount(DataTableCardGrid, { global, props: { rows: [{ id: 1 }, { id: 1 }], columns } })).toThrow(/unique/i)
+
+    const reorderRows: Row[] = [
+      rows[0],
+      { id: 2, name: '渠道二', type: 'Anthropic', status: '待机', secret: 'hidden' },
+    ]
+    const wrapper = mount(DataTableCardGrid, { global, props: { rows: reorderRows, columns, selectable: true } })
+    await wrapper.get('input[type="checkbox"]').setValue(true)
+    await wrapper.setProps({ rows: [reorderRows[1], reorderRows[0]] })
+    expect(wrapper.findAll('[data-slot="data-table-card"]')[1].attributes('data-state')).toBe('selected')
+
+    const custom = mount(DataTableCardGrid, {
+      global,
+      props: { rows: reorderRows, columns, selectable: true, rowKey: (row: Row) => row.name },
+    })
+    await custom.get('input[type="checkbox"]').setValue(true)
+    await custom.setProps({ rows: [reorderRows[1], reorderRows[0]] })
+    expect(custom.findAll('[data-slot="data-table-card"]')[1].attributes('data-state')).toBe('selected')
+  })
+
   it('uses the same accessible error and retry contract as DataTable', async () => {
     const wrapper = mount(DataTableCardGrid, { global, props: { rows, columns, error: new Error('failed') } })
     expect(wrapper.get('[role="alert"]').text()).toContain('加载失败')

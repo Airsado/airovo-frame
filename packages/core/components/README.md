@@ -558,7 +558,11 @@ view modes. It accepts the same rows and `DataTableColumn` definitions, uses
 `value`/`formatter`, supports `mobileTitle`, `mobileBadge`, `mobileHidden` and
 `mobileOrder` metadata, and exposes `card`, `card-actions` and `cell-{key}` slots. It owns
 responsive grid density, loading skeletons, empty state, selected surfaces and
-page/persistent selection without knowing anything about a business API.
+page/persistent selection without knowing anything about a business API. Its
+default `rowKey` is `id`; every row must resolve to a non-empty string or finite
+number, and keys must be unique. A missing, invalid or duplicate key throws the
+same stable-row-key error used by `DataTable`, so reordering rows cannot attach
+selection or Vue DOM identity to an array index.
 
 ## PageFooter
 
