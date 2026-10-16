@@ -104,3 +104,15 @@ export type DataTableFetcher<T extends DataTableRow = DataTableRow> = (
     query: DataTableQuery,
     context: DataTableFetchContext,
 ) => Promise<DataTableResult<T> | T[]>
+
+// Static table types live in their own module to keep the server-side table
+// contract focused, while remaining available from the established public
+// `data-table/types` entry point.
+export type {
+    StaticDataTableBaseProps,
+    StaticDataTableChildrenProps,
+    StaticDataTableColumn,
+    StaticDataTableDataProps,
+    StaticDataTableProps,
+    StaticDataTableRowKey,
+} from './static-data-table-types'

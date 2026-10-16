@@ -1,4 +1,5 @@
 export { default as DataTable } from './DataTable.vue'
+export { default as StaticDataTable } from './StaticDataTable.vue'
 export { default as DataTableEmpty } from './DataTableEmpty.vue'
 export { default as DataTableBulkActions } from './DataTableBulkActions.vue'
 export { default as DataTableCardGrid } from './DataTableCardGrid.vue'
@@ -19,8 +20,17 @@ export { useDataTable } from './useDataTable'
 export { normalizeDataTableColumnPinning, parseStoredDataTableColumnPinning, resolveDataTableColumnPinning } from './column-pinning'
 export { normalizeDataTableColumnSizing } from './column-sizing'
 export { DATA_TABLE_VIEW_MODES, useDataTableViewMode } from './view-mode'
+export { staticDataTableClassNames } from './static-data-table-classnames'
 export type { DataTablePinningColumn, ResolvedDataTablePinnedColumn } from './column-pinning'
 export type { DataTableViewMode, UseDataTableViewModeOptions } from './view-mode'
+export type {
+    StaticDataTableBaseProps,
+    StaticDataTableChildrenProps,
+    StaticDataTableColumn,
+    StaticDataTableDataProps,
+    StaticDataTableProps,
+    StaticDataTableRowKey,
+} from './static-data-table-types'
 export type { DataTableQueryState, DataTableQuerySync, UseDataTableOptions, UseDataTableReturn } from './useDataTable'
 export type {
     DataTableColumnPinning,

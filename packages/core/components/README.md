@@ -66,6 +66,28 @@ unchanged.
 The default error and retry copy uses `common.errorLoading` and `common.retry`
 locale keys; explicit `errorText` and error slots remain authoritative.
 
+`StaticDataTable` is the lightweight companion for local arrays that do not
+need TanStack-style query state. It follows the new-api `static/` composition:
+pass `columns` (`id`, `header`, optional `cell` and `cellClassName`) and
+`data`, or provide pre-composed table children through the default slot. The
+component owns the bordered `overflow-hidden rounded-md border` surface,
+compact table primitives, empty-row handling, row keys and row-class callbacks;
+it does not fetch, sort, paginate or select rows. `getRowKey` is preferred when
+rows have stable identities, while the index remains a safe demo fallback.
+
+Plain text and ordinary text-bearing VNodes returned by a column `cell` are
+wrapped in `TruncatedCell` so long local values retain the new-api tooltip
+behavior. Rich cells that do not expose readable text render as-is. Use the
+typed `#row` slot (`{ row, index }`) or the `renderRow` callback when a feature
+needs to provide a complete `TableRow`; the slot takes precedence. `empty` can
+force the empty state, `emptyContent` or `#empty` owns its content, and
+`tableClassName`/`className` plus `tableProps`/`containerProps` allow additive
+layout and native attributes without replacing structural classes.
+
+`staticDataTableClassNames` exports the new-api compact/header/cell/action class
+map (`compactMutedNumericCell`, `topCell`, `actionCell`, and related tokens) so
+feature code can share density and semantic styles without copying strings.
+
 Use the optional `toolbar` slot for controls above the table and the `actions`
 slot for a per-row action column. The toolbar exposes `selectedKeys`, `loading`,
 `error`, `retry`, `sort`, `columnPinning`, `setColumnPinning`, `page` and `pageSize`; row actions expose `row`,
