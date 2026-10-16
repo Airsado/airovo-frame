@@ -41,6 +41,9 @@ withDefaults(defineProps<{
                     <slot name="actions" />
                 </div>
             </div>
+            <div v-if="$slots.tabs" data-slot="section-page-tabs" class="mt-3 min-w-0 sm:mt-4">
+                <slot name="tabs" />
+            </div>
         </header>
 
         <div class="min-h-0 flex-1 px-3 pb-3 pt-1 sm:px-4 sm:pb-4 sm:pt-1.5" :class="fixedContent ? 'overflow-hidden' : 'overflow-auto'">

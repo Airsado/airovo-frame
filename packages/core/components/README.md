@@ -503,7 +503,9 @@ scroll container. Direct `SectionPage` `footer` slots remain supported.
 
 `SectionPage` keeps the existing sticky title behavior while matching the
 new-api title weight (`font-bold`), responsive action spacing and content
-padding. Its title header has no extra bottom border, matching new-api's
+padding. Its optional `tabs` slot is rendered inside the same sticky header,
+so tabs do not add a second top offset or move the independent content scroll
+layer. Its title header has no extra bottom border, matching new-api's
 borderless page title surface; content cards and footer hosts remain caller or
 framework composition concerns.
 

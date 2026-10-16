@@ -631,6 +631,14 @@ function sseItemData(item: unknown): unknown {
                     <template #description
                         >面向模型调用、渠道和额度的统一工作区。</template
                     >
+                    <template #tabs>
+                        <Tabs default-value="overview" class="w-full">
+                            <TabsList>
+                                <TabsTrigger value="overview">概览</TabsTrigger>
+                                <TabsTrigger value="activity">活动</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </template>
                     <template #actions>
                         <Button size="sm" variant="outline">导出报表</Button>
                         <PermissionButton requires-auth size="sm" @click="onAdd">权限操作</PermissionButton>
