@@ -77,6 +77,7 @@ describe('ChartCard', () => {
         expect(tooltip.find('li > span').classes()).toEqual(expect.arrayContaining(['h-2.5', 'w-2.5', 'rounded-sm']))
         expect(tooltip.find('li span.text-foreground').classes()).toEqual(expect.arrayContaining(['font-mono', 'font-medium', 'tabular-nums']))
         expect(tooltip.findAll('li')).toHaveLength(2)
+        expect(tooltip.text()).toContain((2400).toLocaleString())
         expect(tooltip.text()).toContain('98%')
 
         const emptyTooltip = mount(ChartTooltip, { props: { payload: [] } })

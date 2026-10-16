@@ -10,6 +10,10 @@ defineProps<{
     label?: string
     payload?: Array<{ color: string; name: string; value: number | string }>
 }>()
+
+function formatValue(value: number | string): string {
+    return typeof value === 'number' ? value.toLocaleString() : String(value)
+}
 </script>
 
 <template>
@@ -28,7 +32,7 @@ defineProps<{
                 />
                 <div class="flex min-w-0 flex-1 items-center justify-between gap-2 leading-none">
                     <span class="min-w-0 truncate text-muted-foreground">{{ item.name }}</span>
-                    <span class="shrink-0 text-foreground font-mono font-medium tabular-nums">{{ item.value }}</span>
+                    <span class="shrink-0 text-foreground font-mono font-medium tabular-nums">{{ formatValue(item.value) }}</span>
                 </div>
             </li>
         </ul>
