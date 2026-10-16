@@ -82,7 +82,7 @@ describe('DataTablePage view mode', () => {
     expect(wrapper.emitted('update:cardSelectedKeys')?.at(-1)).toEqual([[1]])
   })
 
-  it('uses the automatic card fallback for mobileCards without a mobile slot', () => {
+  it('uses the automatic mobile list fallback for mobileCards without a mobile slot', () => {
     const wrapper = mount(DataTablePage, {
       global,
       props: {
@@ -93,7 +93,8 @@ describe('DataTablePage view mode', () => {
       slots: { table: '<div data-table>table</div>' },
     })
 
-    expect(wrapper.find('[data-slot="data-table-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="data-table-mobile-card-list"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="data-table-mobile-row"]').exists()).toBe(true)
     expect(wrapper.find('[data-table]').exists()).toBe(true)
     expect(wrapper.find('[data-table]').element.parentElement?.className).toContain('hidden')
   })
