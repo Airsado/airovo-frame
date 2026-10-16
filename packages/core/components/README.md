@@ -665,6 +665,8 @@ The ChartCard also installs a Chart.js external tooltip adapter: hovered label,
 dataset name, color and formatted value are normalized into the same tooltip
 slot/model, while the existing props remain a static fallback. Loading, empty
 and error states never mount the chart or tooltip.
+  The shared tooltip formats numeric values with the browser locale (for example,
+  `2400` becomes `2,400`) and preserves string values such as `98%` verbatim.
 Default loading/error/empty/retry labels use the framework i18n
 `common.chartLoading`, `common.chartError`, `common.chartEmpty` and
 `common.retry` keys with Chinese fallbacks; explicit `errorText` and
