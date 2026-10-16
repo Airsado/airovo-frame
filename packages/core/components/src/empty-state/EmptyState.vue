@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@airovo/uikit-shadcnui'
+import { STATE_CONTENT_CLASS, STATE_SURFACE_CLASS } from './state-surface'
 
 const props = withDefaults(defineProps<{
     icon?: string
@@ -23,13 +24,13 @@ const iconSize = computed(() => ({ sm: 'size-4', md: 'size-5', lg: 'size-6' })[p
 </script>
 
 <template>
-    <Empty :class="[props.bordered ? 'border' : 'border-0', 'w-full min-h-[300px] gap-4 rounded-xl p-6 md:p-12 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200', props.class]">
+    <Empty :class="[STATE_SURFACE_CLASS, props.bordered ? 'border' : 'border-0', props.class]">
         <EmptyHeader>
             <EmptyMedia v-if="props.icon" variant="icon" :class="mediaSize"><Icon :icon="props.icon" :class="iconSize" /></EmptyMedia>
             <EmptyTitle v-if="resolvedTitle" class="text-sm font-medium tracking-tight">{{ resolvedTitle }}</EmptyTitle>
             <EmptyDescription v-if="props.description">{{ props.description }}</EmptyDescription>
         </EmptyHeader>
-        <EmptyContent v-if="$slots.actions || $slots.action || props.actionText" class="gap-2.5">
+        <EmptyContent v-if="$slots.actions || $slots.action || props.actionText" :class="STATE_CONTENT_CLASS">
             <slot name="actions" />
             <slot name="action" />
             <Button v-if="props.actionText" type="button" @click="emit('action', $event)">{{ props.actionText }}</Button>

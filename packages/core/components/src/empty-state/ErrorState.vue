@@ -3,6 +3,7 @@ import { Icon } from '@airovo/shared/icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@airovo/uikit-shadcnui'
+import { STATE_CONTENT_CLASS, STATE_SURFACE_CLASS } from './state-surface'
 
 defineOptions({ name: 'ErrorState' })
 
@@ -28,13 +29,13 @@ const canRetry = computed(() => props.showRetry || props.retryText != null)
 
 <template>
     <div role="alert">
-        <Empty :class="['w-full min-h-[300px] gap-4 rounded-xl border-0 p-6 md:p-12 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200', props.class]">
+        <Empty :class="[STATE_SURFACE_CLASS, 'border-0', props.class]">
             <EmptyHeader>
                 <EmptyMedia variant="icon" class="size-8"><Icon :icon="props.icon" class="size-6 text-destructive" /></EmptyMedia>
                 <EmptyTitle class="text-sm font-medium tracking-tight">{{ resolvedTitle }}</EmptyTitle>
                 <EmptyDescription v-if="props.description">{{ props.description }}</EmptyDescription>
             </EmptyHeader>
-            <EmptyContent v-if="$slots.actions || $slots.action || canRetry || props.actionText" class="gap-2.5">
+            <EmptyContent v-if="$slots.actions || $slots.action || canRetry || props.actionText" :class="STATE_CONTENT_CLASS">
                 <Button v-if="canRetry && resolvedRetryText" type="button" variant="outline" size="sm" @click="emit('retry', $event)">{{ resolvedRetryText }}</Button>
                 <Button v-if="props.actionText" type="button" size="sm" @click="emit('action', $event)">{{ props.actionText }}</Button>
                 <slot name="actions" />

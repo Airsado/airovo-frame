@@ -21,6 +21,7 @@ describe('status state components', () => {
         expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain('size-8')
         expect(wrapper.get('[data-slot="empty-title"]').classes()).toEqual(expect.arrayContaining(['text-sm', 'font-medium']))
         expect(wrapper.get('[data-slot="empty"]').classes()).toEqual(expect.arrayContaining(['w-full', 'gap-4', 'rounded-xl', 'p-6']))
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('border-dashed')
         expect(wrapper.get('[data-slot="empty"]').classes()).toContain('motion-safe:animate-in')
         expect(wrapper.classes()).toContain('min-h-[300px]')
     })
@@ -52,6 +53,7 @@ describe('status state components', () => {
             slots: { action: '<button type="button">辅助动作</button>' },
         })
         expect(wrapper.classes()).toContain('border')
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('border-dashed')
         expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
         expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('空')
         expect(wrapper.get('[data-slot="empty-content"]').classes()).toContain('gap-2.5')
@@ -81,6 +83,7 @@ describe('status state components', () => {
         expect(wrapper.get('[data-slot="empty"]')).toBeTruthy()
         expect(wrapper.get('[data-slot="empty-icon"]').attributes('data-variant')).toBe('icon')
         expect(wrapper.get('[data-slot="empty"]').classes()).toEqual(expect.arrayContaining(['w-full', 'gap-4', 'rounded-xl', 'p-6']))
+        expect(wrapper.get('[data-slot="empty"]').classes()).toContain('border-dashed')
         expect(wrapper.get('[data-slot="empty-icon"]').classes()).toContain('size-8')
         expect(wrapper.get('[data-slot="empty-title"]').classes()).toEqual(expect.arrayContaining(['text-sm', 'font-medium']))
         expect(wrapper.get('[data-slot="empty-content"]').classes()).toContain('gap-2.5')
