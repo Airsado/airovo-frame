@@ -8,7 +8,7 @@ const stubs = {
   Popover: { template: '<div><slot /></div>' }, PopoverTrigger: { template: '<div><slot /></div>' }, PopoverContent: { template: '<div><slot /></div>' },
   Command: { template: '<div><slot /></div>' }, CommandInput: { props: ['modelValue', 'placeholder'], emits: ['update:modelValue', 'keydown'], template: '<input data-command-input :value="modelValue" :placeholder="placeholder" @input="$emit(\'update:modelValue\', $event.target.value)" @keydown="$emit(\'keydown\', $event)" />' },
   CommandList: { template: '<div><slot /></div>' }, CommandEmpty: { template: '<div><slot /></div>' }, CommandGroup: { template: '<div><slot /></div>' }, CommandItem: { props: ['disabled'], emits: ['select'], template: '<button :disabled="disabled" @click="$emit(\'select\')"><slot /></button>' },
-  Check: true, ChevronDown: true, X: true,
+  Check: true, ChevronDown: true, X: true, Icon: true,
 }
 
 describe('MultiSelect', () => {
@@ -16,10 +16,35 @@ describe('MultiSelect', () => {
 
   it('uses the new-api chips/input surface and keeps hidden values compact', () => {
     const wrapper = shallowMount(MultiSelect, { global, props: { options: [{ label: 'One', value: 'one', hint: 'Primary' }, { label: 'Two', value: 'two' }], modelValue: ['one', 'two'], maxVisibleChips: 1 } })
-    expect(wrapper.get('[role="combobox"]').classes()).toEqual(expect.arrayContaining(['rounded-md', 'border-input', 'bg-background']))
+    expect(wrapper.get('[role="combobox"]').classes()).toEqual(expect.arrayContaining(['rounded-lg', 'border-input', 'bg-transparent']))
     expect(wrapper.get('input').attributes('aria-label')).toBe('Select items')
     expect(wrapper.get('input').attributes('placeholder')).toBeUndefined()
     expect(wrapper.text()).toContain('+1')
+  })
+
+  it('forwards id to the native input and supports a selected summary renderer', () => {
+    const wrapper = shallowMount(MultiSelect, {
+      global,
+      props: {
+        id: 'channels',
+        options: [{ label: 'One', value: 'one' }],
+        modelValue: ['one'],
+        renderSelectedSummary: values => `${values.length} selected`,
+      },
+    })
+
+    expect(wrapper.get('input').attributes('id')).toBe('channels')
+    expect(wrapper.findComponent({ name: 'MultiSelectSummary' }).exists()).toBe(true)
+  })
+
+  it('renders the selected-summary slot with the current values', () => {
+    const wrapper = shallowMount(MultiSelect, {
+      global,
+      props: { modelValue: ['one', 'two'] },
+      slots: { 'selected-summary': ({ values }: { values: string[] }) => `${values.length} selected` },
+    })
+
+    expect(wrapper.text()).toContain('2 selected')
   })
 
   it('selects existing options from the inline input with Enter', async () => {
