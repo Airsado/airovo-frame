@@ -20,10 +20,10 @@ const stubs = {
     props: ["side", "sideOffset", "align", "alignOffset"],
     template: '<div v-bind="$attrs" data-stub="tooltip-content" :data-align="align" :data-align-offset="alignOffset"><slot /></div>',
   },
-  Popover: { template: '<div data-stub="popover"><slot /></div>' },
+  Popover: { template: '<div v-bind="$attrs" data-stub="popover"><slot /></div>' },
   PopoverTrigger: {
     props: ["disabled", "asChild"],
-    template: '<div data-stub="popover-trigger" :data-as-child="String(asChild)"><slot /></div>',
+    template: '<div v-bind="$attrs" data-stub="popover-trigger" :data-as-child="String(asChild)"><slot /></div>',
   },
   PopoverContent: {
     template: '<div v-bind="$attrs" data-stub="popover-content"><slot /></div>',
@@ -54,7 +54,32 @@ describe("framework overlay compositions", () => {
     });
     expect(
       wrapper.get('[data-slot="framework-popover-content"]').classes(),
-    ).toEqual(expect.arrayContaining(["w-72", "rounded-lg", "p-2.5"]));
+    ).toEqual(expect.arrayContaining([
+      "bg-popover",
+      "text-popover-foreground",
+      "z-50",
+      "flex",
+      "w-72",
+      "gap-2.5",
+      "rounded-lg",
+      "p-2.5",
+      "shadow-md",
+      "ring-1",
+      "ring-foreground/10",
+      "duration-100",
+    ]));
+    expect(wrapper.get('[data-slot="framework-popover"]')).toBeTruthy();
+    expect(wrapper.get('[data-slot="framework-popover-trigger"]')).toBeTruthy();
     expect(wrapper.get('[data-stub="popover-trigger"]').attributes("data-as-child")).toBeDefined();
+  });
+
+  it("keeps the same surface contract for an uncontrolled popover", () => {
+    const wrapper = mount(FrameworkPopover, {
+      props: { defaultOpen: true },
+      slots: { trigger: "<button>打开</button>", default: "<p>内容</p>" },
+      global: { stubs },
+    });
+    expect(wrapper.get('[data-slot="framework-popover"]')).toBeTruthy();
+    expect(wrapper.get('[data-slot="framework-popover-content"]').classes()).toContain("bg-popover");
   });
 });

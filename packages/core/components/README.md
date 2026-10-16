@@ -378,9 +378,12 @@ Tooltip accepts `content` or a `content` slot plus `open`, `defaultOpen`,
 Popover exposes default
 content, `open`/`defaultOpen`, `update:open`, `modal`, `side`, `align`, offsets
 and `disabled`; its trigger slot also uses direct as-child semantics and must
-provide the interactive root element. Their content classes match new-api's foreground/popover
-surfaces, arrow, rounded corners, padding, width and ring while primitive
-focus, Escape and outside behavior stays owner-controlled.
+provide the interactive root element. The framework root, trigger and content
+expose `data-slot="framework-popover"`, `data-slot="framework-popover-trigger"`
+and `data-slot="framework-popover-content"`. Its content uses new-api's
+`bg-popover`/`text-popover-foreground`, `w-72`, `rounded-lg`, `p-2.5`,
+`gap-2.5`, shadow/ring, z-index and side-aware enter/exit animation tokens;
+primitive focus, Escape and outside behavior stays owner-controlled.
 
 ## FrameworkCalendar
 
