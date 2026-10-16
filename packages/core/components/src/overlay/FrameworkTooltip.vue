@@ -8,9 +8,11 @@ import {
 
 defineOptions({ name: "FrameworkTooltip" });
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     content?: string;
+    open?: boolean;
+    defaultOpen?: boolean;
     side?: "top" | "right" | "bottom" | "left";
     align?: "start" | "center" | "end";
     sideOffset?: number;
@@ -29,23 +31,37 @@ withDefaults(
     disabled: false,
   },
 );
+
+const emit = defineEmits<{
+  (event: "update:open", value: boolean): void;
+}>();
+
+function updateOpen(value: boolean): void {
+  emit("update:open", value);
+}
 </script>
 
 <template>
-  <TooltipProvider :delay-duration="delayDuration">
-    <Tooltip :disabled="disabled" data-slot="framework-tooltip">
-      <TooltipTrigger as-child :disabled="disabled" :class="triggerClass">
+  <TooltipProvider :delay-duration="props.delayDuration">
+    <Tooltip
+      :open="props.open"
+      :default-open="props.defaultOpen"
+      :disabled="props.disabled"
+      data-slot="framework-tooltip"
+      @update:open="updateOpen"
+    >
+      <TooltipTrigger as-child :disabled="props.disabled" :class="props.triggerClass">
         <slot name="trigger" />
       </TooltipTrigger>
       <TooltipContent
-        :side="side"
-        :align="align"
-        :side-offset="sideOffset"
-        :align-offset="alignOffset"
-        :class="['inline-flex items-center gap-1.5 max-w-xs break-words text-balance', contentClass]"
+        :side="props.side"
+        :align="props.align"
+        :side-offset="props.sideOffset"
+        :align-offset="props.alignOffset"
+        :class="['inline-flex items-center gap-1.5 max-w-xs break-words text-balance', props.contentClass]"
         data-slot="framework-tooltip-content"
       >
-        <slot name="content">{{ content }}</slot>
+        <slot name="content">{{ props.content }}</slot>
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>
