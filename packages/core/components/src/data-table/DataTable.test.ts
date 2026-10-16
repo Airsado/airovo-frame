@@ -115,7 +115,12 @@ describe('DataTable', () => {
         expect(wrapper.get('[data-slot="empty"]').classes()).toContain('border-0')
         expect(wrapper.get('[data-slot="empty-title"]').text()).toBe('没有渠道')
         expect(wrapper.get('[data-slot="empty-description"]').text()).toBe('调整筛选条件后重试')
-        expect(wrapper.get('tbody td').classes()).toContain('h-[400px]')
+        const cell = wrapper.get('tbody td')
+        expect(cell.classes()).toContain('h-[400px]')
+        expect(cell.attributes('role')).toBeUndefined()
+        expect(cell.attributes('aria-live')).toBeUndefined()
+        expect(cell.get('[data-slot="empty"]').attributes('role')).toBe('status')
+        expect(cell.get('[data-slot="empty"]').attributes('aria-live')).toBe('polite')
         expect(wrapper.text()).toContain('清除筛选')
     })
 
@@ -126,9 +131,13 @@ describe('DataTable', () => {
 
         const error = mountTable({ error: new Error('failed') })
         expect(error.get('[role="alert"]').text()).toContain('加载失败')
+        expect(error.get('tbody td').attributes('role')).toBeUndefined()
+        expect(error.get('[role="alert"]').attributes('aria-live')).toBe('assertive')
 
         const empty = mountTable({ data: [] })
         expect(empty.get('[role="status"]').text()).toContain('暂无')
+        expect(empty.get('tbody td').attributes('role')).toBeUndefined()
+        expect(empty.get('[role="status"]').attributes('aria-live')).toBe('polite')
     })
 
     it('keeps legacy emptyText and custom empty slots compatible', () => {

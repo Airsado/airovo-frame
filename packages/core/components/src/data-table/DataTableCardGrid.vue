@@ -144,7 +144,7 @@ watch(visibleKeySet, () => {
             </slot>
         </template>
         <template v-else-if="props.error">
-            <div role="alert" aria-live="polite" class="rounded-lg border border-destructive/40 p-6 text-center text-sm text-destructive">
+            <div role="alert" aria-live="assertive" class="rounded-lg border border-destructive/40 p-6 text-center text-sm text-destructive">
                 <slot name="error" :error="props.error" :retry="() => emit('retry')">
                     <p>{{ resolvedErrorText }}</p>
                     <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="emit('retry')">{{ retryText }}</button>
