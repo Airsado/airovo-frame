@@ -20,8 +20,8 @@ const resolvedDescription = computed(() => props.description ?? (te('common.noDa
 
 <template>
     <TableRow>
-        <TableCell role="status" aria-live="polite" :colspan="props.colSpan" class="h-[400px] p-0">
-            <Empty class="border-0">
+        <TableCell :colspan="props.colSpan" class="h-[400px] p-0">
+            <Empty role="status" aria-live="polite" class="border-0">
                 <EmptyHeader>
                     <EmptyMedia variant="icon"><Icon :icon="props.icon" class="size-6" /></EmptyMedia>
                     <EmptyTitle>{{ resolvedTitle }}</EmptyTitle>

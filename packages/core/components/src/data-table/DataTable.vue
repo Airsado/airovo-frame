@@ -546,17 +546,21 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </tr>
                 </template>
                 <tr v-else-if="error">
-                    <td role="alert" aria-live="assertive" :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
-                        <slot name="error" :error="error" :retry="retry">
-                            <p>{{ errorLoadingText }}</p>
-                            <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="retry">{{ retryText }}</button>
-                        </slot>
+                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
+                        <div role="alert" aria-live="assertive">
+                            <slot name="error" :error="error" :retry="retry">
+                                <p>{{ errorLoadingText }}</p>
+                                <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="retry">{{ retryText }}</button>
+                            </slot>
+                        </div>
                     </td>
                 </tr>
                 <template v-else-if="visibleRows.length === 0">
                     <tr v-if="$slots.empty">
-                        <td role="status" aria-live="polite" :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
-                            <slot name="empty" />
+                        <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
+                            <div role="status" aria-live="polite">
+                                <slot name="empty" />
+                            </div>
                         </td>
                     </tr>
                     <DataTableEmpty

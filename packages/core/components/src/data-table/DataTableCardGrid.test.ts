@@ -46,6 +46,7 @@ describe('DataTableCardGrid', () => {
     const empty = mount(DataTableCardGrid, { global, props: { rows: [], columns } })
     expect(empty.text()).toContain('暂无数据')
     expect(empty.get('[role="status"]').text()).toContain('暂无数据')
+    expect(empty.get('[role="status"]').attributes('aria-live')).toBe('polite')
 
     const selected = mount(DataTableCardGrid, { global, props: { rows, columns, selectable: true } })
     await selected.get('input[type="checkbox"]').setValue(true)
@@ -82,6 +83,7 @@ describe('DataTableCardGrid', () => {
   it('uses the same accessible error and retry contract as DataTable', async () => {
     const wrapper = mount(DataTableCardGrid, { global, props: { rows, columns, error: new Error('failed') } })
     expect(wrapper.get('[role="alert"]').text()).toContain('加载失败')
+    expect(wrapper.get('[role="alert"]').attributes('aria-live')).toBe('assertive')
     await wrapper.get('[role="alert"] button').trigger('click')
     expect(wrapper.emitted('retry')).toHaveLength(1)
   })
