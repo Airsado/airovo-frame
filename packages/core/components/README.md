@@ -517,7 +517,7 @@ composition.
 
 When the popup is open, the input exposes `aria-haspopup="listbox"`,
 `aria-autocomplete="list"`, `aria-controls` and an `aria-activedescendant`
-that points at the highlighted leaf. Arrow navigation skips disabled leaves;
+that points at the actual listbox and highlighted leaf. Arrow navigation skips disabled leaves;
 Enter selects the highlighted leaf and restores focus to the input, while+Escape closes the popup without replacing the current value. Parent options+remain non-selectable labels, and filtering keeps every matching parent path.
 
 ## Tabs
