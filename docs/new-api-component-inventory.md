@@ -36,6 +36,14 @@
 
 ## 源码范围补充盘点
 
+### DataPanel 状态组合（Issue #459）
+
+`packages/core/components/src/data-panel/DataPanel.vue` 已提供 toolbar、footer、
+fixedHeight、loading、empty、error/retry props、状态 slots 和共享状态组件组合。
+Issue #459 已补齐 DataPanel 自身的 `loading`/`empty`/`error` 状态契约、测试、
+demo/template 和 API 文档；DataTableEmpty、DataTableCardGrid 与 ChartCard 继续
+作为独立后续 Issue。
+
 | new-api 源文件 | 组件名称 | airovo 落点 | 当前状态 | 缺口 | 优先级 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `web/src/components/truncated-text.tsx` | TruncatedText | `packages/core/components/src/data-table/TruncatedText.vue` | 已存在但行为不完整 | 已保留长文本抽取、tooltip、键盘焦点和空值语义；富内容 tooltip slot 与完整 DataTable 组合矩阵仍需持续对照 | P1 | 单测、DataTable demo、键盘/hover 验证 |
