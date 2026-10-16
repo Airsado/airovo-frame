@@ -4,10 +4,11 @@ export function normalizeDataTableColumnVisibility(
     columns: readonly DataTableColumn[],
     value: DataTableColumnVisibility = {},
 ): DataTableColumnVisibility {
-    const configurable = columns.filter((column) => column.id !== 'selection' && !column.hidden)
-    const next = Object.fromEntries(configurable.map((column) => {
+    const visibleColumns = columns.filter((column) => column.id !== 'selection' && !column.hidden)
+    const configurable = visibleColumns.filter((column) => column.hideable !== false)
+    const next = Object.fromEntries(visibleColumns.map((column) => {
         const id = column.id ?? column.key
-        return [id, value[id] !== false]
+        return [id, column.hideable === false ? true : value[id] !== false]
     })) as DataTableColumnVisibility
     const visibleIds = Object.entries(next).filter(([, visible]) => visible).map(([id]) => id)
     if (configurable.length > 0 && visibleIds.length === 0) {

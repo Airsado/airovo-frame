@@ -31,7 +31,7 @@ const resolvedLabel = computed(() => props.label ?? copy('common.columnVisibilit
 const resolvedResetLabel = computed(() => props.resetLabel ?? copy('common.restoreColumns', '恢复默认列'))
 const resolvedGroupLabel = computed(() => copy('common.columnVisibilityOptions', '列显示选项'))
 const localVisibility = ref<DataTableColumnVisibility>(normalizeDataTableColumnVisibility(props.columns, props.modelValue))
-const configurableColumns = computed(() => props.columns.filter((column) => column.id !== 'selection' && !column.hidden))
+const configurableColumns = computed(() => props.columns.filter((column) => column.id !== 'selection' && !column.hidden && column.hideable !== false))
 const columnId = (column: DataTableColumn): string => column.id ?? column.key
 const isVisible = (column: DataTableColumn): boolean => localVisibility.value[columnId(column)] !== false
 

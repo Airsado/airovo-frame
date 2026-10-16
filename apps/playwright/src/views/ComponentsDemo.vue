@@ -1142,6 +1142,7 @@ function sseItemData(item: unknown): unknown {
 
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">DataTable 框架表格</h2>
+                <p class="text-xs text-muted-foreground">点击可排序列头可打开 new-api 风格的升序、降序和隐藏列菜单。</p>
                 <DataPanel>
                     <DataTable :columns="coreTableColumns" :data="tableRows" caption="框架通用组件列表" empty-description="当前筛选条件下没有可展示的组件。">
                         <template #cell-name="{ value }">
