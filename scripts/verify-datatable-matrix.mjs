@@ -63,8 +63,15 @@ try {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.waitForTimeout(400)
     assert.ok(await page.locator('article').count())
+    const mobileCheckbox = page.locator('article[data-slot="data-table-card"] input[type="checkbox"]').first()
+    if (await mobileCheckbox.count()) {
+        await mobileCheckbox.check()
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await page.waitForTimeout(400)
+        assert.equal(await table.locator('tbody tr[data-state="selected"]').count(), 1)
+    }
 
-    console.log(JSON.stringify({ baseUrl, desktop: true, selection: true, viewOptions: true, dark: true, mobileCards: true }))
+    console.log(JSON.stringify({ baseUrl, desktop: true, selection: true, sharedTableCardSelection: true, viewOptions: true, dark: true, mobileCards: true }))
 } finally {
     await browser.close()
 }

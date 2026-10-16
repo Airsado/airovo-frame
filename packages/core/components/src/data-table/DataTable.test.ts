@@ -119,6 +119,18 @@ describe('DataTable', () => {
         expect(wrapper.text()).toContain('清除筛选')
     })
 
+    it('exposes a single accessible state surface for loading, error and empty data', () => {
+        const loading = mountTable({ loading: true })
+        expect(loading.get('[data-slot="data-table-surface"]').attributes('aria-busy')).toBe('true')
+        expect(loading.get('[role="status"]').text()).toContain('加载中')
+
+        const error = mountTable({ error: new Error('failed') })
+        expect(error.get('[role="alert"]').text()).toContain('加载失败')
+
+        const empty = mountTable({ data: [] })
+        expect(empty.get('[role="status"]').text()).toContain('暂无')
+    })
+
     it('keeps legacy emptyText and custom empty slots compatible', () => {
         const legacy = mountTable({ data: [], emptyText: '自定义暂无数据' })
         expect(legacy.get('[data-slot="empty-title"]').text()).toBe('自定义暂无数据')

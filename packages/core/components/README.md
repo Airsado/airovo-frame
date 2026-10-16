@@ -73,16 +73,28 @@ storage key for column visibility. `DataTableRowActions` accepts typed row
 actions with visible/disabled/loading predicates and an optional permission
 callback. `DataTablePage` provides separate `table` and `mobile` slots so the
 same query, pagination and selection state can render as a desktop table and a
-mobile card list. Set `enable-view-mode-toggle` to expose the new-api table/card
+mobile card list. For the canonical shared state contract, pass `rows` and
+`columns` once (plus `loading`, `error`, `selected-keys`, `selection-scope`,
+`pagination`, `page`, `page-size`, `total`, `sort` and `row-key` as needed).
+When no `table` slot is supplied, the page renders `DataTable` from that source;
+the automatic `DataTableCardGrid` receives the same rows, loading/error/empty
+state and selection keys. `update:selectedKeys`, `selection-change`, page,
+sort and retry events are forwarded from the built-in table and card views.
+Custom `table` and `mobile` slots receive the shared source and update helpers
+as slot props, so advanced table configuration can still stay in the caller.
+Set `enable-view-mode-toggle` to expose the new-api table/card
 segmented control. `default-view-mode` chooses the uncontrolled initial mode,
 `view-mode` makes the state controlled, and `view-mode-storage-key` persists a
 per-table choice as the literal `table` or `card` value. The component emits
 `update:viewMode`; card mode renders the `mobile` slot across all widths.
-When `card-rows` and `card-columns` are provided, the page automatically uses
-`DataTableCardGrid` for card/mobile rendering when no `mobile` slot is supplied.
-Its selection events are `update:cardSelectedKeys` and
-`card-selection-change`; `card-cell-{key}` slots forward into the generic cell
-slots, while `card` and `card-actions` override row content and actions.
+`card-rows`, `card-columns`, `card-selected-keys` and related `card-*` props
+remain available as a legacy card-only contract. They are bridged to the shared
+events for compatibility; new pages should use the shared source instead.
+`card-cell-{key}` slots forward into the generic cell slots, while `card` and
+`card-actions` override row content and actions. DataTable and DataTableCardGrid
+share the new-api state semantics: loading has one polite status announcement,
+errors expose one alert with a retry action, and empty content exposes one
+polite status region.
 Channel fields, API calls and edit dialogs remain application code.
 
 `DataTableViewModeToggle` is also available as a standalone controlled control.

@@ -1183,12 +1183,24 @@ function sseItemData(item: unknown): unknown {
                         mobile-cards
                         enable-view-mode-toggle
                         view-mode-storage-key="playwright-channel-table-view-mode"
-                        :card-rows="serverTable.rows.value"
-                        :card-columns="serverTableColumns"
-                        card-row-key="id"
-                        card-selectable
-                        :card-selected-keys="serverSelectedKeys"
-                        @update:card-selected-keys="serverSelectedKeys = $event"
+                        :rows="serverTable.rows.value"
+                        :columns="serverTableColumns"
+                        row-key="id"
+                        :loading="serverTable.loading.value"
+                        :error="serverTable.error.value"
+                        selectable
+                        pagination
+                        manual-sort
+                        :selected-keys="serverSelectedKeys"
+                        :sort="serverTable.sort.value"
+                        :page="serverTable.page.value"
+                        :page-size="serverTable.pageSize.value"
+                        :total="serverTable.total.value"
+                        @update:selected-keys="serverSelectedKeys = $event"
+                        @update:page="serverTable.setPage"
+                        @update:page-size="serverTable.setPageSize"
+                        @update:sort="serverTable.setSort"
+                        @retry="serverTable.retry"
                     >
                         <template #toolbar>
                             <DataTableToolbar
@@ -1214,31 +1226,34 @@ function sseItemData(item: unknown): unknown {
                                 </template>
                             </DataTableToolbar>
                         </template>
-                        <template #table>
+                        <template #table="tableState">
                             <DataTable
                                 data-testid="datatable-surface-demo"
-                                v-model:selected-keys="serverSelectedKeys"
+                                :columns="tableState.columns"
+                                :data="tableState.data"
+                                :row-key="tableState.rowKey"
+                                :loading="tableState.loading"
+                                :error="tableState.error"
+                                :selected-keys="tableState.selectedKeys"
+                                :selection-scope="tableState.selectionScope"
+                                @update:selected-keys="tableState.updateSelectedKeys"
                                 v-model:column-visibility="serverTableColumnVisibility"
                                 v-model:column-sizing="serverTableColumnSizing"
                                 column-sizing-storage-key="playwright-channel-table-sizing"
                                 v-model:column-pinning="serverTableColumnPinning"
                                 column-pinning-storage-key="playwright-channel-table-pinning"
-                                :columns="serverTableColumns"
-                                :data="serverTable.rows.value"
-                                :loading="serverTable.loading.value"
-                                :error="serverTable.error.value"
                                 selectable
                                 pagination
                                 manual-sort
-                                :sort="serverTable.sort.value"
-                                :page="serverTable.page.value"
-                                :page-size="serverTable.pageSize.value"
-                                :total="serverTable.total.value"
+                                :sort="tableState.sort"
+                                :page="tableState.page"
+                                :page-size="tableState.pageSize"
+                                :total="tableState.total"
                                 :max-height="420"
-                                @sort-change="serverTable.setSort"
-                                @update:page="serverTable.setPage"
-                                @update:page-size="serverTable.setPageSize"
-                                @retry="serverTable.retry"
+                                @sort-change="tableState.updateSort"
+                                @update:page="tableState.updatePage"
+                                @update:page-size="tableState.updatePageSize"
+                                @retry="tableState.retry"
                             >
                                 <template #cell-name="{ value }">
                                     <TruncatedCell class="max-w-40">
