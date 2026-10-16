@@ -33,6 +33,36 @@ describe('SectionPage', () => {
         expect(defaultWrapper.get('h1').classes()).toContain('font-bold')
     })
 
+    it('keeps optional tabs inside the sticky header without adding a content offset', () => {
+        const wrapper = mount(SectionPage, {
+            slots: {
+                title: '<h1>渠道</h1>',
+                tabs: '<div data-test="tabs">概览 / 活动</div>',
+                default: '<div data-test="content" class="h-[1200px]">内容</div>',
+            },
+            global: {
+                plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
+            },
+        })
+        const header = wrapper.get('[data-slot="section-page-header"]')
+        expect(header.get('[data-slot="section-page-tabs"]').classes()).toEqual(expect.arrayContaining(['mt-3', 'min-w-0', 'sm:mt-4']))
+        expect(header.get('[data-test="tabs"]').text()).toContain('概览')
+        expect(wrapper.get('[data-test="content"]').element.closest('[data-slot="section-page-header"]')).toBeNull()
+    })
+
+    it('keeps fixed content mode on the independent content scroll layer', () => {
+        const wrapper = mount(SectionPage, {
+            props: { fixedContent: true },
+            slots: { default: '<div>固定区域</div>' },
+            global: {
+                plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
+            },
+        })
+        const content = wrapper.get('[data-slot="section-page-header"]').element.nextElementSibling as HTMLElement
+        expect(content.className).toContain('overflow-hidden')
+        expect(content.className).not.toContain('overflow-auto')
+    })
+
     it('teleports PageFooterPortal into the SectionPage footer host', async () => {
         const wrapper = mount(SectionPage, {
             slots: {
