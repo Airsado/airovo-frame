@@ -8,6 +8,10 @@ export type BuiltInFormComponent =
     | 'Number'
     | 'Email'
     | 'Select'
+    | 'DatePicker'
+    | 'date'
+    | 'DateTimePicker'
+    | 'datetime'
 
 export type FormComponent = Component | BuiltInFormComponent
 
