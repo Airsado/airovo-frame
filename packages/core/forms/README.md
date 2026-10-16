@@ -38,6 +38,12 @@ is ignored by that component so callers cannot bypass the visibility state;
 use `toggleAriaLabel` to provide a localized accessible label. The same mapping
 is used for top-level fields and nested `children` fields.
 
+Built-in `DatePicker`/`date` and `DateTimePicker`/`datetime` fields map to
+`DatePickerField`. When no `defaultValue` is provided, their empty value is
+`undefined`, matching the date picker model contract; explicit defaults are
+preserved. This applies to top-level fields, nested `children`, and rows added
+to array fields.
+
 The controller exposes `getValues`, `setValues`, `setFieldValue`, `setFieldError`, `resetForm`, `resetFields`, `validate`, `validateField`, `clearValid`, `submitForm`, `updateSchema`, `resetSchema`, `appendSchemaByField`, `removeSchemaByField`, `setProps` and `scrollToField`. `formApi.values` and `formApi.errors` are reactive refs. Custom components that emit `parse-error` are synchronized into `FormApi.errors` by the renderer, so JSON draft errors participate in FieldError, aria-invalid, validation and reset flows. `setProps({ disabled, loading, showDefaultActions, layout, wrapperClass, handleSubmit })` updates the rendered form. The default layout is horizontal to preserve the existing framework presentation; pass `layout: 'vertical'` when stacked fields are preferred.
 
 Schema fields can use `show`, `disabled`, `defaultValue` and `componentProps` functions with `{ values, api }`. For fields whose state depends on other fields, use the Vben-inspired `dependencies` contract:

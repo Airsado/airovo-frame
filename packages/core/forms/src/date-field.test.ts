@@ -121,4 +121,73 @@ describe('DatePicker form field mapping', () => {
         await flushPromises()
         expect(control.attributes('data-disabled')).toBe('true')
     })
+
+    it.each([
+        'DatePicker',
+        'date',
+        'DateTimePicker',
+        'datetime',
+    ] as const)('uses undefined for an empty %s field', async (component) => {
+        const api = mountForm([{
+            fieldName: 'scheduledAt',
+            label: 'Scheduled at',
+            component,
+        }])
+        await flushPromises()
+
+        const row = (api.values.value.scheduledAt as Array<Record<string, unknown>>)[0]
+        expect(row.value).toBeUndefined()
+        expect(await api.validateAndSubmit()).toEqual({ scheduledAt: [{ value: undefined }] })
+
+        api.resetForm()
+        expect(((api.values.value.scheduledAt as Array<Record<string, unknown>>)[0]).value).toBeUndefined()
+    })
+
+    it('uses undefined for empty nested date children and preserves other defaults', async () => {
+        const api = mountForm([{
+            fieldName: 'settings',
+            label: 'Settings',
+            component: 'Input',
+            children: [
+                { fieldName: 'expiresAt', label: 'Expires at', component: 'datetime' },
+                { fieldName: 'name', label: 'Name', component: 'Input' },
+            ],
+        }])
+        await flushPromises()
+
+        const row = (api.values.value.settings as Array<Record<string, unknown>>)[0]
+        expect(row.expiresAt).toBeUndefined()
+        expect(row.name).toBe('')
+    })
+
+    it('preserves an explicit date default', async () => {
+        const expected = new Date(2025, 0, 3)
+        const api = mountForm([{
+            fieldName: 'scheduledAt',
+            label: 'Scheduled at',
+            component: 'date',
+            defaultValue: expected,
+        }])
+        await flushPromises()
+
+        expect(((api.values.value.scheduledAt as Array<Record<string, unknown>>)[0]).value).toEqual(expected)
+    })
+
+    it('uses undefined when adding an empty date array row', async () => {
+        const api = mountForm([{
+            fieldName: 'dates',
+            label: 'Dates',
+            component: 'date',
+            array: true,
+        }])
+        await flushPromises()
+
+        const addButton = wrapper!.findAll('button').find((button) => button.text() === '+ 添加')
+        expect(addButton).toBeDefined()
+        await addButton!.trigger('click')
+        await flushPromises()
+
+        expect((api.values.value.dates as Array<Record<string, unknown>>)).toHaveLength(2)
+        expect((api.values.value.dates as Array<Record<string, unknown>>)[1].value).toBeUndefined()
+    })
 })
