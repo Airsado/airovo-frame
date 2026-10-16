@@ -97,4 +97,66 @@ describe('DataTablePage view mode', () => {
     expect(wrapper.find('[data-table]').exists()).toBe(true)
     expect(wrapper.find('[data-table]').element.parentElement?.className).toContain('hidden')
   })
+
+  it('shares rows, selection and request state between the built-in table and cards', async () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      props: {
+        rows: [{ id: 1, name: 'one' }],
+        columns: [{ key: 'name', title: '名称', mobileTitle: true }],
+        rowKey: 'id',
+        selectable: true,
+        mobileCards: true,
+        enableViewModeToggle: true,
+        viewMode: 'card',
+        pagination: true,
+        page: 1,
+        pageSize: 1,
+        total: 2,
+      },
+    })
+
+    expect(wrapper.get('[aria-label="Go to next page"]').exists()).toBe(true)
+    await wrapper.get('[aria-label="Go to next page"]').trigger('click')
+    expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
+    await wrapper.get('input[type="checkbox"]').setValue(true)
+    expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[1]])
+
+    await wrapper.setProps({ viewMode: 'table' })
+    await nextTick()
+    expect(wrapper.find('table').exists()).toBe(true)
+    expect((wrapper.find('tbody input[type="checkbox"]').element as HTMLInputElement).checked).toBe(true)
+  })
+
+  it('keeps shared error and retry state available in card view', async () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      props: {
+        rows: [{ id: 1, name: 'one' }],
+        columns: [{ key: 'name', title: '名称', mobileTitle: true }],
+        mobileCards: true,
+        viewMode: 'card',
+        error: new Error('failed'),
+      },
+    })
+
+    expect(wrapper.get('[role="alert"]').text()).toContain('加载失败')
+    await wrapper.get('[role="alert"] button').trigger('click')
+    expect(wrapper.emitted('retry')).toHaveLength(1)
+  })
+
+  it('preserves legacy card row-key indexes when rendering the automatic table', () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      props: {
+        rows: [{ name: 'one' }, { name: 'two' }],
+        columns: [{ key: 'name', title: '名称' }],
+        cardRowKey: (_row: Record<string, unknown>, index: number) => `row-${index}`,
+        selectable: true,
+      },
+    })
+
+    expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+    expect(wrapper.findAll('tbody input[type="checkbox"]')).toHaveLength(2)
+  })
 })

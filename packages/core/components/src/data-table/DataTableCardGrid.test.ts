@@ -40,15 +40,24 @@ describe('DataTableCardGrid', () => {
   it('supports loading, empty and selection states', async () => {
     const loading = mount(DataTableCardGrid, { global, props: { rows, columns, loading: true } })
     expect(loading.findAll('[data-slot="data-table-card"]')).toHaveLength(0)
+    expect(loading.get('[aria-busy="true"]')).toBeTruthy()
     expect(loading.get('[role="status"]').text()).toContain('加载中')
 
     const empty = mount(DataTableCardGrid, { global, props: { rows: [], columns } })
     expect(empty.text()).toContain('暂无数据')
+    expect(empty.get('[role="status"]').text()).toContain('暂无数据')
 
     const selected = mount(DataTableCardGrid, { global, props: { rows, columns, selectable: true } })
     await selected.get('input[type="checkbox"]').setValue(true)
     expect(selected.emitted('update:selectedKeys')?.at(-1)).toEqual([[1]])
     expect(selected.get('[data-slot="data-table-card"]').attributes('data-state')).toBe('selected')
+  })
+
+  it('uses the same accessible error and retry contract as DataTable', async () => {
+    const wrapper = mount(DataTableCardGrid, { global, props: { rows, columns, error: new Error('failed') } })
+    expect(wrapper.get('[role="alert"]').text()).toContain('加载失败')
+    await wrapper.get('[role="alert"] button').trigger('click')
+    expect(wrapper.emitted('retry')).toHaveLength(1)
   })
 
   it('allows a custom card slot while exposing the row selection helper', async () => {

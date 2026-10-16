@@ -485,7 +485,8 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 :page-size="pageSize"
             />
         </div>
-        <div data-slot="data-table-surface" class="overflow-hidden rounded-lg border">
+        <div data-slot="data-table-surface" class="overflow-hidden rounded-lg border" :aria-busy="loading ? 'true' : undefined">
+            <div v-if="loading" role="status" aria-live="polite" class="sr-only">{{ te('common.loading') ? t('common.loading') : '加载中…' }}</div>
             <div class="relative w-full overflow-x-auto overflow-y-hidden">
                 <div :class="mobileCards ? 'hidden sm:block' : undefined">
                     <table class="w-full caption-bottom text-sm tabular-nums [font-family:var(--font-body)] [&_td]:text-sm [&_td]:font-medium [&_th]:text-sm [&_:is(th,td)_*]:font-inherit" :class="hasPinnedColumns ? 'min-w-max' : undefined">
@@ -553,7 +554,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </tr>
                 </template>
                 <tr v-else-if="error">
-                    <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
+                    <td role="alert" aria-live="assertive" :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-destructive">
                         <slot name="error" :error="error" :retry="retry">
                             <p>{{ errorLoadingText }}</p>
                             <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="retry">{{ retryText }}</button>
@@ -562,7 +563,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 </tr>
                 <template v-else-if="visibleRows.length === 0">
                     <tr v-if="$slots.empty">
-                        <td :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
+                        <td role="status" aria-live="polite" :colspan="Math.max(visibleColumns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0), 1)" class="p-8 text-center text-sm text-muted-foreground">
                             <slot name="empty" />
                         </td>
                     </tr>

@@ -3,6 +3,7 @@ import { computed, ref, useSlots, watch, type HTMLAttributes, type Slot } from '
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import type { DataTableColumn, DataTableRowKey, DataTableSelectionScope } from './types'
+import DataTablePagination from './DataTablePagination.vue'
 
 defineOptions({ name: 'DataTableCardGrid' })
 
@@ -11,12 +12,19 @@ const props = withDefaults(defineProps<{
     columns?: DataTableColumn<T>[]
     rowKey?: string | ((row: T, index: number) => string | number)
     loading?: boolean
+    error?: unknown
+    errorText?: string
     emptyText?: string
     emptyDescription?: string
     emptyIcon?: string
     selectable?: boolean
     selectedKeys?: DataTableRowKey[]
     selectionScope?: DataTableSelectionScope
+    pagination?: boolean
+    page?: number
+    pageSize?: number
+    total?: number
+    pageSizeOptions?: number[]
     cellSlots?: Record<string, Slot>
     class?: HTMLAttributes['class']
     gridClass?: HTMLAttributes['class']
@@ -27,12 +35,19 @@ const props = withDefaults(defineProps<{
     loading: false,
     selectable: false,
     selectionScope: 'page',
+    pagination: false,
+    page: 1,
+    pageSize: 20,
+    pageSizeOptions: () => [10, 20, 50, 100],
     emptyIcon: 'lucide:database',
 })
 
 const emit = defineEmits<{
     (event: 'update:selectedKeys', value: DataTableRowKey[]): void
     (event: 'selection-change', value: DataTableRowKey[]): void
+    (event: 'retry'): void
+    (event: 'update:page', value: number): void
+    (event: 'update:pageSize', value: number): void
 }>()
 const slots = useSlots()
 
@@ -41,6 +56,8 @@ function copy(key: string, fallback: string): string { return te(key) ? t(key) :
 const resolvedEmptyText = computed(() => props.emptyText ?? copy('common.noData', '暂无数据'))
 const resolvedEmptyDescription = computed(() => props.emptyDescription ?? copy('common.noDataDescription', '当前筛选条件下没有可展示的数据。'))
 const loadingText = computed(() => copy('common.loading', '加载中…'))
+const resolvedErrorText = computed(() => props.errorText ?? copy('common.errorLoading', '加载失败'))
+const retryText = computed(() => copy('common.retry', '重试'))
 const selectRowText = computed(() => copy('common.selectRow', '选择第 {index} 行'))
 
 const internalSelectedKeys = ref<DataTableRowKey[]>([...(props.selectedKeys ?? [])])
@@ -107,7 +124,7 @@ watch(visibleKeySet, () => {
 </script>
 
 <template>
-    <div :class="['min-w-0', props.class]">
+    <div :class="['min-w-0', props.class]" :aria-busy="props.loading ? 'true' : undefined">
         <template v-if="props.loading">
             <div role="status" aria-live="polite" class="sr-only">{{ loadingText }}</div>
             <slot name="loading">
@@ -118,6 +135,14 @@ watch(visibleKeySet, () => {
                     </div>
                 </div>
             </slot>
+        </template>
+        <template v-else-if="props.error">
+            <div role="alert" aria-live="polite" class="rounded-lg border border-destructive/40 p-6 text-center text-sm text-destructive">
+                <slot name="error" :error="props.error" :retry="() => emit('retry')">
+                    <p>{{ resolvedErrorText }}</p>
+                    <button type="button" class="mt-3 rounded-md border px-3 py-1.5 text-xs hover:bg-accent" @click="emit('retry')">{{ retryText }}</button>
+                </slot>
+            </div>
         </template>
         <template v-else-if="props.rows.length">
             <div :class="['grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3', props.gridClass]">
@@ -176,11 +201,20 @@ watch(visibleKeySet, () => {
             </div>
         </template>
         <slot v-else name="empty">
-            <div class="rounded-lg border p-6 text-center">
+            <div role="status" aria-live="polite" class="rounded-lg border p-6 text-center">
                 <Icon :icon="props.emptyIcon" class="mx-auto size-6 text-muted-foreground" />
                 <p class="mt-2 text-sm font-medium">{{ resolvedEmptyText }}</p>
                 <p class="mt-1 text-xs text-muted-foreground">{{ resolvedEmptyDescription }}</p>
             </div>
         </slot>
+        <DataTablePagination
+            v-if="props.pagination"
+            :page="props.page"
+            :page-size="props.pageSize"
+            :total="props.total ?? props.rows.length"
+            :page-size-options="props.pageSizeOptions"
+            @update:page="emit('update:page', $event)"
+            @update:page-size="emit('update:pageSize', $event)"
+        />
     </div>
 </template>
