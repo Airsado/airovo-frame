@@ -23,7 +23,10 @@ const stubs = {
     template: '<input data-slot="input-group-control" :value="modelValue" :placeholder="placeholder" :readonly="readonly" :disabled="disabled" @input="$emit(\'update:modelValue\', $event.target.value)" @click="$emit(\'click\')" @focus="$emit(\'focus\', $event)" @keydown="$emit(\'keydown\', $event)" />',
   },
   Command: { template: "<div><slot /></div>" },
-  CommandList: { template: "<div><slot /></div>" },
+  CommandList: {
+    props: ["id"],
+    template: '<div :id="id" role="listbox"><slot /></div>',
+  },
   CommandGroup: { template: "<div><slot /></div>" },
   CommandItem: {
     template:
@@ -113,6 +116,8 @@ describe("Combobox", () => {
     expect(wrapper.get('[role="combobox"]').attributes("aria-controls")).toMatch(
       /^combobox-list-/,
     );
+    const listId = wrapper.get('[role="combobox"]').attributes("aria-controls");
+    expect(wrapper.get(`[id="${listId}"]`).attributes("role")).toBe("listbox");
     expect(wrapper.get('[role="combobox"]').attributes("aria-activedescendant")).toBe(
       "option-OpenAI openai",
     );

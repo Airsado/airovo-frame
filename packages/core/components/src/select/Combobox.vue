@@ -252,8 +252,8 @@ function handleInputFocus(): void {
       </div>
     </PopoverAnchor>
     <PopoverContent ref="popupContent" :class="cn('w-(--reka-popover-anchor-width) min-w-[calc(var(--reka-popover-anchor-width)+--spacing(7))] max-h-[min(calc(--spacing(72)),calc(var(--reka-popover-content-available-height)))] overflow-hidden rounded-lg border-0 p-0 shadow-md ring-1 ring-foreground/10', props.popupClass)" align="start">
-      <Command :id="listId">
-        <CommandList>
+      <Command>
+        <CommandList :id="listId">
           <div v-if="!filteredLeaves.length" class="py-6 text-center text-sm text-muted-foreground">{{ resolvedEmptyText }}</div>
           <CommandGroup>
             <template v-for="option in filteredOptions" :key="option.key">
