@@ -30,6 +30,19 @@ function mountTable(props: Record<string, unknown> = {}, slots: Record<string, u
 }
 
 describe('DataTable', () => {
+    it('matches the new-api bordered table surface and keeps the toolbar outside it', () => {
+        const wrapper = mountTable({ pagination: true, total: rows.length }, {
+            toolbar: '<span data-toolbar>表格工具栏</span>',
+        })
+        const surface = wrapper.get('[data-slot="data-table-surface"]')
+
+        expect(surface.classes()).toEqual(expect.arrayContaining(['overflow-hidden', 'rounded-lg', 'border']))
+        expect(surface.find('table').exists()).toBe(true)
+        expect(surface.find('[data-slot="pagination"]').exists()).toBe(true)
+        expect(surface.find('[data-toolbar]').exists()).toBe(false)
+        expect(wrapper.find('[data-toolbar]').exists()).toBe(true)
+    })
+
     it('uses the new-api muted row surface for hover and selected states', () => {
         const wrapper = mountTable({ selectable: true, selectedKeys: [1] })
         const row = wrapper.get('tbody tr')

@@ -13,6 +13,12 @@ authoritative.
 `DataTable` is the presentation layer. It supports stable row keys, controlled
 selection, current-page select-all/indeterminate state, hidden columns,
 formatters, loading, empty, error/retry and optional `DataTablePagination`.
+Table content is wrapped in the new-api channel-style
+`data-slot="data-table-surface"` surface (`overflow-hidden rounded-lg border`);
+the toolbar remains outside that surface while the inner table container owns
+horizontal scrolling. This keeps loading, empty, error, pagination and pinned
+cell backgrounds inside one consistent boundary without requiring business
+pages to add another border.
 The table viewport accepts CSS `height` and `maxHeight` values and keeps
 horizontal scrolling available for narrow screens. The default
 `rowKey` is `id`; every row must provide a non-empty string or finite number
