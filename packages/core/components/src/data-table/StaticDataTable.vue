@@ -68,7 +68,13 @@ const dataProps = computed<StaticDataTableDataProps<TData> | undefined>(() => {
 const isDataEmpty = computed(() => {
     const value = dataProps.value
     if (!value || value.columns === undefined) return false
-    return value.empty !== undefined ? value.empty : value.data.length === 0
+    if (value.empty !== undefined) {
+        // Vue keeps a bare optional Boolean attribute as an empty string when
+        // the prop is intentionally declared without Boolean casting. Treat
+        // that runtime form as `true`, while preserving an explicit `false`.
+        return value.empty === true || (value.empty as unknown) === ''
+    }
+    return value.data.length === 0
 })
 const resolvedContainerClass = computed(() => cn(
     staticDataTableClassNames.container,
