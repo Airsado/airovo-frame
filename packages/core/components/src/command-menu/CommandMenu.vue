@@ -62,29 +62,36 @@ function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
 
 <template>
     <Dialog :open="isOpen" @update:open="updateOpen">
-        <DialogContent :show-close-button="false" :class="['top-1/3 translate-y-0 overflow-hidden rounded-xl p-0', props.contentClass]">
+        <DialogContent
+            :show-close-button="false"
+            :class="['command-menu-content top-1/3 translate-y-0 overflow-hidden rounded-xl p-0', props.contentClass]"
+        >
             <DialogHeader class="sr-only">
                 <DialogTitle>{{ resolvedTitle }}</DialogTitle>
                 <DialogDescription>{{ resolvedDescription }}</DialogDescription>
             </DialogHeader>
-            <Command>
-                <CommandInput :placeholder="resolvedPlaceholder" />
-                <CommandList>
-                    <CommandEmpty>{{ resolvedEmptyText }}</CommandEmpty>
+            <Command class="size-full rounded-xl p-1">
+                <CommandInput
+                    :placeholder="resolvedPlaceholder"
+                    class="h-8 rounded-lg border border-input/30 bg-input/30 px-3 py-1 text-sm shadow-none"
+                />
+                <CommandList class="no-scrollbar max-h-72 outline-none">
+                    <CommandEmpty class="py-6 text-center text-sm">{{ resolvedEmptyText }}</CommandEmpty>
                     <template v-for="(group, groupIndex) in props.groups" :key="group.id">
                         <slot name="group" :group="group" :index="groupIndex">
-                            <CommandGroup :heading="group.label">
+                            <CommandGroup :heading="group.label" class="p-1">
                                 <CommandItem
                                     v-for="item in group.items"
                                     :key="item.id"
                                     :value="item.value ?? item.label"
                                     :disabled="item.disabled"
+                                    class="transition-colors data-[highlighted]:bg-muted data-[highlighted]:text-foreground data-[selected]:bg-muted data-[selected]:text-foreground focus-visible:ring-2 focus-visible:ring-ring in-data-[slot=dialog-content]:rounded-lg"
                                     @select="selectItem(item, group)"
                                 >
                                     <slot name="item" :item="item" :group="group">
                                         {{ item.label }}
                                     </slot>
-                                    <CommandShortcut v-if="item.shortcut">{{ item.shortcut }}</CommandShortcut>
+                                    <CommandShortcut v-if="item.shortcut" class="text-muted-foreground data-[highlighted]:text-foreground">{{ item.shortcut }}</CommandShortcut>
                                 </CommandItem>
                             </CommandGroup>
                         </slot>
@@ -95,3 +102,39 @@ function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
         </DialogContent>
     </Dialog>
 </template>
+
+<style>
+.command-menu-content [data-slot='command-input-wrapper'] {
+    position: relative;
+    height: auto;
+    gap: 0;
+    border-bottom: 0;
+    padding: 0.25rem 0.25rem 0;
+}
+
+.command-menu-content [data-slot='command-input-wrapper'] > svg {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.command-menu-content [data-slot='command-input'] {
+    padding-right: 2.5rem;
+}
+
+.command-menu-content [data-slot='command-item'][data-highlighted] {
+    background-color: var(--muted);
+    color: var(--foreground);
+}
+
+.command-menu-content [data-slot='command-item'][data-highlighted] [data-slot='command-shortcut'] {
+    color: var(--foreground);
+}
+
+.command-menu-content [data-slot='command-item']:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--ring) 50%, transparent);
+    outline-offset: -2px;
+}
+</style>

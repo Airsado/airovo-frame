@@ -57,6 +57,32 @@ describe('CommandMenu', () => {
         wrapper.unmount()
     })
 
+    it('exposes the new-api command surface tokens across the palette parts', async () => {
+        const wrapper = mountMenu()
+        await nextTick()
+
+        const content = document.body.querySelector('[data-slot="dialog-content"]')!
+        const command = document.body.querySelector('[data-slot="command"]')!
+        const input = document.body.querySelector('[data-slot="command-input"]')!
+        const list = document.body.querySelector('[data-slot="command-list"]')!
+        const item = document.body.querySelector('[data-slot="command-item"]')!
+        const shortcut = document.body.querySelector('[data-slot="command-shortcut"]')!
+
+        expect(content.className).toContain('command-menu-content')
+        expect(command.className).toContain('rounded-xl')
+        expect(command.className).toContain('p-1')
+        expect(input.className).toContain('h-8')
+        expect(input.className).toContain('rounded-lg')
+        expect(input.className).toContain('bg-input/30')
+        expect(input.className).toContain('shadow-none')
+        expect(list.className).toContain('max-h-72')
+        expect(list.className).toContain('no-scrollbar')
+        expect(item.className).toContain('data-[highlighted]:bg-muted')
+        expect(item.className).toContain('focus-visible:ring-2')
+        expect(shortcut.className).toContain('tracking-widest')
+        wrapper.unmount()
+    })
+
     it('filters items through the command input', async () => {
         const wrapper = mountMenu()
         await nextTick()
