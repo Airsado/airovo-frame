@@ -485,8 +485,10 @@ function toCssSize(value: string | number | undefined): string | undefined {
                 :page-size="pageSize"
             />
         </div>
-        <div :class="mobileCards ? 'hidden sm:block' : undefined">
-        <table class="w-full caption-bottom text-sm tabular-nums" :class="hasPinnedColumns ? 'min-w-max' : undefined">
+        <div data-slot="data-table-surface" class="overflow-hidden rounded-lg border">
+            <div class="relative w-full overflow-x-auto overflow-y-hidden">
+                <div :class="mobileCards ? 'hidden sm:block' : undefined">
+                    <table class="w-full caption-bottom text-sm tabular-nums [font-family:var(--font-body)] [&_td]:text-sm [&_td]:font-medium [&_th]:text-sm [&_:is(th,td)_*]:font-inherit" :class="hasPinnedColumns ? 'min-w-max' : undefined">
             <caption v-if="caption" class="sr-only">{{ caption }}</caption>
             <thead>
                 <tr class="border-b">
@@ -604,20 +606,22 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </tr>
                 </template>
             </tbody>
-        </table>
+                    </table>
+                </div>
+                <div v-if="mobileCards" class="space-y-3 sm:hidden">
+                    <slot name="mobile" :rows="visibleRows" :selected-keys="selected" :toggle-row="toggleRow" />
+                </div>
+            </div>
+            <DataTablePagination
+                v-if="pagination"
+                :page="page"
+                :page-size="pageSize"
+                :total="totalRows"
+                :page-size-options="pageSizeOptions"
+                @update:page="(value) => emit('update:page', value)"
+                @update:page-size="(value) => emit('update:pageSize', value)"
+            />
         </div>
-        <div v-if="mobileCards" class="space-y-3 sm:hidden">
-            <slot name="mobile" :rows="visibleRows" :selected-keys="selected" :toggle-row="toggleRow" />
-        </div>
-        <DataTablePagination
-            v-if="pagination"
-            :page="page"
-            :page-size="pageSize"
-            :total="totalRows"
-            :page-size-options="pageSizeOptions"
-            @update:page="(value) => emit('update:page', value)"
-            @update:page-size="(value) => emit('update:pageSize', value)"
-        />
         <button v-if="currentSort" type="button" class="sr-only" @click="clearSort">清除排序</button>
     </div>
 </template>
