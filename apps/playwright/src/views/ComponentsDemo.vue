@@ -4,7 +4,6 @@ import {
     DataPanel,
     CommandMenu,
     DataTable,
-    StaticDataTable,
     TruncatedCell,
     TruncatedText,
     DataTableBulkActions,
@@ -40,8 +39,8 @@ import {
     FrameworkPopover,
     FrameworkTooltip,
     FrameworkCalendar,
+    PasswordInput,
     type DataTableColumn,
-    type StaticDataTableColumn,
     type DataTableColumnPinning,
     type DataTableFilterGroup,
     type DataTableFetcher,
@@ -184,6 +183,7 @@ const contextMenuPinned = ref(true)
 const contextMenuDensity = ref('compact')
 const selectedDate = ref<Date>()
 const selectedDateTime = ref<Date>()
+const demoPassword = ref('demo-secret')
 const selectedProvider = ref<string | undefined>('openai')
 const selectedCombobox = ref<string | undefined>()
 const selectedMultiSelect = ref<string[]>(['openai'])
@@ -344,15 +344,6 @@ const coreTableColumns: DataTableColumn[] = [
     { key: 'category', title: '类别', sortable: true },
     { key: 'purpose', title: '用途' },
 ]
-const staticTableRows = [
-    { id: 'local-1', name: '本地配置', value: '启用', owner: '平台组' },
-    { id: 'local-2', name: '缓存策略', value: '按需', owner: '基础设施组' },
-]
-const staticTableColumns: StaticDataTableColumn<typeof staticTableRows[number]>[] = [
-    { id: 'name', header: '配置项', cell: (row) => row.name, cellClassName: 'font-medium' },
-    { id: 'value', header: '值', cell: (row) => row.value },
-    { id: 'owner', header: '维护组', cell: (row) => row.owner, cellClassName: 'text-muted-foreground' },
-]
 const serverTableRows = Array.from({ length: 37 }, (_, index) => ({
     id: index + 1,
     name: `演示渠道 ${String(index + 1).padStart(2, '0')}`,
@@ -498,6 +489,19 @@ function sseItemData(item: unknown): unknown {
             <section class="space-y-4">
                 <h2 class="text-lg font-semibold">Progress primitive</h2>
                 <div class="rounded-lg border bg-card p-4"><Progress :model-value="64" aria-label="演示进度" /></div>
+                <h2 class="text-lg font-semibold">PasswordInput 密码输入</h2>
+                <div class="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2">
+                    <div class="space-y-2">
+                        <label for="password-input-demo" class="text-sm font-medium">可切换显示</label>
+                        <PasswordInput id="password-input-demo" v-model="demoPassword" autocomplete="current-password" />
+                        <p class="text-xs text-muted-foreground">当前值：{{ demoPassword }}</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="password-input-disabled" class="text-sm font-medium">禁用状态</label>
+                        <PasswordInput id="password-input-disabled" model-value="不可编辑" disabled />
+                        <p class="text-xs text-muted-foreground">禁用时输入和显隐按钮都不可操作。</p>
+                    </div>
+                </div>
                 <h2 class="text-lg font-semibold">RadioGroup primitive</h2>
                 <RadioGroup model-value="default" class="flex gap-3"><label class="flex items-center gap-2"><RadioGroupItem value="default" />默认</label><label class="flex items-center gap-2"><RadioGroupItem value="compact" />紧凑</label></RadioGroup>
                 <h2 class="text-lg font-semibold">Accordion primitive</h2>
@@ -1194,22 +1198,6 @@ function sseItemData(item: unknown): unknown {
                         <template #empty-action><Button size="sm" variant="outline">清除筛选</Button></template>
                     </DataTable>
                 </DataPanel>
-            </section>
-
-            <section class="space-y-4">
-                <div>
-                    <h2 class="text-lg font-semibold">StaticDataTable 本地数据表格</h2>
-                    <p class="text-xs text-muted-foreground">适合不需要请求、分页或选择状态的本地数组；长文本单元格会复用 new-api tooltip。</p>
-                </div>
-                <StaticDataTable data-testid="static-datatable-demo" :columns="staticTableColumns" :data="staticTableRows">
-                    <template #row="{ row, index }">
-                        <TableRow :data-row-index="index">
-                            <TableCell class="font-medium">{{ row.name }}</TableCell>
-                            <TableCell>{{ row.value }}</TableCell>
-                            <TableCell class="text-muted-foreground">{{ row.owner }}</TableCell>
-                        </TableRow>
-                    </template>
-                </StaticDataTable>
             </section>
 
             <section class="space-y-4">
