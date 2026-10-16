@@ -9,8 +9,10 @@ const props = withDefaults(defineProps<CalendarRootProps & {
     class?: string
     layout?: 'month-and-year' | 'month-only' | 'year-only'
     yearRange?: DateValue[]
+    showOutsideDays?: boolean
 }>(), {
     class: '',
+    showOutsideDays: true,
 })
 
 const emit = defineEmits<{

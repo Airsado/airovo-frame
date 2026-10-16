@@ -337,7 +337,8 @@ focus, Escape and outside behavior stays owner-controlled.
 
 `FrameworkCalendar` wraps the Reka/shadcn Calendar with a new-api aligned
 surface (`bg-background`, compact padding and cell radius/size tokens). It
-forwards CalendarRoot date props, `update:modelValue` and
+defaults `showOutsideDays` to `true` to match new-api while still allowing
+callers to pass `false`. It forwards CalendarRoot date props, `update:modelValue` and
 `update:placeholder`, plus `calendar-heading`, `calendar-prev-icon` and
 `calendar-next-icon` slots. Date range, disabled and keyboard semantics remain
 owned by the Calendar primitive.
