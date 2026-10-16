@@ -47,6 +47,13 @@ const emit = defineEmits<{
 const internalOpen = ref(props.defaultOpen)
 const isOpen = computed(() => props.open ?? internalOpen.value)
 
+/** Keep keyboard focus in the command input when the dialog opens. */
+function focusCommandInput(event: Event): void {
+    event.preventDefault()
+    const input = document.querySelector<HTMLInputElement>('[data-slot="dialog-content"][data-state="open"] [data-slot="command-input"]')
+    input?.focus()
+}
+
 /** Update the dialog visibility while preserving the controlled v-model contract. */
 function updateOpen(value: boolean): void {
     if (props.open === undefined) internalOpen.value = value
@@ -65,6 +72,7 @@ function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
         <DialogContent
             :show-close-button="false"
             :class="['command-menu-content top-1/3 translate-y-0 overflow-hidden rounded-xl p-0', props.contentClass]"
+            @open-auto-focus="focusCommandInput"
         >
             <DialogHeader class="sr-only">
                 <DialogTitle>{{ resolvedTitle }}</DialogTitle>
@@ -85,7 +93,7 @@ function selectItem(item: CommandMenuItem, group: CommandMenuGroup): void {
                                     :key="item.id"
                                     :value="item.value ?? item.label"
                                     :disabled="item.disabled"
-                                    class="transition-colors data-[highlighted]:bg-muted data-[highlighted]:text-foreground data-[selected]:bg-muted data-[selected]:text-foreground focus-visible:ring-2 focus-visible:ring-ring in-data-[slot=dialog-content]:rounded-lg"
+                                    class="transition-colors data-[highlighted]:bg-muted data-[highlighted]:text-foreground data-[state=checked]:bg-muted data-[state=checked]:text-foreground focus-visible:ring-2 focus-visible:ring-ring in-data-[slot=dialog-content]:rounded-lg"
                                     @select="selectItem(item, group)"
                                 >
                                     <slot name="item" :item="item" :group="group">
