@@ -3,6 +3,7 @@ import { computed, ref, useSlots, type Slot } from 'vue'
 import DataTableViewModeToggle from './DataTableViewModeToggle.vue'
 import DataTable from './DataTable.vue'
 import DataTableCardGrid from './DataTableCardGrid.vue'
+import DataTableMobileCardList from './DataTableMobileCardList.vue'
 import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import { useDataTableViewMode, type DataTableViewMode } from './view-mode'
 
@@ -258,7 +259,7 @@ function retry(): void {
     <div v-if="hasCardLayout && (cardView || mobileCards)" :class="cardView ? 'min-w-0' : 'sm:hidden'">
       <slot v-if="$slots.mobile" name="mobile" :rows="resolvedRows" :selected-keys="resolvedSelectedKeys" />
       <DataTableCardGrid
-        v-else
+        v-else-if="cardView"
         v-bind="cardGridProps"
         @update:selected-keys="(value) => updateSelectedKeys(value, 'card')"
         @update:page="updatePage"
@@ -268,6 +269,17 @@ function retry(): void {
         <template v-if="$slots.card" #card="slotProps"><slot name="card" v-bind="slotProps" /></template>
         <template v-if="$slots['card-actions']" #card-actions="slotProps"><slot name="card-actions" v-bind="slotProps" /></template>
       </DataTableCardGrid>
+      <DataTableMobileCardList
+        v-else
+        v-bind="cardGridProps"
+        @update:selected-keys="(value) => updateSelectedKeys(value, 'card')"
+        @update:page="updatePage"
+        @update:page-size="updatePageSize"
+        @retry="retry"
+      >
+        <template v-if="$slots.card" #card="slotProps"><slot name="card" v-bind="slotProps" /></template>
+        <template v-if="$slots['card-actions']" #card-actions="slotProps"><slot name="card-actions" v-bind="slotProps" /></template>
+      </DataTableMobileCardList>
     </div>
     <slot v-if="!$slots.table && !hasAutoTable && !mobileCards && !cardView" />
   </section>

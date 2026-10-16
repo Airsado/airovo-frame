@@ -100,9 +100,11 @@ mobile card list. For the canonical shared state contract, pass `rows` and
 `columns` once (plus `loading`, `error`, `selected-keys`, `selection-scope`,
 `pagination`, `page`, `page-size`, `total`, `sort` and `row-key` as needed).
 When no `table` slot is supplied, the page renders `DataTable` from that source;
-the automatic `DataTableCardGrid` receives the same rows, loading/error/empty
-state and selection keys. `update:selectedKeys`, `selection-change`, page,
-sort and retry events are forwarded from the built-in table and card views.
+the automatic `DataTableMobileCardList` receives the same rows,
+loading/error/empty state and selection keys below the mobile breakpoint when
+`mobileCards` is enabled. Explicit `card` view still uses `DataTableCardGrid`.
+`update:selectedKeys`, `selection-change`, page, sort and retry events are
+forwarded from the built-in table and card/list views.
 Custom `table` and `mobile` slots receive the shared source and update helpers
 as slot props, so advanced table configuration can still stay in the caller.
 Set `enable-view-mode-toggle` to expose the new-api table/card
@@ -591,6 +593,18 @@ number, and keys must be unique. A missing or invalid key throws the stable
 row-key error used by `DataTable`; duplicate keys throw the unique-key error.
 Rendered string identities are also unique, so numeric `1` and string `'1'`
 cannot collide in Vue's DOM keys when rows are reordered.
+
+`DataTableMobileCardList` is the mobile list composition used by
+`DataTablePage` when `mobileCards` is enabled without a custom `mobile` slot.
+It keeps the same rows, columns, selection, pagination, state slots and cell
+metadata as `DataTableCardGrid`, but renders one bordered, divided list with
+the new-api row density and background token. Selectable lists expose a
+current-page checkbox with indeterminate state and row checkboxes; page and
+persistent selection scopes retain the same stable-key semantics as
+`DataTable`. Compact (`mobileTitle`/`mobileBadge`) and fallback rows use
+separate loading skeletons, while empty, error/retry and pagination states
+remain caller-configurable. Explicit card view continues to use
+`DataTableCardGrid`, and a custom `mobile` slot still takes precedence.
 
 ## PageFooter
 
