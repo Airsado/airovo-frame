@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import DataTableBulkActions from './DataTableBulkActions.vue'
 
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { records: '条记录', selected: '已选择', clearSelection: '清除选择', clearSelectionWithEscape: '清除选择（Escape）', bulkActions: '批量操作：{count} 项已选择', bulkAnnouncement: '已选择 {count} {entity}，可执行批量操作' } } } })] }
@@ -70,5 +70,26 @@ describe('DataTableBulkActions', () => {
         await wrapper.get('[role="toolbar"]').trigger('keydown', { key: 'End' })
         expect(document.activeElement).toBe(buttons[1]!.element)
         wrapper.unmount()
+    })
+
+    it('announces selection changes briefly and clears the live region after three seconds', async () => {
+        vi.useFakeTimers()
+        const wrapper = mount(DataTableBulkActions, { global, props: { selectedCount: 2, entityName: 'user' } })
+        try {
+            const status = wrapper.get('[role="status"]')
+            expect(status.text()).toContain('2')
+            await vi.advanceTimersByTimeAsync(2999)
+            expect(status.text()).toContain('2')
+            await vi.advanceTimersByTimeAsync(1)
+            expect(status.text()).toBe('')
+
+            await wrapper.setProps({ selectedCount: 3 })
+            expect(status.text()).toContain('3')
+            await wrapper.setProps({ selectedCount: 0 })
+            expect(wrapper.find('[role="status"]').exists()).toBe(false)
+        } finally {
+            wrapper.unmount()
+            vi.useRealTimers()
+        }
     })
 })

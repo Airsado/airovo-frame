@@ -39,6 +39,12 @@ try {
     if (await firstCheckbox.count()) {
         await firstCheckbox.check()
         assert.equal(await table.locator('tbody tr[data-state="selected"]').count(), 1)
+        const bulkToolbar = page.locator('[data-slot="data-table-bulk-actions"]').first()
+        const announcement = bulkToolbar.locator('xpath=preceding-sibling::*[@role="status"][1]')
+        assert.ok(await announcement.count())
+        assert.ok((await announcement.innerText()).includes('1'))
+        await page.waitForTimeout(3100)
+        assert.equal(await announcement.innerText(), '')
     }
 
     const resizeHandle = page.locator('span.cursor-col-resize').first()

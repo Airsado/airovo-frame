@@ -96,7 +96,9 @@ also exposes a tooltip. Escape and arrow/Home/End keys operate on the toolbar
 buttons without taking ownership of the batch operation itself.
 Toolbar labels, live-region announcements, and clear-selection hints use the
 framework global i18n `common.*` keys with Chinese fallbacks; explicit
-`entityName` and action slots remain caller-owned.
+`entityName` and action slots remain caller-owned. A selection announcement is
+placed in the `role=status` live region when the count changes and is cleared
+after three seconds, matching new-api without repeating stale state.
 
 `DataTableRowActions` accepts `iconOnly` and `ariaLabel` for the new-api
 static row-action pattern. Icon-only actions use the `icon-sm` ghost button
