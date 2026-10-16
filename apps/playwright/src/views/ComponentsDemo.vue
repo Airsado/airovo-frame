@@ -1040,7 +1040,7 @@ function sseItemData(item: unknown): unknown {
                         </label>
                         <label class="flex flex-col gap-1.5 text-sm">
                         <span class="text-xs font-medium text-muted-foreground">通用 Combobox</span>
-                        <Combobox v-model="selectedCombobox" :options="hierarchicalProviderOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
+                        <Combobox id="demo-combobox" v-model="selectedCombobox" :options="hierarchicalProviderOptions" allow-custom-value show-selected-icon placeholder="搜索或输入渠道" />
                         <span class="text-xs text-muted-foreground">当前值：{{ selectedCombobox ?? '未选择' }}</span>
                         <span class="text-xs font-medium text-muted-foreground">多选渠道（MultiSelect）</span>
                         <MultiSelect id="demo-multi-select" v-model="selectedMultiSelect" :options="[{ label: 'OpenAI', value: 'openai' }, { label: 'Claude', value: 'claude' }, { label: '自定义', value: 'custom' }]" allow-create :max-visible-chips="2" :render-selected-summary="multiSelectSummary" />

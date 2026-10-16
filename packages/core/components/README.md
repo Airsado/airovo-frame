@@ -515,6 +515,11 @@ and `showSelectedIcon` controls the selected check mark. `popupClass`, `id`,
 restores the current model value; multi-select chips remain a separate
 composition.
 
+When the popup is open, the input exposes `aria-haspopup="listbox"`,
+`aria-autocomplete="list"`, `aria-controls` and an `aria-activedescendant`
+that points at the highlighted leaf. Arrow navigation skips disabled leaves;
+Enter selects the highlighted leaf and restores focus to the input, while+Escape closes the popup without replacing the current value. Parent options+remain non-selectable labels, and filtering keeps every matching parent path.
+
 ## Tabs
 
 `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent` wrap the Reka UI tabs
