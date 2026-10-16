@@ -114,17 +114,20 @@ try {
     assert.ok(mobileCardCount)
     const mobileCheckbox = mobileCards.locator('input[type="checkbox"]').first()
     assert.equal(await mobileCheckbox.count(), 1)
-    await mobileCheckbox.check()
+    assert.equal(await mobileCheckbox.isChecked(), true)
+    const secondMobileCheckbox = mobileCards.locator('input[type="checkbox"]').nth(1)
+    assert.equal(await secondMobileCheckbox.count(), 1)
+    await secondMobileCheckbox.check()
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.waitForTimeout(400)
     const sharedSelectedRowCount = await table.locator('tbody tr[data-state="selected"]').count()
-    assert.equal(sharedSelectedRowCount, 1)
+    assert.equal(sharedSelectedRowCount, 2)
 
     console.log(JSON.stringify({
         baseUrl,
         desktop: desktopRowCount > 0,
         selection: selectedRowCount === 1,
-        sharedTableCardSelection: sharedSelectedRowCount === 1,
+        sharedTableCardSelection: sharedSelectedRowCount === 2,
         viewOptions: viewOptionsMenuCount > 0,
         dark,
         mobileCards: mobileCardCount > 0,
