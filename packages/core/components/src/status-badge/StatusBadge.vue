@@ -9,6 +9,7 @@ import {
     type StatusBadgeType,
     type StatusVariant,
 } from './types'
+import { useProvidedStatusBadgeType } from './statusBadgeContext'
 
 defineOptions({ name: 'StatusBadge' })
 
@@ -23,7 +24,7 @@ const props = defineProps({
     copyable: { type: Boolean, default: true },
     copyText: { type: String, default: undefined },
     autoColor: { type: String, default: undefined },
-    type: { type: String as PropType<StatusBadgeType>, default: 'badge' },
+    type: { type: String as PropType<StatusBadgeType>, default: undefined },
     size: { type: String as PropType<StatusBadgeSize>, default: 'sm' },
     class: { type: String, default: undefined },
 })
@@ -57,7 +58,9 @@ const label = computed(() => props.label ?? props.text ?? STATUS_PRESET_LABEL[va
 const iconName = computed(() => props.icon)
 const copyValue = computed(() => props.copyText ?? label.value)
 const isCopyable = computed(() => props.copyable && copyValue.value.length > 0)
-const typeClass = computed(() => props.type === 'badge' ? SIZE_CLASS[props.size] : TEXT_SIZE_CLASS[props.size])
+const contextType = useProvidedStatusBadgeType()
+const resolvedType = computed<StatusBadgeType>(() => props.type ?? contextType?.value ?? 'badge')
+const typeClass = computed(() => resolvedType.value === 'badge' ? SIZE_CLASS[props.size] : TEXT_SIZE_CLASS[props.size])
 
 async function copy(): Promise<void> {
     if (!isCopyable.value || typeof navigator === 'undefined' || !navigator.clipboard) return
@@ -81,7 +84,7 @@ function onKeydown(event: KeyboardEvent): void {
         data-slot="status-badge"
         :class="[
             'inline-flex w-fit max-w-full min-w-0 shrink items-center font-medium tracking-normal whitespace-nowrap transition-colors',
-            props.type === 'badge' ? 'rounded-4xl' : props.type === 'underline' && 'border-b border-current pb-px',
+            resolvedType === 'badge' ? 'rounded-4xl' : resolvedType === 'underline' && 'border-b border-current pb-px',
             typeClass,
             STATUS_TEXT_COLOR[variant],
             props.pulse && 'animate-pulse',

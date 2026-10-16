@@ -4,6 +4,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import StatusBadge from './StatusBadge.vue'
 import StatusBadgeList from './StatusBadgeList.vue'
+import StatusBadgeTypeProvider from './StatusBadgeTypeProvider.vue'
 import { statusPresets } from './types'
 
 describe('StatusBadge', () => {
@@ -59,6 +60,35 @@ describe('StatusBadge', () => {
         const badge = wrapper.get('[data-slot="status-badge"]')
         expect(badge.attributes('tabindex')).toBeUndefined()
         expect(badge.classes()).not.toContain('focus-visible:ring-2')
+    })
+
+    it('inherits the provider type while allowing an explicit type override', () => {
+        const wrapper = mount(StatusBadgeTypeProvider, {
+            props: { type: 'text' },
+            slots: {
+                default: () => [
+                    h(StatusBadge, { label: '继承', copyable: false }),
+                    h(StatusBadge, { label: '覆盖', type: 'underline', copyable: false }),
+                ],
+            },
+        })
+        const badges = wrapper.findAll('[data-slot="status-badge"]')
+
+        expect(badges[0]?.classes()).toContain('text-sm')
+        expect(badges[0]?.classes()).not.toContain('rounded-4xl')
+        expect(badges[1]?.classes()).toContain('border-b')
+    })
+
+    it('keeps the badge usable when the clipboard rejects the copy', async () => {
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
+        })
+        const wrapper = mount(StatusBadge, { props: { label: '不可复制', copyable: true } })
+
+        await wrapper.get('[data-slot="status-badge"]').trigger('click')
+        expect(wrapper.emitted('copy')).toBeUndefined()
+        expect(wrapper.get('[data-slot="status-badge"]').attributes('role')).toBe('button')
     })
 
     it('derives a stable text color from autoColor', () => {

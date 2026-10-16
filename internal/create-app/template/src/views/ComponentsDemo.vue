@@ -34,6 +34,7 @@ import {
     StatCard,
     StatusBadge,
     StatusBadgeList,
+    StatusBadgeTypeProvider,
     UserCard,
     FrameworkPopover,
     FrameworkTooltip,
@@ -1276,6 +1277,13 @@ function sseItemData(item: unknown): unknown {
                     <StatusBadgeList :items="['OpenAI', 'Claude', 'Ollama']" :max="2">
                         <template #item="{ item }"><StatusBadge variant="neutral" :label="String(item)" :copyable="false" /></template>
                     </StatusBadgeList>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
+                    <span class="w-full text-xs text-muted-foreground">Provider 默认类型（显式 type 仍可覆盖）</span>
+                    <StatusBadgeTypeProvider type="text">
+                        <StatusBadge variant="success" label="继承 text" :copyable="false" />
+                        <StatusBadge variant="warning" label="显式 underline" type="underline" :copyable="false" />
+                    </StatusBadgeTypeProvider>
                 </div>
             </section>
 

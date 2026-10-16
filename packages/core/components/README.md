@@ -231,6 +231,12 @@ the badge is copyable.
 overflow badge, and an `empty` slot. It owns only layout and display limits;
 the caller owns the item meaning and actions.
 
+`StatusBadgeTypeProvider` and `provideStatusBadgeType` mirror new-api's
+`StatusBadgeTypeContext` for Vue subtrees. A provider's `type` (`badge`,
+`text`, or `underline`) supplies the default for nested badges; an explicit
+`type` on a badge always wins. The provider is presentational only and does
+not change status colors, copy behavior, or business state mapping.
+
 `EmptyState` keeps its existing `actionText`/`action` event and `actions` slot;
 it follows the new-api default Database icon, “暂无数据” title, 300px minimum
 height, `w-full`/`gap-4`/`rounded-xl`/`p-6` surface and compact title/content
