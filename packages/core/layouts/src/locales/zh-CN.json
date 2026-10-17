@@ -28,6 +28,8 @@
         "bulkActions": "批量操作：{count} 项已选择",
         "bulkAnnouncement": "已选择 {count} {entity}，可执行批量操作",
         "moreActions": "更多操作",
+        "view": "查看",
+        "toggleColumns": "切换列",
         "columnVisibility": "列显示",
         "sortAscending": "升序",
         "sortDescending": "降序",

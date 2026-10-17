@@ -28,6 +28,8 @@
         "bulkActions": "Bulk actions for {count} selected records",
         "bulkAnnouncement": "{count} {entity} selected. Bulk actions are available.",
         "moreActions": "More actions",
+        "view": "View",
+        "toggleColumns": "Toggle columns",
         "columnVisibility": "Columns",
         "sortAscending": "Sort ascending",
         "sortDescending": "Sort descending",
