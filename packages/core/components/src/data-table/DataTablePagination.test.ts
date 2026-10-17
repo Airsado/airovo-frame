@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
 import DataTablePagination from './DataTablePagination.vue'
@@ -7,20 +8,36 @@ import DataTable from './DataTable.vue'
 
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { total: '共', rowsPerPage: '每页', firstPage: '首页', previousPage: '上一页', nextPage: '下一页', lastPage: '末页' } } } })] }
 
+const SelectStub = defineComponent({
+    props: { modelValue: { type: String, default: undefined } },
+    emits: ['update:modelValue'],
+    template: '<div data-slot="select"><slot /></div>',
+})
+
+const selectStubs = {
+    Select: SelectStub,
+    SelectTrigger: { template: '<button data-slot="select-trigger"><slot /></button>' },
+    SelectValue: { props: ['placeholder'], template: '<span data-slot="select-value">{{ placeholder }}</span>' },
+    SelectContent: { template: '<div data-slot="select-content"><slot /></div>' },
+    SelectGroup: { template: '<div data-slot="select-group"><slot /></div>' },
+    SelectItem: { props: ['value'], template: '<button data-slot="select-item" :data-value="value"><slot /></button>' },
+}
+
 describe('DataTablePagination', () => {
     it('clamps page navigation and emits page-size changes', async () => {
         const wrapper = mount(DataTablePagination, {
             props: { page: 2, pageSize: 10, total: 21 },
-            global,
+            global: { ...global, stubs: selectStubs },
         })
 
         expect(wrapper.text()).toContain('共21')
         expect(wrapper.get('[aria-label="首页"]').exists()).toBe(true)
-        expect(wrapper.get('[data-slot="pagination-link"][data-active]').attributes('aria-current')).toBe('page')
-        await wrapper.get('[aria-label="Go to next page"]').trigger('click')
+        expect(wrapper.get('button[aria-label="2"]').attributes('data-variant')).toBe('default')
+        await wrapper.get('[aria-label="下一页"]').trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([3])
 
-        await wrapper.find('select').setValue('20')
+        expect(wrapper.get('[data-slot="select-item"][data-value="30"]').exists()).toBe(true)
+        wrapper.findComponent(SelectStub).vm.$emit('update:modelValue', '20')
         expect(wrapper.emitted('update:pageSize')?.at(-1)).toEqual([20])
     })
 
@@ -30,7 +47,7 @@ describe('DataTablePagination', () => {
             global,
         })
         expect(wrapper.get('nav[aria-label="pagination"]').text()).toContain('共 21')
-        await wrapper.get('[aria-label="Go to next page"]').trigger('click')
+        await wrapper.get('[aria-label="下一页"]').trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
     })
 
