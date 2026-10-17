@@ -160,4 +160,38 @@ describe('DataTablePage view mode', () => {
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
     expect(wrapper.findAll('tbody input[type="checkbox"]')).toHaveLength(2)
   })
+
+  it('composes the built-in toolbar from shared table columns and loading state', async () => {
+    const wrapper = mount(DataTablePage, {
+      global: {
+        ...global,
+        stubs: {
+          ...global.stubs,
+          DataTableToolbar: {
+            props: ['columns', 'loading', 'modelValue'],
+            emits: ['update:modelValue', 'update:filterValues', 'reset', 'refresh', 'update:columnVisibility'],
+            template: '<div data-toolbar-proxy :data-column-count="columns?.length" :data-loading="String(loading)"><button type="button" @click="$emit(\'update:modelValue\', \'next\')">search</button><button type="button" @click="$emit(\'refresh\')">refresh</button><button type="button" @click="$emit(\'update:filterValues\', { status: [\'ready\'] })">filter</button><button type="button" @click="$emit(\'update:columnVisibility\', { name: false })">columns</button></div>',
+          },
+        },
+      },
+      props: {
+        rows: [{ id: 1, name: 'one' }],
+        columns: [{ key: 'name', title: '名称' }],
+        loading: true,
+        toolbarProps: { modelValue: 'initial' },
+      },
+    })
+
+    const toolbar = wrapper.get('[data-toolbar-proxy]')
+    expect(toolbar.attributes('data-column-count')).toBe('1')
+    expect(toolbar.attributes('data-loading')).toBe('true')
+    await toolbar.get('button').trigger('click')
+    expect(wrapper.emitted('update:toolbarModelValue')?.at(-1)).toEqual(['next'])
+    await wrapper.findAll('[data-toolbar-proxy] button')[1]!.trigger('click')
+    expect(wrapper.emitted('toolbar-refresh')).toHaveLength(1)
+    await wrapper.findAll('[data-toolbar-proxy] button')[2]!.trigger('click')
+    expect(wrapper.emitted('update:toolbarFilterValues')?.at(-1)).toEqual([{ status: ['ready'] }])
+    await wrapper.findAll('[data-toolbar-proxy] button')[3]!.trigger('click')
+    expect(wrapper.emitted('update:columnVisibility')?.at(-1)).toEqual([{ name: false }])
+  })
 })

@@ -132,6 +132,13 @@ loading/error/empty state and selection keys below the mobile breakpoint when
 forwarded from the built-in table and card/list views.
 Custom `table` and `mobile` slots receive the shared source and update helpers
 as slot props, so advanced table configuration can still stay in the caller.
+For a channel-style page that only needs the standard toolbar, pass
+`toolbar-props` to let `DataTablePage` compose `DataTableToolbar` from the same
+columns, loading and column-visibility state. The page forwards
+`update:toolbarModelValue`, `update:toolbarFilterValues`, `toolbar-reset`,
+`toolbar-refresh` and `update:columnVisibility`; use `toolbar-*` slots to add
+custom search, filters or actions while keeping the built-in responsive layout.
+The existing `toolbar` slot remains an override when `toolbar-props` is omitted.
 Set `enable-view-mode-toggle` to expose the new-api table/card
 segmented control. `default-view-mode` chooses the uncontrolled initial mode,
 `view-mode` makes the state controlled, and `view-mode-storage-key` persists a

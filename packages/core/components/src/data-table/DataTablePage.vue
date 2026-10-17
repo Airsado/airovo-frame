@@ -4,7 +4,8 @@ import DataTableViewModeToggle from './DataTableViewModeToggle.vue'
 import DataTable from './DataTable.vue'
 import DataTableCardGrid from './DataTableCardGrid.vue'
 import DataTableMobileCardList from './DataTableMobileCardList.vue'
-import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
+import DataTableToolbar from './DataTableToolbar.vue'
+import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableFilterValue, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort, DataTableToolbarProps } from './types'
 import { useDataTableViewMode, type DataTableViewMode } from './view-mode'
 
 defineOptions({ name: 'DataTablePage' })
@@ -46,6 +47,9 @@ const props = withDefaults(defineProps<{
   height?: string | number
   maxHeight?: string | number
 
+  /** Optional new-api-style toolbar composed from the same table state. */
+  toolbarProps?: DataTableToolbarProps
+
   /** Legacy card-only source. Prefer the shared source above. */
   cardRows?: DataTableRow[]
   cardColumns?: DataTableColumn[]
@@ -81,6 +85,10 @@ const emit = defineEmits<{
   (event: 'update:columnVisibility', value: DataTableColumnVisibility): void
   (event: 'update:columnSizing', value: Record<string, number>): void
   (event: 'update:columnPinning', value: DataTableColumnPinning): void
+  (event: 'update:toolbarModelValue', value: string): void
+  (event: 'update:toolbarFilterValues', value: Record<string, DataTableFilterValue>): void
+  (event: 'toolbar-reset'): void
+  (event: 'toolbar-refresh'): void
   (event: 'retry'): void
 }>()
 
@@ -116,7 +124,16 @@ const resolvedTableRowKey = computed<string | ((row: DataTableRow) => DataTableR
 })
 const resolvedCardRowKey = computed(() => props.cardRowKey ?? props.rowKey ?? 'id')
 const hasAutoTable = computed(() => hasSharedSource.value && !slots.table)
-const hasToolbar = computed(() => Boolean(slots.toolbar || slots['view-toggle'] || props.enableViewModeToggle))
+const hasToolbar = computed(() => Boolean(props.toolbarProps || slots.toolbar || slots['view-toggle'] || props.enableViewModeToggle))
+const resolvedToolbarProps = computed<DataTableToolbarProps | undefined>(() => {
+  if (!props.toolbarProps) return undefined
+  return {
+    ...props.toolbarProps,
+    columns: props.toolbarProps.columns ?? resolvedColumns.value,
+    columnVisibility: props.toolbarProps.columnVisibility ?? props.columnVisibility,
+    loading: props.toolbarProps.loading ?? resolvedLoading.value,
+  }
+})
 
 const internal = useDataTableViewMode({
   storageKey: () => props.viewModeStorageKey,
@@ -231,7 +248,20 @@ function retry(): void {
 <template>
   <section :class="['min-w-0 space-y-3', $props.class]">
     <div v-if="hasToolbar" class="flex min-w-0 flex-wrap items-center gap-2">
-      <slot name="toolbar" />
+      <DataTableToolbar
+        v-if="resolvedToolbarProps"
+        v-bind="resolvedToolbarProps"
+        @update:model-value="(value) => emit('update:toolbarModelValue', value)"
+        @update:filter-values="(value) => emit('update:toolbarFilterValues', value)"
+        @reset="emit('toolbar-reset')"
+        @refresh="emit('toolbar-refresh')"
+        @update:column-visibility="(value) => emit('update:columnVisibility', value)"
+      >
+        <template v-for="slotName in ['custom-search', 'additional-search', 'expandable', 'left-actions', 'pre-actions', 'view-toggle', 'actions']" #[slotName]="slotProps">
+          <slot :name="`toolbar-${slotName}`" v-bind="slotProps ?? {}" />
+        </template>
+      </DataTableToolbar>
+      <slot v-else name="toolbar" />
       <slot name="view-toggle" :view-mode="resolvedViewMode" :set-view-mode="setViewMode">
         <DataTableViewModeToggle
           v-if="props.enableViewModeToggle"
