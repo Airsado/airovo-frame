@@ -105,10 +105,12 @@ guard prevents a late response from replacing newer results. The default
 selection policy is current-page selection; applications that need cross-page
 selection must own that policy outside the component.
 
-`DataTablePagination` composes the ui-kit Pagination primitives while keeping
-the existing `page`, `pageSize`, `total`, `update:page` and `update:pageSize`
-contract. It owns only page clamping and presentation; query synchronization
-and data fetching remain with `useDataTable` or the caller.
+`DataTablePagination` composes the ui-kit Pagination and Select primitives while
+keeping the existing `page`, `pageSize`, `total`, `update:page` and
+`update:pageSize` contract. The page-size popup uses the same compact trigger,
+focus and active tokens as new-api, and totals use the active locale's grouping
+format. It owns only page clamping and presentation; query synchronization and
+data fetching remain with `useDataTable` or the caller.
 Its full layout follows the new-api total/rows-per-page/first-prev-pages-next-last
 density; `compact` provides the mobile total/current-page/previous-next layout.
 
