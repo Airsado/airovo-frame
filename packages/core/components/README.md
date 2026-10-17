@@ -111,13 +111,24 @@ contract. It owns only page clamping and presentation; query synchronization
 and data fetching remain with `useDataTable` or the caller.
 Its full layout follows the new-api total/rows-per-page/first-prev-pages-next-last
 density; `compact` provides the mobile total/current-page/previous-next layout.
+The default page-size choices are `10`, `20`, `30`, `40`, `50` and `100`. The
+full layout uses the framework `Select` primitive for page-size changes, so it
+does not fall back to a browser-native select. When `DataTablePage` is rendered
+inside `SectionPage`, pagination is placed in the page footer host by default
+(`paginationInFooter=true`). This keeps the controls fixed below the scrollable
+content area while the table or card list scrolls. Set `paginationInFooter` to
+`false` when a caller intentionally needs pagination inside the data surface;
+when no `SectionPage` footer host is available, the component renders an inline
+fallback below its content.
 
 For channel-style administration pages, compose `DataTablePage` with
 `DataTableToolbar`, `DataTableViewOptions` and `DataTableRowActions`. The
 toolbar owns presentation of debounced search, faceted filters, refresh/reset
 actions and column visibility; the application still owns the filter values and
 calls `useDataTable.setFilters()`. `DataTableViewOptions` accepts a caller-owned
-storage key for column visibility. `DataTableRowActions` accepts typed row
+storage key for column visibility; its default trigger is the new-api
+`查看`/`View` action and the reset-columns item is opt-in through `showReset`.
+`DataTableRowActions` accepts typed row
 actions with visible/disabled/loading predicates and an optional permission
 callback. `DataTablePage` provides separate `table` and `mobile` slots so the
 same query, pagination and selection state can render as a desktop table and a
@@ -428,10 +439,11 @@ and controlled `modelValue` updates clear the invalid state.
 optional `modal`/`dropdownContentClass` API and emits `dropdown-open-change`.
 It normalizes persisted visibility against the current
 column schema, drops unknown/non-boolean entries, and keeps at least one
-configurable column visible. Its trigger, menu and restore action expose
-stable data-slot and aria labels for keyboard and screen-reader tests.
+configurable column visible. Its trigger, menu and optional restore action
+expose stable data-slot and aria labels for keyboard and screen-reader tests.
 The menu follows new-api's grouped 150px ViewOptions surface, keeps the
-outline trigger compact, and exposes a keyboard-focusable reset menu item.
+outline trigger compact, and hides the restore item by default; pass
+`showReset` to expose it.
 
 ## FrameworkTooltip / FrameworkPopover
 
@@ -531,6 +543,10 @@ with a Chinese fallback; `dropdownAriaLabel` remains caller-authoritative.
 faceted filters, refresh, reset and column visibility props remain compatible;
 optional `custom-search`, `additional-search`, `expandable`, `pre-actions`,
 `left-actions`, `view-toggle` and `actions` slots add caller-owned controls.
+The built-in refresh button is opt-in (`showRefresh` defaults to `false`) so a
+page can provide its own refresh action through `pre-actions` without getting a
+duplicate control. The desktop action cluster keeps reset/search/view controls,
+column visibility and expand in the same right-aligned order as new-api.
 The default search uses a plain Input surface with no decorative search icon;
 desktop widths follow `sm:w-[200px] lg:w-[240px]`, while mobile keeps the
 input flexible. Clear, debounce and IME behavior remain unchanged.

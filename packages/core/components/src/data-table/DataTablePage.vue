@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, type Slot } from 'vue'
+import { computed, inject, ref, useSlots, type Slot } from 'vue'
 import DataTableViewModeToggle from './DataTableViewModeToggle.vue'
 import DataTable from './DataTable.vue'
 import DataTableCardGrid from './DataTableCardGrid.vue'
 import DataTableMobileCardList from './DataTableMobileCardList.vue'
+import DataTablePagination from './DataTablePagination.vue'
+import PageFooterPortal from '../section-page/PageFooterPortal.vue'
+import { pageFooterTargetKey } from '../section-page/page-footer-context'
 import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
 import { useDataTableViewMode, type DataTableViewMode } from './view-mode'
 
@@ -12,6 +15,8 @@ defineOptions({ name: 'DataTablePage' })
 const props = withDefaults(defineProps<{
   class?: string
   mobileCards?: boolean
+  /** Render pagination in the surrounding SectionPage footer when available. */
+  paginationInFooter?: boolean
   enableViewModeToggle?: boolean
   viewMode?: DataTableViewMode
   defaultViewMode?: DataTableViewMode
@@ -63,6 +68,7 @@ const props = withDefaults(defineProps<{
   enableViewModeToggle: false,
   defaultViewMode: 'table',
   viewModeToggleDisabled: false,
+  paginationInFooter: true,
   cardLoading: false,
   cardSelectable: false,
   cardSelectionScope: 'page',
@@ -85,6 +91,8 @@ const emit = defineEmits<{
 }>()
 
 const slots = useSlots()
+const pageFooterTarget = inject(pageFooterTargetKey, null)
+const hasPageFooterTarget = computed(() => Boolean(pageFooterTarget?.value))
 const internalSelectedKeys = ref<DataTableRowKey[]>([])
 const internalPage = ref(props.page ?? 1)
 const internalPageSize = ref(props.pageSize ?? 20)
@@ -147,7 +155,7 @@ const tableProps = computed(() => ({
   selectable: resolvedSelectable.value,
   selectedKeys: resolvedSelectedKeys.value,
   selectionScope: resolvedSelectionScope.value,
-  pagination: props.pagination,
+  pagination: Boolean(props.pagination && !props.paginationInFooter),
   page: resolvedPage.value,
   pageSize: resolvedPageSize.value,
   total: props.total,
@@ -183,7 +191,7 @@ const cardGridProps = computed(() => ({
   selectable: resolvedSelectable.value,
   selectedKeys: resolvedSelectedKeys.value,
   selectionScope: resolvedSelectionScope.value,
-  pagination: props.pagination,
+  pagination: Boolean(props.pagination && !props.paginationInFooter),
   page: resolvedPage.value,
   pageSize: resolvedPageSize.value,
   total: props.total,
@@ -229,8 +237,8 @@ function retry(): void {
 </script>
 
 <template>
-  <section :class="['min-w-0 space-y-3', $props.class]">
-    <div v-if="hasToolbar" class="flex min-w-0 flex-wrap items-center gap-2">
+  <section :class="['flex h-full min-h-0 min-w-0 flex-col gap-2.5 sm:gap-3', $props.class]">
+    <div v-if="hasToolbar" class="flex min-w-0 shrink-0 flex-wrap items-center gap-2.5 sm:gap-3">
       <slot name="toolbar" />
       <slot name="view-toggle" :view-mode="resolvedViewMode" :set-view-mode="setViewMode">
         <DataTableViewModeToggle
@@ -242,7 +250,10 @@ function retry(): void {
         />
       </slot>
     </div>
-    <div v-if="($slots.table || hasAutoTable) && !cardView" :class="mobileCards ? 'hidden sm:block' : undefined">
+    <div class="shrink-0">
+      <slot name="toolbar-bottom" />
+    </div>
+    <div v-if="($slots.table || hasAutoTable) && !cardView" :class="['min-h-0 min-w-0 flex-1', mobileCards ? 'hidden sm:block' : undefined]">
       <slot v-if="$slots.table" name="table" v-bind="tableSlotProps" />
       <DataTable
         v-else
@@ -257,7 +268,7 @@ function retry(): void {
         @retry="retry"
       />
     </div>
-    <div v-if="hasCardLayout && (cardView || mobileCards)" :class="cardView ? 'min-w-0' : 'sm:hidden'">
+    <div v-if="hasCardLayout && (cardView || mobileCards)" :class="cardView ? 'min-h-0 min-w-0 flex-1' : 'sm:hidden'">
       <slot v-if="$slots.mobile" name="mobile" :rows="resolvedRows" :selected-keys="resolvedSelectedKeys" />
       <DataTableCardGrid
         v-else-if="cardView"
@@ -283,5 +294,28 @@ function retry(): void {
       </DataTableMobileCardList>
     </div>
     <slot v-if="!$slots.table && !hasAutoTable && !mobileCards && !cardView" />
+
+    <PageFooterPortal v-if="props.pagination && props.paginationInFooter && hasPageFooterTarget">
+      <DataTablePagination
+        :page="resolvedPage"
+        :page-size="resolvedPageSize"
+        :total="props.total ?? resolvedRows.length"
+        :page-size-options="props.pageSizeOptions"
+        :compact="false"
+        @update:page="updatePage"
+        @update:page-size="updatePageSize"
+      />
+    </PageFooterPortal>
+    <div v-else-if="props.pagination && props.paginationInFooter" class="pt-2">
+      <DataTablePagination
+        :page="resolvedPage"
+        :page-size="resolvedPageSize"
+        :total="props.total ?? resolvedRows.length"
+        :page-size-options="props.pageSizeOptions"
+        :compact="false"
+        @update:page="updatePage"
+        @update:page-size="updatePageSize"
+      />
+    </div>
   </section>
 </template>

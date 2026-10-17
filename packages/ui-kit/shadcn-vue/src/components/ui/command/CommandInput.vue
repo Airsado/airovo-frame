@@ -25,7 +25,7 @@ const { filterState } = useCommand()
 <template>
   <div
     data-slot="command-input-wrapper"
-    class="flex h-9 items-center gap-2 border-b px-3"
+    class="p-1 pb-0"
   >
     <MagnifyingGlassIcon class="size-4 shrink-0 opacity-50" />
     <ListboxFilter
@@ -33,7 +33,7 @@ const { filterState } = useCommand()
       v-model="filterState.search"
       data-slot="command-input"
       auto-focus
-      :class="cn('placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50', props.class)"
+      :class="cn('placeholder:text-muted-foreground h-8 w-full rounded-lg border border-input/30 bg-input/30 px-2.5 py-1 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50', props.class)"
     />
   </div>
 </template>

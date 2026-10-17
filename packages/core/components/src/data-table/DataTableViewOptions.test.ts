@@ -6,13 +6,13 @@ import { DropdownMenu } from '@airovo/uikit-shadcnui'
 import { createI18n } from 'vue-i18n'
 import DataTableViewOptions from './DataTableViewOptions.vue'
 
-const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { columnVisibility: '列显示', restoreColumns: '恢复默认列', columnVisibilityOptions: '列显示选项' } } } })] }
+const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { view: '查看', toggleColumns: '切换列', restoreColumns: '恢复默认列' } } } })] }
 
 describe('DataTableViewOptions', () => {
     it('uses locale defaults while explicit labels remain authoritative', () => {
-        const i18n = createI18n({ legacy: false, locale: 'en-US', messages: { 'en-US': { common: { columnVisibility: 'Columns', restoreColumns: 'Restore columns', columnVisibilityOptions: 'Column visibility options' } } } })
+        const i18n = createI18n({ legacy: false, locale: 'en-US', messages: { 'en-US': { common: { view: 'View', toggleColumns: 'Toggle columns', restoreColumns: 'Restore columns' } } } })
         const wrapper = mount(DataTableViewOptions, { global: { plugins: [i18n] }, props: { columns: [{ key: 'name', title: 'Name' }] } })
-        expect(wrapper.get('[data-slot="data-table-view-options-trigger"]').attributes('aria-label')).toBe('Columns')
+        expect(wrapper.get('[data-slot="data-table-view-options-trigger"]').attributes('aria-label')).toBe('View')
         const explicit = mount(DataTableViewOptions, { global: { plugins: [i18n] }, props: { columns: [{ key: 'name', title: 'Name' }], label: 'Fields', resetLabel: 'Reset fields' } })
         expect(explicit.get('[data-slot="data-table-view-options-trigger"]').attributes('aria-label')).toBe('Fields')
     })
@@ -22,7 +22,7 @@ describe('DataTableViewOptions', () => {
             props: { columns: [{ key: 'name', title: '名称' }] },
         })
         const trigger = wrapper.get('[data-slot="data-table-view-options-trigger"]')
-        expect(trigger.attributes('aria-label')).toBe('列显示')
+        expect(trigger.attributes('aria-label')).toBe('查看')
     })
 
     it('uses a non-modal menu by default and emits open changes', async () => {
@@ -36,7 +36,7 @@ describe('DataTableViewOptions', () => {
         expect(wrapper.emitted('dropdown-open-change')).toEqual([[true]])
     })
 
-    it('matches the new-api menu density and exposes grouped reset semantics', async () => {
+    it('matches the new-api menu density and keeps reset optional', async () => {
         const wrapper = mount(DataTableViewOptions, {
             global,
             props: {
@@ -53,7 +53,17 @@ describe('DataTableViewOptions', () => {
         await trigger.trigger('click')
         await nextTick()
         expect(document.body.querySelector('[data-slot="data-table-view-options-group"]')).not.toBeNull()
-        expect(document.body.querySelector('[data-slot="data-table-view-options-reset"]')?.getAttribute('aria-label')).toBe('恢复默认列')
+        expect(document.body.querySelector('[data-slot="data-table-view-options-reset"]')).toBeNull()
         wrapper.unmount()
+
+        const withReset = mount(DataTableViewOptions, {
+            global,
+            props: { columns: [{ key: 'name', title: '名称' }], showReset: true },
+            attachTo: document.body,
+        })
+        await withReset.get('[data-slot="data-table-view-options-trigger"]').trigger('click')
+        await nextTick()
+        expect(document.body.querySelector('[data-slot="data-table-view-options-reset"]')?.getAttribute('aria-label')).toBe('恢复默认列')
+        withReset.unmount()
     })
 })

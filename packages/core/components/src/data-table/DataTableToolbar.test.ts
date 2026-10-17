@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import DataTableMobileFilterPanel from './DataTableMobileFilterPanel.vue'
 import DataTableToolbar from './DataTableToolbar.vue'
 
-const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { search: '搜索…', clearSearch: '清除搜索', reset: '重置', refresh: '刷新', searchAction: '搜索', expand: '展开', collapse: '收起', collapseFilters: '收起筛选', expandFilters: '展开筛选', filterActions: '筛选操作' } } } })] }
+const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { search: '搜索…', clearSearch: '清除搜索', reset: '重置', refresh: '刷新', searchAction: '搜索', expand: '展开', collapse: '收起', collapseFilters: '收起筛选', expandFilters: '展开筛选', filterActions: '筛选操作', view: '查看', toggleColumns: '切换列' } } } })] }
 
 describe('DataTableMobileFilterPanel', () => {
   it('starts open and exposes an accessible collapse control', async () => {
@@ -22,6 +22,16 @@ describe('DataTableMobileFilterPanel', () => {
 })
 
 describe('DataTableToolbar', () => {
+  it('does not add a refresh button unless explicitly enabled', async () => {
+    const wrapper = mount(DataTableToolbar, { global })
+    expect(wrapper.find('button[aria-label="刷新"]').exists()).toBe(false)
+
+    const withRefresh = mount(DataTableToolbar, { global, props: { showRefresh: true } })
+    expect(withRefresh.find('button[aria-label="刷新"]').exists()).toBe(true)
+    await withRefresh.find('button[aria-label="刷新"]').trigger('click')
+    expect(withRefresh.emitted('refresh')).toHaveLength(1)
+  })
+
   it('supports explicit search mode, reset and custom slots', async () => {
     const onSearch = vi.fn()
     const wrapper = mount(DataTableToolbar, {

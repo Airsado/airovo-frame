@@ -90,6 +90,6 @@ describe('DataTableRowActions', () => {
         })
         const trigger = wrapper.get('[data-slot="dropdown-menu-trigger"]')
         expect(trigger.attributes('data-size')).toBe('icon')
-        expect(trigger.classes()).not.toContain('size-8')
+        expect(trigger.classes()).toContain('size-8')
     })
 })

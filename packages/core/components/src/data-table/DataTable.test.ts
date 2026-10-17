@@ -38,7 +38,8 @@ describe('DataTable', () => {
 
         expect(surface.classes()).toEqual(expect.arrayContaining(['overflow-hidden', 'rounded-lg', 'border']))
         expect(surface.find('table').exists()).toBe(true)
-        expect(surface.find('[data-slot="pagination"]').exists()).toBe(true)
+        expect(surface.find('[data-slot="pagination"]').exists()).toBe(false)
+        expect(wrapper.find('[data-slot="pagination"]').exists()).toBe(true)
         expect(surface.find('[data-toolbar]').exists()).toBe(false)
         expect(wrapper.find('[data-toolbar]').exists()).toBe(true)
     })
@@ -191,7 +192,7 @@ describe('DataTable', () => {
         expect(wrapper.emitted('sort-change')?.at(-1)).toEqual([{ key: 'name', direction: 'asc' }])
         expect(wrapper.find('tbody tr').text()).toContain('格式化:two')
 
-        const nextPage = wrapper.get('[aria-label="Go to next page"]')
+        const nextPage = wrapper.get('[aria-label="下一页"]')
         await nextPage.trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
 
