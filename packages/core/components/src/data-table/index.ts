@@ -49,4 +49,5 @@ export type {
     DataTablePinSide,
     DataTableSelectionScope,
     DataTableSort,
+    DataTableToolbarProps,
 } from './types'

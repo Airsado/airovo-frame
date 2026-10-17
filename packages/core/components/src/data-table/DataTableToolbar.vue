@@ -4,32 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { Icon } from '@airovo/shared/icons'
 import { Button, Input } from '@airovo/uikit-shadcnui'
 import FacetedFilter from '../faceted-filter/FacetedFilter.vue'
-import type { DataTableColumn, DataTableColumnVisibility, DataTableFilterGroup, DataTableFilterValue } from './types'
+import type { DataTableColumnVisibility, DataTableFilterValue, DataTableToolbarProps } from './types'
 import DataTableViewOptions from './DataTableViewOptions.vue'
 import DataTableMobileFilterPanel from './DataTableMobileFilterPanel.vue'
 
 defineOptions({ name: 'DataTableToolbar' })
 
-const props = withDefaults(defineProps<{
-  modelValue?: string
-  searchPlaceholder?: string
-  searchDebounceMs?: number
-  filters?: DataTableFilterGroup[]
-  filterValues?: Record<string, DataTableFilterValue>
-  loading?: boolean
-  columns?: DataTableColumn[]
-  columnVisibility?: DataTableColumnVisibility
-  columnVisibilityStorageKey?: string
-  showReset?: boolean
-  showRefresh?: boolean
-  collapsibleOnMobile?: boolean
-  hasAdditionalFilters?: boolean
-  onSearch?: () => void | Promise<void>
-  searchLoading?: boolean
-  hideViewOptions?: boolean
-  hasExpandedActiveFilters?: boolean
-  class?: string
-}>(), {
+const props = withDefaults(defineProps<DataTableToolbarProps>(), {
   modelValue: '', searchDebounceMs: 300,
   filters: () => [], filterValues: () => ({}), loading: false,
   showReset: true, showRefresh: true, collapsibleOnMobile: false,

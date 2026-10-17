@@ -10,7 +10,6 @@ import {
     DataTablePage,
     DataTableRowActions,
     StaticRowActions,
-    DataTableToolbar,
     ChartCard,
     useDataTable,
     DatePicker,
@@ -1226,6 +1225,17 @@ function sseItemData(item: unknown): unknown {
                         mobile-cards
                         enable-view-mode-toggle
                         view-mode-storage-key="playwright-channel-table-view-mode"
+                        :toolbar-props="{
+                            modelValue: serverTableSearch,
+                            columns: serverTableColumns,
+                            columnVisibility: serverTableColumnVisibility,
+                            columnVisibilityStorageKey: 'playwright-channel-table-columns',
+                            filters: serverTableFilters,
+                            filterValues: serverTableFilterValues,
+                            loading: serverTable.loading.value,
+                            collapsibleOnMobile: true,
+                            searchPlaceholder: '搜索渠道名称或类型',
+                        }"
                         :rows="serverTable.rows.value"
                         :columns="serverTableColumns"
                         row-key="id"
@@ -1244,30 +1254,17 @@ function sseItemData(item: unknown): unknown {
                         @update:page-size="serverTable.setPageSize"
                         @update:sort="serverTable.setSort"
                         @retry="serverTable.retry"
+                        @update:toolbar-model-value="serverTableSearch = $event; applyServerTableSearch()"
+                        @update:toolbar-filter-values="updateServerTableFilters"
+                        @toolbar-refresh="serverTable.reload"
+                        @toolbar-reset="applyServerTableSearch"
+                        @update:column-visibility="serverTableColumnVisibility = $event"
                     >
-                        <template #toolbar>
-                            <DataTableToolbar
-                                v-model="serverTableSearch"
-                                :columns="serverTableColumns"
-                                :column-visibility="serverTableColumnVisibility"
-                                column-visibility-storage-key="playwright-channel-table-columns"
-                                :filters="serverTableFilters"
-                                :filter-values="serverTableFilterValues"
-                                :loading="serverTable.loading.value"
-                                collapsible-on-mobile
-                                search-placeholder="搜索渠道名称或类型"
-                                @update:filter-values="updateServerTableFilters"
-                                @refresh="serverTable.reload"
-                                @reset="applyServerTableSearch"
-                                @update:column-visibility="serverTableColumnVisibility = $event"
-                            >
-                                <template #expandable>
-                                    <span class="text-xs text-muted-foreground">可展开筛选区：支持在移动端折叠，动作区保持可用。</span>
-                                </template>
-                                <template #actions>
-                                    <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
-                                </template>
-                            </DataTableToolbar>
+                        <template #toolbar-expandable>
+                            <span class="text-xs text-muted-foreground">可展开筛选区：支持在移动端折叠，动作区保持可用。</span>
+                        </template>
+                        <template #toolbar-actions>
+                            <Button size="sm" variant="outline" @click="simulateServerTableError">模拟错误</Button>
                         </template>
                         <template #table="tableState">
                             <DataTable

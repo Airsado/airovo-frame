@@ -62,6 +62,32 @@ export interface DataTableFilterGroup {
 
 export type DataTableFilterValue = string | string[] | undefined
 
+/**
+ * Public props accepted by DataTableToolbar and DataTablePage's optional
+ * built-in toolbar. Keeping this contract in the shared type module lets
+ * pages configure the new-api-style toolbar without duplicating prop shapes.
+ */
+export interface DataTableToolbarProps {
+    modelValue?: string
+    searchPlaceholder?: string
+    searchDebounceMs?: number
+    filters?: DataTableFilterGroup[]
+    filterValues?: Record<string, DataTableFilterValue>
+    loading?: boolean
+    columns?: DataTableColumn[]
+    columnVisibility?: DataTableColumnVisibility
+    columnVisibilityStorageKey?: string
+    showReset?: boolean
+    showRefresh?: boolean
+    collapsibleOnMobile?: boolean
+    hasAdditionalFilters?: boolean
+    onSearch?: () => void | Promise<void>
+    searchLoading?: boolean
+    hideViewOptions?: boolean
+    hasExpandedActiveFilters?: boolean
+    class?: string
+}
+
 export interface DataTableRowAction<T extends DataTableRow = DataTableRow> {
     key: string
     label: string
