@@ -63,7 +63,9 @@ const props = withDefaults(defineProps<{
     searchDebounceMs: 500,
     collapsibleOnMobile: true,
     showReset: true,
-    showRefresh: true,
+    // Match new-api: pages opt in to a built-in refresh action when needed.
+    // Business pages can still pass :show-refresh="true" explicitly.
+    showRefresh: false,
     hideViewOptions: false,
     pagination: true,
     selectable: false,
