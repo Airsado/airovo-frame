@@ -46,8 +46,8 @@ function onReset() {
 </script>
 
 <template>
-    <form ref="formElement" v-bind="$attrs" :class="['space-y-4', props.api.props.wrapperClass]" @submit.prevent="onSubmit">
-        <fieldset :disabled="isDisabled || isLoading" class="min-w-0 space-y-4">
+    <form ref="formElement" v-bind="$attrs" :class="[props.api.props.compact ? 'space-y-1' : 'space-y-4', props.api.props.wrapperClass]" @submit.prevent="onSubmit">
+        <fieldset :disabled="isDisabled || isLoading" :class="['min-w-0', props.api.props.compact ? 'space-y-1' : 'space-y-4']">
             <FormFieldRender :schema="props.api.schema" :api="props.api" />
 
             <slot

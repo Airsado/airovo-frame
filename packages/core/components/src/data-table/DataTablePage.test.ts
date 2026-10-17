@@ -1,8 +1,9 @@
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { h, nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { afterEach, describe, expect, it } from 'vitest'
 import DataTablePage from './DataTablePage.vue'
+import SectionPage from '../section-page/SectionPage.vue'
 
 const global = {
   plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { viewMode: '视图模式', cardView: '卡片视图', tableView: '表格视图' } } } })],
@@ -117,8 +118,8 @@ describe('DataTablePage view mode', () => {
       },
     })
 
-    expect(wrapper.get('[aria-label="Go to next page"]').exists()).toBe(true)
-    await wrapper.get('[aria-label="Go to next page"]').trigger('click')
+    expect(wrapper.get('[aria-label="下一页"]').exists()).toBe(true)
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
     await wrapper.get('input[type="checkbox"]').setValue(true)
     expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([[1]])
@@ -127,6 +128,26 @@ describe('DataTablePage view mode', () => {
     await nextTick()
     expect(wrapper.find('table').exists()).toBe(true)
     expect((wrapper.find('tbody input[type="checkbox"]').element as HTMLInputElement).checked).toBe(true)
+  })
+
+  it('places pagination in the surrounding SectionPage footer when available', async () => {
+    const wrapper = mount(SectionPage, {
+      global,
+      slots: {
+        default: () => h(DataTablePage, {
+          rows: [{ id: 1, name: 'one' }],
+          columns: [{ key: 'name', title: '名称' }],
+          pagination: true,
+          pageSize: 1,
+          total: 2,
+        }),
+      },
+    })
+
+    await nextTick()
+    const footer = wrapper.get('[data-slot="section-page-footer-host"]')
+    expect(footer.get('[aria-label="下一页"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="data-table-surface"] [aria-label="下一页"]').exists()).toBe(false)
   })
 
   it('keeps shared error and retry state available in card view', async () => {
@@ -159,5 +180,19 @@ describe('DataTablePage view mode', () => {
 
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
     expect(wrapper.findAll('tbody input[type="checkbox"]')).toHaveLength(2)
+  })
+
+  it('renders the optional toolbar-bottom slot without changing toolbar behavior', () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      slots: {
+        toolbar: '<div data-toolbar>toolbar</div>',
+        'toolbar-bottom': '<div data-toolbar-bottom>query form</div>',
+        table: '<div data-table>table</div>',
+      },
+    })
+
+    expect(wrapper.find('[data-toolbar]').exists()).toBe(true)
+    expect(wrapper.find('[data-toolbar-bottom]').exists()).toBe(true)
   })
 })

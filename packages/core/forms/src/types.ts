@@ -87,6 +87,8 @@ export interface FormRuntimeProps {
     loading?: boolean
     showDefaultActions?: boolean
     layout?: 'horizontal' | 'vertical'
+    /** Use the compact spacing contract required by inline query forms. */
+    compact?: boolean
     wrapperClass?: string
     handleSubmit?: FormSubmitHandler
 }
