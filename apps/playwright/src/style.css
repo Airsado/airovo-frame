@@ -1,2 +1,113 @@
 @import "@airovo/uikit-shadcnui/style.css";
 @import "@airovo/layouts/style.css";
+
+/*
+ * Component demo visual system.
+ *
+ * The demo intentionally uses the same quiet surfaces and short motion
+ * language as the new-api pages: one hierarchy of surfaces, 8px rhythm, and
+ * clear keyboard/active feedback. These selectors are opt-in so starter apps
+ * keep their own composition choices.
+ */
+.demo-shell {
+    --demo-content-max: 72rem;
+    --demo-section-gap: 2.25rem;
+    width: min(100%, var(--demo-content-max));
+    margin-inline: auto;
+    padding-bottom: 2rem;
+}
+
+.demo-category-tabs {
+    margin-bottom: 1.25rem;
+}
+
+.demo-section {
+    min-width: 0;
+    scroll-margin-top: 6rem;
+}
+
+.demo-section + .demo-section {
+    margin-top: var(--demo-section-gap);
+}
+
+.demo-section-header {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.875rem;
+}
+
+.demo-section-header > div {
+    min-width: 0;
+}
+
+.demo-section-header h2,
+.demo-section-header h3 {
+    margin: 0;
+    color: var(--foreground);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+}
+
+.demo-section-header p {
+    max-width: 48rem;
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.demo-kicker {
+    margin-bottom: 0.25rem;
+    color: var(--primary);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.demo-item-title {
+    margin: 0;
+    color: var(--foreground);
+}
+
+.demo-section-body {
+    min-width: 0;
+}
+
+.demo-section-body > section + section {
+    border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+    padding-top: 1.5rem;
+}
+
+.demo-section-body :is(button, [role='button'], input, select, textarea):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 36%, transparent);
+}
+
+.demo-section-body :is(button, [role='button']):not(:disabled) {
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.demo-section-body :is(button, [role='button']):not(:disabled):active {
+    transform: translateY(1px);
+}
+
+@media (min-width: 640px) {
+    .demo-shell {
+        padding-bottom: 3rem;
+    }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .demo-section-body :is(button, [role='button']):not(:disabled) {
+        transition: none;
+    }
+}
