@@ -72,7 +72,7 @@ onMounted(() => {
 <template>
   <DropdownMenu :modal="props.modal" @update:open="(open) => emit('dropdown-open-change', open)">
     <DropdownMenuTrigger as-child>
-      <Button type="button" variant="outline" size="sm" class="shrink-0" data-slot="data-table-view-options-trigger" :aria-label="resolvedLabel">{{ resolvedLabel }}</Button>
+      <Button type="button" variant="outline" class="shrink-0" data-slot="data-table-view-options-trigger" :aria-label="resolvedLabel">{{ resolvedLabel }}</Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" :class="['w-[150px]', props.dropdownContentClass]" data-slot="data-table-view-options-menu">
       <DropdownMenuGroup :aria-label="resolvedGroupLabel" data-slot="data-table-view-options-group">

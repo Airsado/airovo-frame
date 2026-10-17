@@ -38,7 +38,8 @@ describe('DataTable', () => {
 
         expect(surface.classes()).toEqual(expect.arrayContaining(['overflow-hidden', 'rounded-lg', 'border']))
         expect(surface.find('table').exists()).toBe(true)
-        expect(surface.find('[data-slot="pagination"]').exists()).toBe(true)
+        expect(surface.find('[data-slot="pagination"]').exists()).toBe(false)
+        expect(wrapper.find('[data-slot="pagination"]').exists()).toBe(true)
         expect(surface.find('[data-toolbar]').exists()).toBe(false)
         expect(wrapper.find('[data-toolbar]').exists()).toBe(true)
     })

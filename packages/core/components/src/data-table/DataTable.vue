@@ -462,8 +462,8 @@ function toCssSize(value: string | number | undefined): string | undefined {
 </script>
 
 <template>
-    <div class="relative w-full overflow-x-auto" :class="tableViewportClass" :style="tableViewportStyle">
-        <div v-if="hasToolbar" class="mb-3 flex flex-wrap items-center gap-2">
+    <div class="relative min-h-0 w-full overflow-x-auto" :class="tableViewportClass" :style="tableViewportStyle">
+        <div v-if="hasToolbar" class="mb-3 flex shrink-0 flex-wrap items-center gap-2.5 sm:gap-3">
             <slot
                 name="toolbar"
                 :selected-keys="selected"
@@ -539,7 +539,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
             </thead>
             <tbody>
                 <template v-if="loading">
-                    <tr v-for="index in 3" :key="index" class="border-b last:border-0">
+                    <tr v-for="index in 3" :key="index" class="h-15 border-b last:border-0">
                         <td v-if="selectable" class="data-table-pinned-cell p-2" :style="pinnedStyle('selection', 'cell')"><Skeleton class="h-4 w-4" /></td>
                         <td v-for="column in visibleColumns" :key="column.key" :data-column-id="columnId(column)" class="data-table-pinned-cell p-2" :style="{ ...columnStyle(column), ...pinnedStyle(columnId(column), 'cell') }"><Skeleton class="h-5 w-full" /></td>
                         <td v-if="hasActions" data-column-id="actions" class="data-table-pinned-cell p-2" :style="pinnedStyle('actions', 'cell')"><Skeleton class="ml-auto h-5 w-16" /></td>
@@ -574,7 +574,7 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     </DataTableEmpty>
                 </template>
                 <template v-else>
-                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group border-b transition-colors last:border-0 data-[state=selected]:bg-muted hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))]" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
+                    <tr v-for="(row, index) in visibleRows" :key="String(visibleRowKeys[index])" class="data-table-row group h-15 border-b transition-colors last:border-0 data-[state=selected]:bg-muted hover:[background-color:color-mix(in_oklch,var(--muted)_50%,var(--background))]" :data-state="selected.includes(visibleRowKeys[index]) ? 'selected' : undefined">
                         <td v-if="selectable" data-column-id="selection" class="data-table-pinned-cell w-10 p-2 align-middle" :style="pinnedStyle('selection', 'cell')">
                             <input
                                 type="checkbox"
@@ -609,16 +609,17 @@ function toCssSize(value: string | number | undefined): string | undefined {
                     <slot name="mobile" :rows="visibleRows" :selected-keys="selected" :toggle-row="toggleRow" />
                 </div>
             </div>
-            <DataTablePagination
-                v-if="pagination"
-                :page="page"
-                :page-size="pageSize"
-                :total="totalRows"
-                :page-size-options="pageSizeOptions"
-                @update:page="(value) => emit('update:page', value)"
-                @update:page-size="(value) => emit('update:pageSize', value)"
-            />
         </div>
+        <DataTablePagination
+            v-if="pagination"
+            class="pt-2"
+            :page="page"
+            :page-size="pageSize"
+            :total="totalRows"
+            :page-size-options="pageSizeOptions"
+            @update:page="(value) => emit('update:page', value)"
+            @update:page-size="(value) => emit('update:pageSize', value)"
+        />
         <button v-if="currentSort" type="button" class="sr-only" @click="clearSort">清除排序</button>
     </div>
 </template>

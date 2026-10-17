@@ -154,7 +154,7 @@ function optionCount(option: FacetedFilterOption): number | undefined {
     </PopoverTrigger>
     <PopoverContent
       :align="props.align"
-      :class="cn('max-w-[360px] min-w-[200px] rounded-lg border-0 p-0 ring-1 ring-foreground/10 duration-100', props.contentClass)"
+      :class="cn('max-w-[360px] min-w-[200px] p-0', props.contentClass)"
     >
       <Command>
         <CommandInput :placeholder="props.searchPlaceholder ?? resolvedTitle" />

@@ -32,7 +32,7 @@ describe('DataTablePagination', () => {
 
         expect(wrapper.text()).toContain('共21')
         expect(wrapper.get('[aria-label="首页"]').exists()).toBe(true)
-        expect(wrapper.get('button[aria-label="2"]').attributes('data-variant')).toBe('default')
+        expect(wrapper.get('button[aria-label="2"]').attributes('data-variant')).toBe('outline')
         await wrapper.get('[aria-label="下一页"]').trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([3])
 

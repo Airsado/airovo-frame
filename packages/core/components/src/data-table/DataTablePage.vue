@@ -237,8 +237,8 @@ function retry(): void {
 </script>
 
 <template>
-  <section :class="['min-w-0 space-y-3', $props.class]">
-    <div v-if="hasToolbar" class="flex min-w-0 flex-wrap items-center gap-2">
+  <section :class="['flex h-full min-h-0 min-w-0 flex-col gap-2.5 sm:gap-3', $props.class]">
+    <div v-if="hasToolbar" class="flex min-w-0 shrink-0 flex-wrap items-center gap-2.5 sm:gap-3">
       <slot name="toolbar" />
       <slot name="view-toggle" :view-mode="resolvedViewMode" :set-view-mode="setViewMode">
         <DataTableViewModeToggle
@@ -250,8 +250,10 @@ function retry(): void {
         />
       </slot>
     </div>
-    <slot name="toolbar-bottom" />
-    <div v-if="($slots.table || hasAutoTable) && !cardView" :class="mobileCards ? 'hidden sm:block' : undefined">
+    <div class="shrink-0">
+      <slot name="toolbar-bottom" />
+    </div>
+    <div v-if="($slots.table || hasAutoTable) && !cardView" :class="['min-h-0 min-w-0 flex-1', mobileCards ? 'hidden sm:block' : undefined]">
       <slot v-if="$slots.table" name="table" v-bind="tableSlotProps" />
       <DataTable
         v-else
@@ -266,7 +268,7 @@ function retry(): void {
         @retry="retry"
       />
     </div>
-    <div v-if="hasCardLayout && (cardView || mobileCards)" :class="cardView ? 'min-w-0' : 'sm:hidden'">
+    <div v-if="hasCardLayout && (cardView || mobileCards)" :class="cardView ? 'min-h-0 min-w-0 flex-1' : 'sm:hidden'">
       <slot v-if="$slots.mobile" name="mobile" :rows="resolvedRows" :selected-keys="resolvedSelectedKeys" />
       <DataTableCardGrid
         v-else-if="cardView"

@@ -114,7 +114,7 @@ function setPageSize(value: number): void {
                     </PaginationItem>
                     <PaginationItem v-for="(item, index) in pageItems" :key="`${item}-${index}`">
                         <PaginationEllipsis v-if="item === 'ellipsis'" />
-                        <Button v-else type="button" :variant="item === page ? 'default' : 'outline'" class="h-8 min-w-8 px-2 tabular-nums" :class="item === page ? 'font-semibold' : 'text-muted-foreground hover:text-foreground'" :aria-label="`${item}`" @click="setPage(item)">{{ item }}</Button>
+                        <Button v-else type="button" variant="outline" class="h-8 min-w-8 px-2 tabular-nums" :class="item === page ? 'font-semibold' : 'text-muted-foreground hover:text-foreground'" :aria-label="`${item}`" @click="setPage(item)">{{ item }}</Button>
                     </PaginationItem>
                     <PaginationItem>
                         <Button type="button" variant="outline" size="icon" class="text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50 size-8 p-0" :aria-label="nextPageText" :disabled="page >= totalPages" @click="setPage(page + 1)">

@@ -152,7 +152,7 @@ function onQueryReset(filters: QueryFormValues): void {
 </script>
 
 <template>
-    <section :class="['data-table-query-page min-w-0', props.class]" data-slot="data-table-query-page">
+    <section :class="['data-table-query-page flex h-full min-h-0 min-w-0 flex-col', props.class]" data-slot="data-table-query-page">
         <DataTablePage
             :rows="props.table.rows.value"
             :columns="props.columns"
