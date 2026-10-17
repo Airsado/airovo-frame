@@ -40,6 +40,9 @@ import {
     FrameworkTooltip,
     FrameworkCalendar,
     PasswordInput,
+    FrameworkTabs,
+    FrameworkTabsList,
+    FrameworkTabsTrigger,
     type DataTableColumn,
     type DataTableColumnPinning,
     type DataTableFilterGroup,
@@ -157,6 +160,7 @@ import { getDemoEventsUrl } from '../api/core/events'
 
 const frameworkPopoverOpen = ref(false)
 const frameworkTooltipOpen = ref(false)
+const activeDemoSection = ref('demo-foundations')
 
 function onAdd() {
     globalThis.alert('新增')
@@ -474,7 +478,7 @@ function sseItemData(item: unknown): unknown {
 </script>
 
 <template>
-    <PageContainer class="min-h-full">
+    <PageContainer class="demo-shell min-h-full">
         <template #breadcrumb
             ><span class="text-xs text-muted-foreground"
                 >开发者工具 / framework-ui</span
@@ -485,11 +489,31 @@ function sseItemData(item: unknown): unknown {
             >@airovo/components
             提供的通用后台组件；页面骨架和基础交互由框架包提供。</template
         >
-        <div class="space-y-8">
+        <FrameworkTabs v-model="activeDemoSection" class="demo-category-tabs" aria-label="组件分类导航">
+            <FrameworkTabsList class="max-w-full flex-wrap justify-start group-data-horizontal/tabs:h-auto">
+                <FrameworkTabsTrigger value="demo-foundations">基础控件</FrameworkTabsTrigger>
+                <FrameworkTabsTrigger value="demo-navigation">导航与浮层</FrameworkTabsTrigger>
+                <FrameworkTabsTrigger value="demo-feedback">状态与高级交互</FrameworkTabsTrigger>
+                <FrameworkTabsTrigger value="demo-business">业务扩展</FrameworkTabsTrigger>
+                <FrameworkTabsTrigger value="demo-forms">表单与日期</FrameworkTabsTrigger>
+                <FrameworkTabsTrigger value="demo-data">数据展示</FrameworkTabsTrigger>
+                <FrameworkTabsTrigger value="demo-realtime">实时状态与结果</FrameworkTabsTrigger>
+            </FrameworkTabsList>
+        </FrameworkTabs>
+        <div class="demo-demo-content space-y-10">
+            <section id="demo-foundations" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-foundations'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">FOUNDATIONS</p>
+                        <h2 class="text-xl font-semibold tracking-tight">基础控件</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">输入、反馈、布局等基础 UI primitive 的统一示例。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">Progress primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Progress primitive</h2>
                 <div class="rounded-lg border bg-card p-4"><Progress :model-value="64" aria-label="演示进度" /></div>
-                <h2 class="text-lg font-semibold">PasswordInput 密码输入</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">PasswordInput 密码输入</h2>
                 <div class="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <label for="password-input-demo" class="text-sm font-medium">可切换显示</label>
@@ -502,9 +526,9 @@ function sseItemData(item: unknown): unknown {
                         <p class="text-xs text-muted-foreground">禁用时输入和显隐按钮都不可操作。</p>
                     </div>
                 </div>
-                <h2 class="text-lg font-semibold">RadioGroup primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">RadioGroup primitive</h2>
                 <RadioGroup model-value="default" class="flex gap-3"><label class="flex items-center gap-2"><RadioGroupItem value="default" />默认</label><label class="flex items-center gap-2"><RadioGroupItem value="compact" />紧凑</label></RadioGroup>
-                <h2 class="text-lg font-semibold">Accordion primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Accordion primitive</h2>
                 <Accordion type="single" default-value="overview" collapsible class="rounded-lg border bg-card px-4">
                     <AccordionItem value="overview">
                         <AccordionHeader>
@@ -519,7 +543,7 @@ function sseItemData(item: unknown): unknown {
                         <AccordionContent>此内容不会被打开。</AccordionContent>
                     </AccordionItem>
                 </Accordion>
-                <h2 class="text-lg font-semibold">Alert primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Alert primitive</h2>
                 <div class="grid gap-3 md:grid-cols-2">
                     <Alert>
                         <AlertTitle>提示</AlertTitle>
@@ -531,7 +555,7 @@ function sseItemData(item: unknown): unknown {
                         <AlertAction><Button size="sm" variant="outline">重试</Button></AlertAction>
                     </Alert>
                 </div>
-                <h2 class="text-lg font-semibold">Card primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Card primitive</h2>
                 <Card size="sm">
                     <CardHeader>
                         <CardTitle>渠道统计</CardTitle>
@@ -541,7 +565,7 @@ function sseItemData(item: unknown): unknown {
                     <CardContent>成功率 99.2%</CardContent>
                     <CardFooter>更新时间：刚刚</CardFooter>
                 </Card>
-                <h2 class="text-lg font-semibold">Table primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Table primitive</h2>
                 <Table class="rounded-lg border bg-card">
                     <TableHeader><TableRow><TableHead>渠道</TableHead><TableHead>状态</TableHead></TableRow></TableHeader>
                     <TableBody>
@@ -549,7 +573,7 @@ function sseItemData(item: unknown): unknown {
                         <TableRow data-state="selected"><TableCell>Claude 备用渠道</TableCell><TableCell>已选中</TableCell></TableRow>
                     </TableBody>
                 </Table>
-                <h2 class="text-lg font-semibold">Pagination primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Pagination primitive</h2>
                 <Pagination>
                     <PaginationContent>
                         <PaginationItem><PaginationPrevious href="#previous" /></PaginationItem>
@@ -559,7 +583,7 @@ function sseItemData(item: unknown): unknown {
                         <PaginationItem><PaginationNext href="#next" /></PaginationItem>
                     </PaginationContent>
                 </Pagination>
-                <h2 class="text-lg font-semibold">Empty primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Empty primitive</h2>
                 <Empty class="bg-card">
                     <EmptyHeader>
                         <EmptyMedia variant="icon">∅</EmptyMedia>
@@ -568,19 +592,19 @@ function sseItemData(item: unknown): unknown {
                     </EmptyHeader>
                     <EmptyContent><Button size="sm">清除筛选</Button></EmptyContent>
                 </Empty>
-                <h2 class="text-lg font-semibold">Slider primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Slider primitive</h2>
                 <Slider :default-value="[42]" class="max-w-md" aria-label="请求阈值" />
-                <h2 class="text-lg font-semibold">Spinner primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Spinner primitive</h2>
                 <div class="flex items-center gap-3 rounded-lg border bg-card p-4 text-sm">
                     <Spinner aria-label="正在加载渠道" />
                     正在加载渠道...
                 </div>
-                <h2 class="text-lg font-semibold">Toggle primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Toggle primitive</h2>
                 <div class="flex items-center gap-2">
                     <Toggle :default-value="true" aria-label="收藏">★</Toggle>
                     <Toggle variant="outline" size="sm" disabled aria-label="锁定">锁定</Toggle>
                 </div>
-                <h2 class="text-lg font-semibold">ButtonGroup primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">ButtonGroup primitive</h2>
                 <div class="flex flex-wrap items-center gap-3">
                     <ButtonGroup>
                         <Button size="sm">筛选</Button>
@@ -592,20 +616,31 @@ function sseItemData(item: unknown): unknown {
                         <Button size="sm" variant="outline">执行</Button>
                     </ButtonGroup>
                 </div>
-                <h2 class="text-lg font-semibold">AspectRatio primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">AspectRatio primitive</h2>
                 <AspectRatio :ratio="16 / 9" class="max-w-md rounded-lg bg-muted p-4 text-center text-sm">
                     16:9 preview
                 </AspectRatio>
             </section>
+                </div>
+            </section>
 
+            <section id="demo-navigation" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-navigation'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">NAVIGATION</p>
+                        <h2 class="text-xl font-semibold tracking-tight">导航与浮层</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">页面骨架、标签页、命令面板和浮层交互。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">FrameworkCalendar</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">FrameworkCalendar</h2>
                 <p class="text-sm text-muted-foreground">统一 new-api calendar surface、outside days、日期 cell 状态和 heading slot；行为由 Reka Calendar primitive 提供。</p>
                 <FrameworkCalendar class="w-fit rounded-lg border" />
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">Tooltip / Popover 框架组合</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Tooltip / Popover 框架组合</h2>
                 <p class="text-sm text-muted-foreground">复用 Reka primitive，统一 new-api surface、尺寸、箭头、focus 和 outside 行为。</p>
                 <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
                     <FrameworkTooltip v-model:open="frameworkTooltipOpen" content="这是统一的 tooltip surface" trigger-class="h-8 rounded-md border bg-background px-3 text-sm shadow-xs hover:bg-accent">
@@ -619,7 +654,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">CommandMenu 框架组合</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">CommandMenu 框架组合</h2>
                 <p class="text-sm text-muted-foreground">业务只提供分组和命令数据；new-api 风格 Dialog surface、搜索、快捷键和选择逻辑由框架组合提供，路由由调用方接收 select 事件。</p>
                 <div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
                     <Button size="sm" @click="commandMenuOpen = true">打开命令面板</Button>
@@ -635,7 +670,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">New API 风格页面骨架</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">New API 风格页面骨架</h2>
                 <SectionPage
                     class="min-h-96 rounded-lg border"
                     :stack-actions-on-mobile="true"
@@ -729,7 +764,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">Tabs primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Tabs primitive</h2>
                 <Tabs default-value="overview" class="rounded-lg border bg-card p-4">
                     <TabsList>
                         <TabsTrigger value="overview">概览</TabsTrigger>
@@ -744,9 +779,20 @@ function sseItemData(item: unknown): unknown {
                     </TabsContent>
                 </Tabs>
             </section>
+                </div>
+            </section>
 
+            <section id="demo-feedback" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-feedback'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">FEEDBACK</p>
+                        <h2 class="text-xl font-semibold tracking-tight">状态与高级交互</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">加载、错误、空状态以及上下文菜单等反馈组件。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">ErrorState / LoadingState 状态组件</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">ErrorState / LoadingState 状态组件</h2>
                 <div class="grid gap-4 lg:grid-cols-3">
                     <div data-testid="error-state-retry" class="bg-card"><ErrorState title="加载渠道失败" description="服务暂时不可用，请稍后重试。" show-retry @retry="onAdd" /></div>
                     <div data-testid="error-state-no-retry" class="bg-card"><ErrorState title="无需重试" description="当前状态只需要提示用户。" /></div>
@@ -754,7 +800,7 @@ function sseItemData(item: unknown): unknown {
                     <div data-testid="loading-state-inline" class="flex items-center bg-card p-4"><LoadingState inline message="保存中…" size="sm" /></div>
                     <div data-testid="loading-state-inline-empty" class="flex items-center gap-2 bg-card p-4"><span class="text-xs text-muted-foreground">inline 无文案</span><LoadingState inline size="sm" /></div>
                 </div>
-                <h2 class="text-lg font-semibold">DataPanel 状态组合</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">DataPanel 状态组合</h2>
                 <div data-testid="data-panel-state-demo" class="space-y-3">
                     <div class="flex flex-wrap gap-2" role="group" aria-label="DataPanel 状态">
                         <Button size="sm" :variant="dataPanelState === 'loading' ? 'default' : 'outline'" @click="dataPanelState = 'loading'">加载中</Button>
@@ -775,7 +821,7 @@ function sseItemData(item: unknown): unknown {
                     </DataPanel>
                     <p class="text-xs text-muted-foreground" aria-live="polite">当前状态：{{ dataPanelState }} · 重试次数：{{ dataPanelRetryCount }}</p>
                 </div>
-                <h2 class="text-lg font-semibold">Menubar primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Menubar primitive</h2>
                 <Menubar>
                     <MenubarMenu value="file">
                         <MenubarTrigger>文件</MenubarTrigger>
@@ -786,7 +832,7 @@ function sseItemData(item: unknown): unknown {
                         </MenubarContent>
                     </MenubarMenu>
                 </Menubar>
-                <h2 class="text-lg font-semibold">ContextMenu advanced primitives</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">ContextMenu advanced primitives</h2>
                 <ContextMenu>
                     <ContextMenuTrigger class="flex min-h-24 items-center justify-center rounded-lg border border-dashed bg-card px-4 text-sm text-muted-foreground">
                         在此区域点击右键
@@ -812,13 +858,13 @@ function sseItemData(item: unknown): unknown {
                         </ContextMenuSub>
                     </ContextMenuContent>
                 </ContextMenu>
-                <h2 class="text-lg font-semibold">Resizable primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Resizable primitive</h2>
                 <ResizablePanelGroup storage-key="playwright-resizable-demo" class="h-24 max-w-xl rounded-lg border" aria-label="可调整面板">
                     <ResizablePanel :default-size="40" :min-size="20" class="p-3 text-sm">左侧面板</ResizablePanel>
                     <ResizableHandle with-handle />
                     <ResizablePanel :default-size="60" :max-size="80" class="p-3 text-sm">右侧面板</ResizablePanel>
                 </ResizablePanelGroup>
-                <h2 class="text-lg font-semibold">Carousel primitive</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Carousel primitive</h2>
                 <Carousel loop :autoplay-interval="2500" class="max-w-md rounded-lg border" aria-label="演示轮播">
                     <CarouselContent>
                         <CarouselItem class="p-8 text-center">第一张</CarouselItem>
@@ -828,10 +874,21 @@ function sseItemData(item: unknown): unknown {
                     <CarouselNext />
                 </Carousel>
             </section>
+                </div>
+            </section>
 
+            <section id="demo-business" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-business'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">BUSINESS</p>
+                        <h2 class="text-xl font-semibold tracking-tight">业务扩展</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">app-ui 业务组件如何组合框架能力。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-semibold">app-ui 业务扩展示例</h2>
+                    <h2 class="demo-item-title text-base font-semibold tracking-tight">app-ui 业务扩展示例</h2>
                     <p class="text-sm text-muted-foreground">
                         业务语义组件通过公开的框架组件组合，不修改框架内置实现。
                     </p>
@@ -868,9 +925,20 @@ function sseItemData(item: unknown): unknown {
                     </ServiceHealthCard>
                 </div>
             </section>
+                </div>
+            </section>
 
+            <section id="demo-forms" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-forms'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">FORMS</p>
+                        <h2 class="text-xl font-semibold tracking-tight">表单与日期</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">弹窗、抽屉、日期选择和层级下拉选择。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">Dialog、Modal 与日期组件</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">Dialog、Modal 与日期组件</h2>
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div
                         class="flex flex-col gap-3 rounded-lg border bg-card p-4"
@@ -1021,7 +1089,7 @@ function sseItemData(item: unknown): unknown {
 
             <section class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-semibold">Select 下拉选择</h2>
+                    <h2 class="demo-item-title text-base font-semibold tracking-tight">Select 下拉选择</h2>
                     <p class="text-sm text-muted-foreground">
                         基础 Select 与搜索下拉沿用 new-api 的圆角、紧凑间距和弹层动效；
                         FacetedFilter 复刻 /channels 工具栏的虚线触发器、勾选项、数量和清除筛选。
@@ -1092,9 +1160,20 @@ function sseItemData(item: unknown): unknown {
                     </div>
                 </div>
             </section>
+                </div>
+            </section>
 
+            <section id="demo-data" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-data'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">DATA</p>
+                        <h2 class="text-xl font-semibold tracking-tight">数据展示</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">统计卡片、用户卡片、图表和 new-api 风格数据表格。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">StatCard 数据统计</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">StatCard 数据统计</h2>
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <StatCard
                         title="活跃用户"
@@ -1137,7 +1216,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">UserCard 用户卡片</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">UserCard 用户卡片</h2>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <UserCard
                         :user="{
@@ -1184,7 +1263,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">DataTable 框架表格</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">DataTable 框架表格</h2>
                 <p class="text-xs text-muted-foreground">点击可排序列头可打开 new-api 风格的升序、降序和隐藏列菜单。</p>
                 <DataPanel>
                     <DataTable :columns="coreTableColumns" :data="tableRows" caption="框架通用组件列表" empty-description="当前筛选条件下没有可展示的组件。">
@@ -1202,7 +1281,7 @@ function sseItemData(item: unknown): unknown {
 
             <section class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-semibold">ChartCard 图表组合</h2>
+                    <h2 class="demo-item-title text-base font-semibold tracking-tight">ChartCard 图表组合</h2>
                     <p class="text-sm text-muted-foreground">图表复用 ui-kit 的 Chart.js 适配，框架负责主题 token、卡片状态和可访问标题。</p>
                 </div>
                 <div class="grid gap-4 lg:grid-cols-2">
@@ -1216,7 +1295,7 @@ function sseItemData(item: unknown): unknown {
 
             <section class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-semibold">DataTable 服务端查询演示</h2>
+                    <h2 class="demo-item-title text-base font-semibold tracking-tight">DataTable 服务端查询演示</h2>
                     <p class="text-sm text-muted-foreground">
                         useDataTable 只管理查询状态，fetcher 由应用提供；演示分页、筛选、排序、选中、取消旧请求、错误重试和 new-api 风格列显示菜单；移动端自动切换到 new-api 风格的分隔列表。
                     </p>
@@ -1310,9 +1389,20 @@ function sseItemData(item: unknown): unknown {
                     </div>
                 </DataPanel>
             </section>
+                </div>
+            </section>
 
+            <section id="demo-realtime" role="tabpanel" class="demo-section scroll-mt-24" v-show="activeDemoSection === 'demo-realtime'">
+                <header class="demo-section-header">
+                    <div>
+                        <p class="demo-kicker">REALTIME</p>
+                        <h2 class="text-xl font-semibold tracking-tight">实时状态与结果</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">状态徽章、SSE 日志、空状态和结果页。</p>
+                    </div>
+                </header>
+                <div class="demo-section-body space-y-8">
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">StatusBadge 状态徽章</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">StatusBadge 状态徽章</h2>
                 <div class="flex flex-wrap gap-2">
                     <StatusBadge status="success" />
                     <StatusBadge status="error" />
@@ -1343,7 +1433,7 @@ function sseItemData(item: unknown): unknown {
 
             <section class="space-y-4">
                 <div>
-                    <h2 class="text-lg font-semibold">SSE 实时日志</h2>
+                    <h2 class="demo-item-title text-base font-semibold tracking-tight">SSE 实时日志</h2>
                     <p class="text-sm text-muted-foreground">
                         useEventSourceSession 演示 Last-Event-ID、心跳、终态、重连和有界日志缓冲；传输层不依赖 DOM。
                     </p>
@@ -1370,7 +1460,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">EmptyState 空状态</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">EmptyState 空状态</h2>
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div data-testid="empty-state-default" class="bg-card">
                         <EmptyState
@@ -1397,7 +1487,7 @@ function sseItemData(item: unknown): unknown {
             </section>
 
             <section class="space-y-4">
-                <h2 class="text-lg font-semibold">ResultPage 结果页</h2>
+                <h2 class="demo-item-title text-base font-semibold tracking-tight">ResultPage 结果页</h2>
                 <div class="grid gap-4 lg:grid-cols-2">
                     <Button variant="outline" @click="showResult = !showResult">
                         {{ showResult ? '隐藏' : '显示' }} 404 页面
@@ -1412,6 +1502,8 @@ function sseItemData(item: unknown): unknown {
                         primary-text="重新搜索"
                         @primary="showResult = false"
                     />
+                </div>
+            </section>
                 </div>
             </section>
         </div>

@@ -22,4 +22,5 @@ export * from './command-menu'
 export * from './overlay'
 export * from './calendar'
 export * from './password-input'
+export * from './tabs'
 /// <reference path="./shims.d.ts" />
