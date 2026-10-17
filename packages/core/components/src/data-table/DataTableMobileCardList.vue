@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<{
     pagination: false,
     page: 1,
     pageSize: 20,
-    pageSizeOptions: () => [10, 20, 50, 100],
+    pageSizeOptions: () => [10, 20, 30, 40, 50, 100],
     emptyIcon: 'lucide:database',
 })
 
