@@ -111,6 +111,15 @@ contract. It owns only page clamping and presentation; query synchronization
 and data fetching remain with `useDataTable` or the caller.
 Its full layout follows the new-api total/rows-per-page/first-prev-pages-next-last
 density; `compact` provides the mobile total/current-page/previous-next layout.
+The default page-size choices are `10`, `20`, `30`, `40`, `50` and `100`. The
+full layout uses the framework `Select` primitive for page-size changes, so it
+does not fall back to a browser-native select. When `DataTablePage` is rendered
+inside `SectionPage`, pagination is placed in the page footer host by default
+(`paginationInFooter=true`). This keeps the controls fixed below the scrollable
+content area while the table or card list scrolls. Set `paginationInFooter` to
+`false` when a caller intentionally needs pagination inside the data surface;
+when no `SectionPage` footer host is available, the component renders an inline
+fallback below its content.
 
 For channel-style administration pages, compose `DataTablePage` with
 `DataTableToolbar`, `DataTableViewOptions` and `DataTableRowActions`. The

@@ -130,7 +130,7 @@ describe('DataTableMobileCardList', () => {
     })
 
     expect(wrapper.find('[data-actions]').text()).toBe('渠道一')
-    await wrapper.get('[aria-label="Go to next page"]').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
   })
 })

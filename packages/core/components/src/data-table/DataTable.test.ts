@@ -191,7 +191,7 @@ describe('DataTable', () => {
         expect(wrapper.emitted('sort-change')?.at(-1)).toEqual([{ key: 'name', direction: 'asc' }])
         expect(wrapper.find('tbody tr').text()).toContain('格式化:two')
 
-        const nextPage = wrapper.get('[aria-label="Go to next page"]')
+        const nextPage = wrapper.get('[aria-label="下一页"]')
         await nextPage.trigger('click')
         expect(wrapper.emitted('update:page')?.at(-1)).toEqual([2])
 
