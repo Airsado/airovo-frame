@@ -11,6 +11,14 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@airovo/uikit-shadcnui'
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@airovo/uikit-shadcnui/components/ui/select'
 
 defineOptions({ name: 'DataTablePagination' })
 
@@ -38,6 +46,7 @@ const firstPageText = computed(() => copy('common.firstPage', '首页'))
 const previousPageText = computed(() => copy('common.previousPage', '上一页'))
 const nextPageText = computed(() => copy('common.nextPage', '下一页'))
 const lastPageText = computed(() => copy('common.lastPage', '末页'))
+const formattedTotal = computed(() => Math.max(0, props.total).toLocaleString())
 
 const totalPages = computed(() => Math.max(1, Math.ceil(Math.max(0, props.total) / Math.max(props.pageSize, 1))))
 const pageItems = computed<Array<number | 'ellipsis'>>(() => {
@@ -60,6 +69,12 @@ function setPageSize(value: number): void {
     if (pageSize !== props.pageSize) emit('update:pageSize', pageSize)
 }
 
+function handlePageSizeChange(value: unknown): void {
+    if (typeof value !== 'string') return
+    const pageSize = Number(value)
+    if (Number.isFinite(pageSize)) setPageSize(pageSize)
+}
+
 function handleNavigation(event: MouseEvent, value: number): void {
     if (value < 1 || value > totalPages.value) {
         event.preventDefault()
@@ -72,7 +87,7 @@ function handleNavigation(event: MouseEvent, value: number): void {
 
 <template>
     <nav v-if="props.compact" aria-label="pagination" class="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 border-t px-3 py-2 text-sm">
-        <span class="min-w-0 text-muted-foreground [overflow-wrap:anywhere]">{{ totalText }} {{ total }}</span>
+        <span class="min-w-0 text-muted-foreground [overflow-wrap:anywhere]">{{ totalText }} {{ formattedTotal }}</span>
         <div class="flex items-center gap-2">
             <PaginationPrevious href="#previous" :text="previousPageText" :aria-disabled="page <= 1" :tabindex="page <= 1 ? -1 : undefined" @click="handleNavigation($event, page - 1)" />
             <span class="tabular-nums" aria-live="polite">{{ page }} / {{ totalPages }}</span>
@@ -82,13 +97,20 @@ function handleNavigation(event: MouseEvent, value: number): void {
     <div v-else class="flex min-w-0 items-center justify-end gap-3 border-t px-3 py-3 text-xs text-muted-foreground">
         <div class="flex min-w-0 shrink-0 items-baseline gap-1.5 whitespace-nowrap">
             <span class="text-muted-foreground/80">{{ totalText }}</span>
-            <span class="text-foreground tabular-nums">{{ total }}</span>
+            <span class="text-foreground tabular-nums">{{ formattedTotal }}</span>
         </div>
         <div class="flex shrink-0 items-center gap-1.5">
             <span class="hidden text-sm font-medium whitespace-nowrap sm:inline">{{ rowsPerPageText }}</span>
-            <select :value="pageSize" class="h-8 w-16 rounded-md border bg-background px-2 font-medium tabular-nums sm:w-[70px]" @change="setPageSize(Number(($event.target as HTMLSelectElement).value))">
-                <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
-            </select>
+            <Select :model-value="String(pageSize)" @update:model-value="handlePageSizeChange">
+                <SelectTrigger class="text-foreground h-8 w-[64px] font-medium tabular-nums sm:w-[70px]">
+                    <SelectValue :placeholder="String(pageSize)" />
+                </SelectTrigger>
+                <SelectContent side="top" align-item-with-trigger="false">
+                    <SelectGroup>
+                        <SelectItem v-for="size in pageSizeOptions" :key="size" :value="String(size)">{{ size }}</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
         </div>
         <Pagination class="mx-0 w-auto">
             <PaginationContent>
