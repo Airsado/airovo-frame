@@ -160,4 +160,18 @@ describe('DataTablePage view mode', () => {
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
     expect(wrapper.findAll('tbody input[type="checkbox"]')).toHaveLength(2)
   })
+
+  it('renders the optional toolbar-bottom slot without changing toolbar behavior', () => {
+    const wrapper = mount(DataTablePage, {
+      global,
+      slots: {
+        toolbar: '<div data-toolbar>toolbar</div>',
+        'toolbar-bottom': '<div data-toolbar-bottom>query form</div>',
+        table: '<div data-table>table</div>',
+      },
+    })
+
+    expect(wrapper.find('[data-toolbar]').exists()).toBe(true)
+    expect(wrapper.find('[data-toolbar-bottom]').exists()).toBe(true)
+  })
 })

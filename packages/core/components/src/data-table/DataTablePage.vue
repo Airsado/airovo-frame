@@ -242,6 +242,7 @@ function retry(): void {
         />
       </slot>
     </div>
+    <slot name="toolbar-bottom" />
     <div v-if="($slots.table || hasAutoTable) && !cardView" :class="mobileCards ? 'hidden sm:block' : undefined">
       <slot v-if="$slots.table" name="table" v-bind="tableSlotProps" />
       <DataTable

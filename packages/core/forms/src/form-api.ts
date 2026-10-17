@@ -225,6 +225,7 @@ export class FormApi implements FormApiLike {
             // into stacked fields with `layout: 'vertical'`.
             layout: options.layout ?? 'horizontal',
             showDefaultActions: options.showDefaultActions ?? true,
+            compact: options.compact ?? false,
             disabled: options.disabled ?? false,
             loading: options.loading ?? false,
             wrapperClass: options.wrapperClass,
