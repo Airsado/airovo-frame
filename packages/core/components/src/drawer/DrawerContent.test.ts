@@ -20,9 +20,9 @@ describe('DrawerContent', () => {
         })
 
         const content = wrapper.get('[data-slot="drawer-content"]')
-        expect(content.classes()).toContain('w-[min(100%,28rem)]')
-        expect(content.classes()).toContain('max-w-[90vw]')
-        expect(content.classes()).not.toContain('w-full')
+        expect(content.classes()).toContain('w-full')
+        expect(content.classes()).toContain('sm:max-w-md')
+        expect(content.classes()).toContain('h-dvh')
     })
 
     it('leaves top breathing room for the bottom drawer while preserving its max height', () => {
@@ -33,6 +33,6 @@ describe('DrawerContent', () => {
 
         const content = wrapper.get('[data-slot="drawer-content"]')
         expect(content.classes()).toContain('mt-24')
-        expect(content.classes()).toContain('max-h-[80vh]')
+        expect(content.classes()).toContain('max-h-[80dvh]')
     })
 })

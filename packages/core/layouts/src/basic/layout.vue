@@ -94,7 +94,7 @@ useTabScroll(contentScroll)
                     <main class="flex min-h-0 flex-1 flex-col overflow-hidden">
                         <slot v-if="props.showTabs" name="tabs" />
                         <div ref="contentScroll" data-slot="layout-content-scroll" class="hover-scrollbar min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
-                            <div :class="contentClass">
+                            <div :class="[contentClass, 'h-full min-h-0']">
                                 <slot name="content">
                                     <slot />
                                 </slot>

@@ -282,6 +282,15 @@ describe('FormApi', () => {
         expect(api.schema.at(-1)).toMatchObject({ fieldName: 'incomplete', label: 'incomplete', component: 'Input' })
     })
 
+    it('keeps field group layout props available to the renderer', () => {
+        const configured = new FormApi({
+            schema,
+            fieldGroupClass: 'sm:grid sm:grid-cols-2',
+        })
+
+        expect(configured.props.fieldGroupClass).toBe('sm:grid sm:grid-cols-2')
+    })
+
     it('clears removed fields from live values and errors', async () => {
         const { context, values, errors } = makeContext()
         api.mount(context)

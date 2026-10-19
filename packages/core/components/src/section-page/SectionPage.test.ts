@@ -8,10 +8,10 @@ import PageFooter from './PageFooter.vue'
 import PageFooterPortal from './PageFooterPortal.vue'
 
 describe('SectionPage', () => {
-    it('keeps the title region in a sticky, layered header', () => {
+    it('keeps the title region aligned with the new-api page header', () => {
         const wrapper = mount(SectionPage, {
             slots: {
-                title: '<h1>渠道</h1>',
+                title: '渠道',
                 default: '<div class="h-[1200px]">内容</div>',
             },
             global: {
@@ -20,23 +20,23 @@ describe('SectionPage', () => {
         })
 
         const header = wrapper.get('[data-slot="section-page-header"]')
-        expect(header.classes()).toContain('sticky')
-        expect(header.classes()).toContain('top-0')
-        expect(header.classes()).toContain('z-20')
-        expect(header.classes()).toContain('bg-background/95')
+        expect(header.classes()).not.toContain('sticky')
+        expect(header.classes()).not.toContain('top-0')
+        expect(header.classes()).not.toContain('z-20')
+        expect(header.classes()).toContain('bg-background')
         expect(header.classes()).not.toContain('border-b')
         const defaultWrapper = mount(SectionPage, {
             global: {
                 plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
             },
         })
-        expect(defaultWrapper.get('h1').classes()).toContain('font-bold')
+        expect(defaultWrapper.get('h2').classes()).toContain('font-bold')
     })
 
-    it('keeps optional tabs inside the sticky header without adding a content offset', () => {
+    it('keeps optional tabs inside the content surface like new-api', () => {
         const wrapper = mount(SectionPage, {
             slots: {
-                title: '<h1>渠道</h1>',
+                title: '渠道',
                 tabs: '<div data-test="tabs">概览 / 活动</div>',
                 default: '<div data-test="content" class="h-[1200px]">内容</div>',
             },
@@ -44,9 +44,11 @@ describe('SectionPage', () => {
                 plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { untitledPage: '未命名页面' } } } })],
             },
         })
-        const header = wrapper.get('[data-slot="section-page-header"]')
-        expect(header.get('[data-slot="section-page-tabs"]').classes()).toEqual(expect.arrayContaining(['mt-3', 'min-w-0', 'sm:mt-4']))
-        expect(header.get('[data-test="tabs"]').text()).toContain('概览')
+        const content = wrapper.get('[data-slot="section-page-header"]').element.nextElementSibling as HTMLElement
+        expect(content.getAttribute('class')).toContain('overflow-auto')
+        const tabs = wrapper.get('[data-slot="section-page-tabs"]')
+        expect(tabs.classes()).toEqual(expect.arrayContaining(['mb-3', 'min-w-0', 'sm:mb-4']))
+        expect(tabs.get('[data-test="tabs"]').text()).toContain('概览')
         expect(wrapper.get('[data-test="content"]').element.closest('[data-slot="section-page-header"]')).toBeNull()
     })
 

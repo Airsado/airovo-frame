@@ -10,10 +10,10 @@
  * - confirm patches the parent field, while cancel/close leaves it untouched;
  * - dependencies demonstrate fields that appear only when a switch is enabled.
  */
-import { computed, defineComponent, h, ref, type PropType } from 'vue'
+import { computed, defineComponent, h, markRaw, ref, type PropType } from 'vue'
 import { z } from 'zod'
 import { useForm, type FormFieldSchema } from '@airovo/forms'
-import { DatePickerField, JsonCodeEditor, JsonField } from '@airovo/components'
+import { CodeEditor, DatePickerField, JsonCodeEditor, JsonField } from '@airovo/components'
 import { SectionPage } from '@airovo/components'
 import { useModal } from '@airovo/composables'
 import {
@@ -131,6 +131,15 @@ const AdvancedConfigTrigger = defineComponent({
 })
 
 const schema: FormFieldSchema[] = [
+    {
+        component: markRaw(CodeEditor),
+        label: 'JavaScript 源码',
+        fieldName: 'sourceCode',
+        defaultValue: 'export function greet(name) {\n  return `Hello, ${name}!`;\n}\n',
+        componentProps: { language: 'javascript', height: 220 },
+        rules: 'required',
+        description: '支持语法高亮、行号、Tab 缩进、撤销重做、折叠和 Ctrl/⌘+F 搜索。源码只编辑，不执行。',
+    },
     {
         component: 'Input',
         label: '用户名称',

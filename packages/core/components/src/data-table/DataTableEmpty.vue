@@ -21,13 +21,17 @@ const resolvedDescription = computed(() => props.description ?? (te('common.noDa
 <template>
     <TableRow>
         <TableCell :colspan="props.colSpan" class="h-[400px] p-0">
-            <Empty role="status" aria-live="polite" class="border-0">
+            <Empty
+                role="status"
+                aria-live="polite"
+                class="w-full gap-4 rounded-xl border-0 border-dashed p-6 text-center text-balance"
+            >
                 <EmptyHeader>
-                    <EmptyMedia variant="icon"><Icon :icon="props.icon" class="size-6" /></EmptyMedia>
-                    <EmptyTitle>{{ resolvedTitle }}</EmptyTitle>
+                    <EmptyMedia variant="icon" class="size-8"><Icon :icon="props.icon" class="size-6" /></EmptyMedia>
+                    <EmptyTitle class="text-sm">{{ resolvedTitle }}</EmptyTitle>
                     <EmptyDescription v-if="resolvedDescription">{{ resolvedDescription }}</EmptyDescription>
                 </EmptyHeader>
-                <EmptyContent v-if="$slots.actions || $slots.action">
+                <EmptyContent v-if="$slots.actions || $slots.action" class="gap-2.5">
                     <slot name="actions" />
                     <slot name="action" />
                 </EmptyContent>

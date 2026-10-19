@@ -19,10 +19,22 @@
  *   parseRules(someZodSchema)          → someZodSchema
  */
 import { z, ZodString, type ZodTypeAny } from 'zod'
+import type { FormFieldSchema } from './types'
+
+const RANGE_COMPONENTS = new Set(['DateRangePicker', 'daterange', 'DateTimeRangePicker', 'datetimerange'])
 
 export function parseRules(
     rules: ZodTypeAny | string | undefined,
+    component?: FormFieldSchema['component'],
 ): ZodTypeAny {
+    // A range is one tuple value, not text or a pair of repeated form rows.
+    // Preserve explicit Zod rules while making the ordinary optional/required
+    // schema configurations accept the component's native Date model.
+    if (typeof component === 'string' && RANGE_COMPONENTS.has(component)
+        && (rules === undefined || rules === '' || rules === 'required')) {
+        const range = z.tuple([z.date(), z.date()], { required_error: '必填' })
+        return rules === 'required' ? range : range.optional()
+    }
     if (rules === undefined) return z.string().optional()
     if (typeof rules !== 'string') return rules
 

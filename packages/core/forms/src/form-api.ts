@@ -221,13 +221,15 @@ export class FormApi implements FormApiLike {
     constructor(options: FormApiOptions = {}) {
         this.schema = shallowReactive([...(options.schema ?? [])])
         this.props = shallowReactive<FormRuntimeProps>({
-            // Preserve the established form presentation; callers can opt
-            // into stacked fields with `layout: 'vertical'`.
-            layout: options.layout ?? 'horizontal',
+            // Labels stack by default; compact query consumers can explicitly
+            // retain horizontal fields without maintaining a second renderer.
+            layout: options.layout ?? 'vertical',
             showDefaultActions: options.showDefaultActions ?? true,
+            compact: options.compact ?? false,
             disabled: options.disabled ?? false,
             loading: options.loading ?? false,
             wrapperClass: options.wrapperClass,
+            fieldGroupClass: options.fieldGroupClass,
             handleSubmit: options.handleSubmit,
         })
         this.initialValues = { ...(options.initialValues ?? {}) }
@@ -264,6 +266,20 @@ export class FormApi implements FormApiLike {
 
     get disabled(): boolean {
         return Boolean(this.props.disabled)
+    }
+
+    /** Use vee-validate's value comparison, including arrays and false/zero. */
+    get isDirty(): boolean {
+        return Boolean(this.formRef.value && unwrap(this.formRef.value.meta).dirty)
+    }
+
+    /** Accept loaded/saved values as the clean baseline without a second store. */
+    markPristine(): boolean {
+        if (!this.form) return false
+        this.form.resetForm({ values: cloneValue(unwrap(this.form.values)) }, { force: true })
+        this.errors.value = {}
+        this.customErrors = {}
+        return true
     }
 
     async getValues(
@@ -324,9 +340,12 @@ export class FormApi implements FormApiLike {
         this.errors.value = next
     }
 
-    resetForm(): boolean {
+    resetForm(values?: Record<string, unknown>): boolean {
         if (!this.form) return false
-        this.form.resetForm({ values: this.initialValues })
+        // No argument retains the established reset-to-schema-default behavior.
+        // Explicit values replace the previous record as the clean baseline.
+        if (values === undefined) this.form.resetForm({ values: this.initialValues })
+        else this.form.resetForm({ values: cloneValue(values) }, { force: true })
         this.errors.value = {}
         this.customErrors = {}
         this.latestSubmissionValues = {}

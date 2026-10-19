@@ -3,6 +3,180 @@
 Framework-level UI compositions live here; the shadcn-vue primitives remain
 unchanged in `packages/ui-kit/shadcn-vue`.
 
+## CodeEditor
+
+`CodeEditor` is a generic CodeMirror 6 editor. Import it from
+`@airovo/components/code-editor` (or `@airovo/components`). The engine and language
+parsers load asynchronously when the component mounts; no CDN, worker service,
+application API, or code execution is involved.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { CodeEditor } from "@airovo/components/code-editor";
+
+const source = ref('export const message = "Hello";');
+</script>
+
+<template>
+  <CodeEditor
+    v-model="source"
+    language="javascript"
+    :height="360"
+    aria-label="JavaScript 源码"
+  />
+</template>
+```
+
+The string `modelValue` uses `update:modelValue`. `language` accepts `javascript`
+(default), `typescript`, `json`, or `text`. `height` accepts a pixel number
+(default `320`) or a CSS length. `lineWrapping` defaults to true. `readOnly`
+prevents edits while keeping selection, copying, focus and searching available;
+`disabled` also removes the editor from the tab order. `placeholder`, `id`,
+`name`, `ariaLabel`, `ariaLabelledby`, `ariaDescribedby`, `ariaInvalid`,
+`ariaRequired`, and `dataFormRoot` are
+forwarded to the actual editable element. `name` identifies the editor; it is
+not a native form input, so native FormData users must serialize their model.
+
+The editor provides line numbers, syntax highlighting, local JavaScript/TypeScript
+completion, bracket matching, Tab
+indentation, undo/redo, code folding and Ctrl/⌘+F search. Escape then Tab moves
+keyboard focus out of the editor. Syntax colors and the search panel follow the
+document's light/dark theme. `focus` and `blur` forward native focus events,
+`ready` signals engine initialization, and `error` reports a failed engine load.
+The exposed `CodeEditorApi` contains `focus()`.
+
+Prop changes reconfigure the existing view. Parent value synchronization updates
+only the changed text span, keeps selection/history in unchanged text, and
+neither echoes a model event nor adds a new undo entry. Unmount destroys the
+view and theme observer; late imports cannot revive it. Loading or failed
+imports have accessible status/error feedback.
+
+Use the same component directly in a framework form schema; validation,
+submission, reset and disabling remain controlled by `useForm`:
+
+```ts
+import { markRaw } from "vue";
+import { CodeEditor } from "@airovo/components/code-editor";
+
+const schema = [
+  {
+    fieldName: "source",
+    label: "源码",
+    component: markRaw(CodeEditor),
+    defaultValue: "export const enabled = true;",
+    componentProps: { language: "javascript", height: 320 },
+    rules: "required",
+  },
+];
+```
+
+## VideoPlayer
+
+`VideoPlayer` wraps Artplayer 5.4.0 and Hls.js 1.7.3 without any application API,
+authorization header or playback reporting. Import it from `@airovo/components`
+or the smaller `@airovo/components/video-player` entry. The player and HLS decoder
+are dynamically imported only when an active player has a non-empty source.
+
+```vue
+<script setup lang="ts">
+import {
+  VideoPlayer,
+  type VideoPlayerMetadata,
+  type VideoPlayerOptions,
+} from "@airovo/components/video-player";
+
+const options: VideoPlayerOptions = {
+  muted: false,
+  subtitle: { url: "/subtitles/example.vtt", type: "vtt" },
+  // Quality variants should use the same transport as src.
+  quality: [{ html: "1080P", url: "/video/1080.m3u8", default: true }],
+};
+function metadata(value: VideoPlayerMetadata) {
+  console.info(value.duration, value.width, value.height);
+}
+</script>
+
+<template>
+  <VideoPlayer
+    src="/video/1080.m3u8"
+    poster="/video/poster.jpg"
+    title="视频预览"
+    :active="true"
+    :options="options"
+    @loadedmetadata="metadata"
+  />
+</template>
+```
+
+The public props are `src`, `poster`, `title`, `type` (`auto`, `hls` or `native`),
+`active` (defaults to true) and `options`. `auto` recognizes `.m3u8` in paths and
+encoded query URLs; use `hls` for extensionless manifest endpoints. Hls.js uses
+MediaSource when supported and falls back to native HLS on Safari/iOS. Ordinary
+media uses the browser decoder. DASH/FLV engines, DRM, parser/proxy services and
+application-specific reports are outside this component. Unsupported media
+produces a readable error and a manual reload action.
+
+The default controls provide play/pause, progress, volume, settings, playback
+speed, aspect ratio, fullscreen, web fullscreen, picture-in-picture, hotkeys and
+screenshots, with Chinese Artplayer labels. Artplayer `options` also supports
+subtitles, quality, live mode, language, themes and other native options.
+Autoplay defaults to false. Browser support and cross-origin resource headers
+still determine available PIP/fullscreen/codec/canvas capabilities. Screenshot
+failures are caught and emit a non-fatal `warning`; playback continues.
+
+Source, poster, type or option updates recreate the instance. `active=false`,
+KeepAlive deactivation and unmount release both player and decoder, detach media
+and prevent late imports/events from reviving an older source. KeepAlive
+activation recreates the current source. Pause before setting `active=false`
+is unnecessary. The component owns `container`, `url`, `type` and `customType`;
+these cannot override the source through either TypeScript or runtime options.
+
+Events: `ready(Artplayer)`, `error(VideoPlayerError)`, `warning(VideoPlayerError)`,
+`loadedmetadata({ duration, width, height })`,
+`timeupdate({ currentTime, duration })`, `play`, `pause`, `ended` and `retry`.
+`duration` follows the browser value and can be `Infinity` for live streams;
+applications that report finite durations must validate it. Diagnostics remain
+in the error payload's `cause`; source URLs/tokens are never rendered as errors.
+The exposed `VideoPlayerApi` provides `getInstance`, `play`, `pause`, `seek`,
+`screenshot` and `retry`. `getInstance()` exposes Artplayer for advanced controls;
+use the props to change the source so decoder cleanup remains deterministic.
+
+## Button, Input and Textarea
+
+Import the public control compositions from `@airovo/components` or the smaller
+`@airovo/components/controls` entry. They compose the unchanged ui-kit primitives
+and apply the new-api control sizes, focus/invalid rings, dark theme and disabled
+states. Native attributes, listeners and input models are forwarded unchanged.
+Button defaults to `type="button"`; use an explicit `type="submit"` for a form
+submission. `as`/`asChild` still support links and other primitive semantics.
+
+Use `icon="lucide:plus"` for a decorative leading icon, or the `icon` named slot
+for a custom SVG/component (the slot takes precedence). The optional `suffix`
+slot adds a trailing icon. These slots set new-api's `data-icon` markers for the
+size-aware padding, and hide decorative content from the accessible name; retain
+visible action text, or provide `aria-label` on an icon-only button.
+
+```vue
+<Button icon="lucide:plus" size="sm">新增</Button>
+<Button variant="outline">
+  <template #icon><Download /></template>
+  导出
+  <template #suffix><ChevronDown /></template>
+</Button>
+```
+
+`asChild` delegates content ownership to its single child. Put icons inside that
+child link/component instead of using the outer icon props/slots; this preserves
+the link root, native attributes and routing behavior without a sibling wrapper.
+
+The composition owns size/variant classes once, rather than combining two CVA
+size presets or forcing CSS padding. Callers may override `h-auto`, `p-0`,
+`px-0` and wrapping through `class` for composite controls. Add
+`data-icon="inline-start"` or `data-icon="inline-end"` to a text button's icon
+when the reference's reduced padding on that side is wanted; unmarked SVGs do
+not alter padding. Icon-only buttons retain their explicit `icon*` sizes.
+
 `ResultPage` supports success, error, warning, info and HTTP result states
 with primary/secondary action events. Default title, description and secondary
 action copy uses `common.result.<status>.*` locale keys; explicit props remain
@@ -111,13 +285,29 @@ contract. It owns only page clamping and presentation; query synchronization
 and data fetching remain with `useDataTable` or the caller.
 Its full layout follows the new-api total/rows-per-page/first-prev-pages-next-last
 density; `compact` provides the mobile total/current-page/previous-next layout.
+The default page-size choices are `10`, `20`, `30`, `40`, `50` and `100`. The
+full layout uses the framework `Select` primitive for page-size changes, so it
+does not fall back to a browser-native select. Inside a framework Drawer or
+Modal, its portalled page-size menu inherits that host's popup layer and closes
+when the host closes or is covered by another overlay. No per-page z-index is
+required, and ui-kit primitives remain unchanged. When `DataTablePage` is rendered
+inside `SectionPage`, pagination is placed in the page footer host by default
+(`paginationInFooter=true`). This keeps the controls fixed below the scrollable
+content area while the table or card list scrolls. Set `paginationInFooter` to
+`false` when a caller intentionally needs pagination inside the data surface;
+when no `SectionPage` footer host is available, the component renders an inline
+fallback below its content. A custom `#table` slot that binds the supplied table
+props also receives the page and page-size listeners; inline pagination updates
+the owning page without requiring additional event handlers.
 
 For channel-style administration pages, compose `DataTablePage` with
 `DataTableToolbar`, `DataTableViewOptions` and `DataTableRowActions`. The
 toolbar owns presentation of debounced search, faceted filters, refresh/reset
 actions and column visibility; the application still owns the filter values and
 calls `useDataTable.setFilters()`. `DataTableViewOptions` accepts a caller-owned
-storage key for column visibility. `DataTableRowActions` accepts typed row
+storage key for column visibility; its default trigger is the new-api
+`查看`/`View` action and the reset-columns item is opt-in through `showReset`.
+`DataTableRowActions` accepts typed row
 actions with visible/disabled/loading predicates and an optional permission
 callback. `DataTablePage` provides separate `table` and `mobile` slots so the
 same query, pagination and selection state can render as a desktop table and a
@@ -155,7 +345,7 @@ labels for the table and card choices.
 `DataTable` also accepts `columnPinning` as a record keyed by column id/key:
 
 ```ts
-const columnPinning = { name: 'left', actions: 'right' } as const
+const columnPinning = { name: "left", actions: "right" } as const;
 ```
 
 Pinned headers and cells use sticky offsets calculated from visible columns.
@@ -230,6 +420,16 @@ to override it. `valueType` can be `string`, `number`, or `any`, and
 passed as a component object in a `FormFieldSchema`; the form owns the field
 path and submission lifecycle, while `JsonField` owns JSON serialization and
 visual editing.
+Switching modes does not emit a value update or reserialize untouched values;
+formatting requires an explicit format action, and `valueType` conversion
+applies when editing visual rows. Invalid JSON and valid non-object roots (arrays, scalars or
+`null`) stay in the JSON editor, including when loaded from an external value.
+The latter show a visual-mode limitation notice without emitting `parse-error`:
+they remain valid JSON, but cannot be represented as object key/value rows.
+Visual inputs use `keyLabel`/`valueLabel` and their row number as accessible names.
+The optional `value` scoped slot receives `row`, `index`, `label`, `disabled`
+and `updateValue(string)`. Compose a searchable selector there for references
+while keeping JSON serialization, literal keys and the raw JSON editor intact.
 Default labels, placeholders, mode actions, empty text and field action
 labels use the global `common.json*`/`common.*` locale keys; explicit props
 remain authoritative.
@@ -250,13 +450,13 @@ preserving invalid drafts.
 ```ts
 const options: SelectOption[] = [
   {
-    label: '云服务',
+    label: "云服务",
     children: [
-      { label: 'OpenAI', value: 'openai' },
-      { label: 'Claude', value: 'claude' },
+      { label: "OpenAI", value: "openai" },
+      { label: "Claude", value: "claude" },
     ],
   },
-]
+];
 ```
 
 A node with `children` is rendered as a non-selectable group label. Top-level
@@ -372,6 +572,7 @@ tooltip. The new-api `cellClassName`, `contentClassName`
 and `tooltipClassName` names are also accepted as aliases for the Vue `class`,
 `contentClass` and `tooltipClass` props; aliases are merged rather than
 replacing existing Vue props.
+
 ## Query state synchronization
 
 `useDataTable` accepts an optional `querySync` adapter. Its `read()` method can
@@ -428,10 +629,11 @@ and controlled `modelValue` updates clear the invalid state.
 optional `modal`/`dropdownContentClass` API and emits `dropdown-open-change`.
 It normalizes persisted visibility against the current
 column schema, drops unknown/non-boolean entries, and keeps at least one
-configurable column visible. Its trigger, menu and restore action expose
-stable data-slot and aria labels for keyboard and screen-reader tests.
+configurable column visible. Its trigger, menu and optional restore action
+expose stable data-slot and aria labels for keyboard and screen-reader tests.
 The menu follows new-api's grouped 150px ViewOptions surface, keeps the
-outline trigger compact, and exposes a keyboard-focusable reset menu item.
+outline trigger compact, and hides the restore item by default; pass
+`showReset` to expose it.
 
 ## FrameworkTooltip / FrameworkPopover
 
@@ -529,8 +731,13 @@ with a Chinese fallback; `dropdownAriaLabel` remains caller-authoritative.
 
 `DataTableToolbar` follows the new-api toolbar composition. Existing search,
 faceted filters, refresh, reset and column visibility props remain compatible;
-optional `custom-search`, `additional-search`, `expandable`, `pre-actions`,
+set `showSearch=false` for lists that support faceted filters without text search.
+Optional `custom-search`, `additional-search`, `expandable`, `pre-actions`,
 `left-actions`, `view-toggle` and `actions` slots add caller-owned controls.
+The built-in refresh button is opt-in (`showRefresh` defaults to `false`) so a
+page can provide its own refresh action through `pre-actions` without getting a
+duplicate control. The desktop action cluster keeps reset/search/view controls,
+column visibility and expand in the same right-aligned order as new-api.
 The default search uses a plain Input surface with no decorative search icon;
 desktop widths follow `sm:w-[200px] lg:w-[240px]`, while mobile keeps the
 input flexible. Clear, debounce and IME behavior remain unchanged.
@@ -551,9 +758,9 @@ rendering. This keeps the same query and slot state across responsive layouts.
 
 `DrawerLayout` composes the existing Drawer primitive with a fixed header,
 scrollable body and optional footer. Its right-side layout follows the
-new-api side-drawer surface (`h-dvh`, `w-3/4` with a `sm:max-w-md` desktop
+new-api side-drawer surface (`h-dvh`, `w-full` with a `sm:max-w-md` desktop
 bound, no extra shadow, backdrop-blurred header/footer, overscroll-contained
-body). The bottom drawer keeps `max-h-[80vh]` and `mt-24` so it does not cover
+body). The bottom drawer keeps `max-h-[80dvh]` and `mt-24` so it does not cover
 the page content on open. It accepts `bottom`/`right` side, title, description,
 `actions`/`footer` slots and class overrides; callers still own open state and
 business actions.
@@ -586,13 +793,58 @@ Enter selects the highlighted leaf and restores focus to the input, while
 +Escape closes the popup without replacing the current value. Parent options
 +remain non-selectable labels, and filtering keeps every matching parent path.
 
+### ApiSelect: API-backed searchable options
+
+`ApiSelect` composes the same Combobox input, popup, keyboard handling and overlay
+ownership. The application supplies an `api({ search, signal })` loader returning
+`Promise<SelectOption[]>`; the framework does not assume endpoints or response
+envelopes. Import `ApiSelectLoader` for a typed adapter:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { ApiSelect, type ApiSelectLoader } from '@airovo/components'
+
+const providerId = ref<string>()
+const loadProviders: ApiSelectLoader = async ({ signal }) => {
+  const response = await fetch('/api/providers', { signal })
+  if (!response.ok) throw new Error('Cannot load providers')
+  const body = await response.json() as { items: { id: string; name: string }[] }
+  return body.items.map(item => ({ label: item.name, value: item.id }))
+}
+</script>
+
+<template>
+  <ApiSelect v-model="providerId" :api="loadProviders" placeholder="选择提供商" />
+</template>
+```
+
+An empty selector loads only when opened and refreshes on reopen. A nonempty
+initial model loads once to resolve its label. The default filters the returned
+list locally by label/ID. For server-side filtering use `remote` and read `search`
+in the loader; `debounce` defaults to 250 ms. Map or page the endpoint's results in
+the application adapter; no pagination or arbitrary typed IDs are assumed.
+
+Loading feedback, empty feedback and a retry button are built in. Supply
+`loadingText`, `emptyText`, `errorText` or `retryText` to customize them;
+`load-error` exposes a failed request for application handling. Closing,
+disabling and unmounting cancel pending work, and stale responses are ignored
+even if a loader ignores its signal. Filtering/loading never emit a model change.
+A previously resolved selected label remains visible when a remote search no
+longer includes it, without adding it to the new results. The exposed `reload()`
+method refreshes the current search. The selector supports the same input `id`,
+`name`, aria props, `popupClass`, `openOnFocus` and `showSelectedIcon` as Combobox.
+See `apps/playwright/src/components/ApiSelectExample.vue` for local and remote
+search examples with a cancellable simulated API.
+
 ## Tabs
 
 `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent` wrap the Reka UI tabs
 primitive. The root accepts the controlled/uncontrolled value props and emits
 the normal update event; triggers support disabled state, keyboard focus and
 active styling, while content panels stay associated through their `value`.
-The wrapper only owns layout and theme classes; page titles, URL state and
+Orientation styling uses Reka's actual `data-orientation` attribute for both
+horizontal and vertical layouts. The wrapper only owns layout and theme classes; page titles, URL state and
 business actions remain caller-owned.
 
 ## ResponsiveCardList
@@ -665,12 +917,13 @@ The ChartCard also installs a Chart.js external tooltip adapter: hovered label,
 dataset name, color and formatted value are normalized into the same tooltip
 slot/model, while the existing props remain a static fallback. Loading, empty
 and error states never mount the chart or tooltip.
-  The shared tooltip formats numeric values with the browser locale (for example,
-  `2400` becomes `2,400`) and preserves string values such as `98%` verbatim.
+The shared tooltip formats numeric values with the browser locale (for example,
+`2400` becomes `2,400`) and preserves string values such as `98%` verbatim.
 Default loading/error/empty/retry labels use the framework i18n
 `common.chartLoading`, `common.chartError`, `common.chartEmpty` and
 `common.retry` keys with Chinese fallbacks; explicit `errorText` and
 `emptyText` props remain authoritative.
+
 ## Accordion
 
 `Accordion`, `AccordionItem`, `AccordionHeader`, `AccordionTrigger` and
@@ -679,18 +932,21 @@ single or multiple values, controlled or uncontrolled state, `collapsible`,
 disabled items and orientation; content exposes a region labelled by its
 trigger. The wrapper owns layout, border and focus styles while callers own
 business content and persistence.
+
 ## Alert
 
 `Alert`, `AlertTitle`, `AlertDescription` and `AlertAction` provide a semantic
 `role="alert"` surface with `default` and `destructive` variants. The action
 slot is positioned by the composition; callers own the button behavior and
 whether the alert is persistent, transient or connected to request state.
+
 ## Card
 
 `Card`, `CardHeader`, `CardFooter`, `CardTitle`, `CardAction`,
 `CardDescription` and `CardContent` provide a composable surface with
 `size="default" | "sm"`. Slots own the content and actions; the wrapper owns
 surface, spacing, footer and theme classes.
+
 ## Table
 
 `Table` renders an optional horizontal overflow container around the native
@@ -698,43 +954,51 @@ surface, spacing, footer and theme classes.
 `TableCell` and `TableCaption` provide styled structural slots. Pass
 `withContainer=false` when an outer layout already owns scrolling; sorting,
 pagination and row data remain the responsibility of DataTable or the caller.
+
 ## Pagination
 
 `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`,
 `PaginationPrevious`, `PaginationNext` and `PaginationEllipsis` provide a
 semantic navigation structure. Links expose active page and standard anchor
 attributes; page calculation, routing and request state remain caller-owned.
+
 ## Empty primitives
 
 The existing `Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`,
 `EmptyMedia` and `EmptyContent` primitives are exported from the ui-kit root.
 Use `EmptyMedia` with `variant="icon"` for the new-api icon surface; data loading
 and retry behavior belongs to framework compositions such as `EmptyState`.
+
 ## Slider
 
 `Slider` wraps Reka UI's accessible slider root with track, range and one or
 more thumbs. It forwards min/max/step, orientation, disabled and controlled or
 uncontrolled values; callers own form binding and persistence.
+
 ## Spinner
 
 `Spinner` is the shared loading indicator with `role="status"`, an accessible
 label, `animate-spin` and configurable `strokeWidth`/class. Loading state
 ownership and cancellation remain with the caller.
+
 ## Toggle
 
 `Toggle` wraps Reka UI's pressed control with default/outline variants and
 `default`/`sm`/`lg` sizes. It forwards controlled or uncontrolled pressed state,
 disabled semantics, aria attributes and keyboard behavior.
+
 ## ButtonGroup
 
 `ButtonGroup`, `ButtonGroupText` and `ButtonGroupSeparator` compose connected
 controls with horizontal/vertical orientation, group semantics and focus
 layering. Button actions, input values and form submission remain caller-owned.
+
 ## AspectRatio
 
 `AspectRatio` provides a responsive ratio container with a `ratio` prop and
 slot content. It delegates sizing semantics to Reka UI while callers own media,
 overlays and loading behavior.
+
 ## Menubar
 
 `Menubar`, `MenubarMenu`, `MenubarTrigger`, `MenubarContent`, `MenubarGroup`,
@@ -742,12 +1006,14 @@ overlays and loading behavior.
 menu semantics. Advanced exports add portals, submenus, checkbox/radio items
 and shortcuts. Keyboard navigation, focus and open state come from Reka UI;
 business actions remain caller-owned.
+
 ## Resizable
 
 `ResizablePanelGroup`, `ResizablePanel` and `ResizableHandle` provide a small
 pointer/keyboard-adjustable split layout. Direction, default/min/max sizes and
 separator focus are framework concerns. Pass `storageKey` to persist panel
 percentages across reloads; panel content remains caller-owned.
+
 ## Carousel
 
 `Carousel`, `CarouselContent`, `CarouselItem`, `CarouselPrevious` and
@@ -779,11 +1045,11 @@ items, and emits the selected item and group through `select`.
 ```ts
 const groups = [
   {
-    id: 'navigation',
-    label: '导航',
-    items: [{ id: 'overview', label: '运营概览', shortcut: 'G O' }],
+    id: "navigation",
+    label: "导航",
+    items: [{ id: "overview", label: "运营概览", shortcut: "G O" }],
   },
-] satisfies CommandMenuGroup[]
+] satisfies CommandMenuGroup[];
 ```
 
 Use `v-model:open` when the caller owns visibility. `closeOnSelect` defaults to
@@ -802,3 +1068,118 @@ so using CommandMenu does not change unrelated Select or Combobox surfaces.
 Default title, description, placeholder and empty-result copy uses the global
 `common.commandTitle`, `common.commandDescription`, `common.commandPlaceholder`
 and `common.commandEmpty` keys; explicit props remain authoritative.
+
+## IconPicker
+
+`IconPicker` selects an Iconify name such as `lucide:home`. It provides a preview,
+search, paginated icon grid, clear action, keyboard navigation and input/icon
+triggers. Import it from `@airovo/components` or
+`@airovo/components/icon-picker`; import icon rendering and registration from
+`@airovo/shared/icons`. Iconify is a runtime dependency of the shared package,
+so applications do not need to install another copy of `@iconify/vue`.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { IconPicker } from '@airovo/components'
+import { Icon } from '@airovo/shared/icons'
+
+const icon = ref('lucide:home')
+</script>
+
+<template>
+  <IconPicker v-model="icon" placeholder="选择图标" />
+  <Icon v-if="icon" :icon="icon" />
+</template>
+```
+
+The picker starts with a registered local collection, including the framework's
+bundled Lucide set, which works offline. Its library selector also offers public
+online collections; these are requested only when selected. Pass `sources: []`
+to offer local collections alone. `icons` restricts the local choices to an
+explicit list of already registered names. `pageSize` controls icons per page;
+`type="icon"` uses a compact trigger. `disabled`, `readonly` and `clearable`
+control editing. The picker emits only the selected string; storage and business
+validation belong to the application.
+
+### Local collections
+
+Register application-bundled, trusted IconifyJSON once during startup. The
+registry is reactive, so mounted pickers discover collections registered later.
+SVG bodies can come from trusted build-time assets or a generated IconifyJSON
+file. The `body` is SVG markup without the enclosing `svg` element; width and
+height describe its viewBox. Registration does not sanitize untrusted uploads.
+
+```ts
+import { registerIconCollection } from '@airovo/shared/icons'
+import appIcons from './assets/app-icons.json'
+
+registerIconCollection(appIcons, { title: '应用图标' })
+// app-icons.json: { prefix: 'my-app', icons: { logo: { body: '...' } } }
+// The selected value is my-app:logo.
+```
+
+### Online collections and self-hosted providers
+
+`createIconifySource` loads a collection's catalog only when requested. Rendering
+uses the same registered Iconify provider. These requests are separate from the
+application's authenticated business client and do not receive its access token.
+The source must permit browser cross-origin requests.
+
+```ts
+import { createIconifySource, type IconPickerSource } from '@airovo/components'
+import { addAPIProvider } from '@airovo/shared/icons'
+
+const publicSources = [
+  createIconifySource({ prefix: 'mdi', label: 'Material Design' }),
+  createIconifySource({ prefix: 'tabler', label: 'Tabler' }),
+]
+
+// Configure once at startup. The provider must serve both the collection
+// catalog and Iconify SVG data endpoints; replace this example with your host.
+addAPIProvider('company', {
+  resources: ['https://icons.example.com'],
+  path: '/',
+})
+const companySources: IconPickerSource[] = [
+  createIconifySource({
+    provider: 'company',
+    prefix: 'brand',
+    label: '品牌图标',
+  }),
+]
+// <IconPicker v-model="icon" :sources="companySources" />
+// A company icon is saved as @company:brand:logo.
+```
+
+For another online library, supply an `IconPickerSource` adapter with `id`,
+`label` and `load({ signal }): Promise<string[]>`. Respect the abort signal,
+return deduplicated Iconify names, and register their icon bodies or matching
+provider before rendering. This keeps provider response formats outside the
+component. Failed loads expose retry instead of silently appearing empty.
+
+### Schema-driven forms and overlays
+
+`useForm` accepts `component: 'IconPicker'`. The control's value is a string;
+the form retains its normal row shape, e.g. `{ icon: [{ value: 'lucide:home' }] }`.
+Pass picker props through `componentProps`, and use normal form `rules` for validation.
+The picker follows the framework overlay owner so its panel stays above the
+containing modal or drawer and closes when that owner becomes inactive.
+
+```ts
+const [Form, formApi] = useForm({
+  schema: [{
+    component: 'IconPicker',
+    fieldName: 'icon',
+    label: '图标',
+    defaultValue: 'lucide:home',
+    rules: 'required',
+    componentProps: { clearable: true },
+  }],
+})
+```
+
+See `apps/playwright/src/components/IconPickerExample.vue` for local, online,
+custom collection, compact trigger and modal/form examples. The self-hosted
+provider snippet is configuration guidance and does not make a demo request to
+the example hostname.

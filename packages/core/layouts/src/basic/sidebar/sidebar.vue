@@ -252,11 +252,12 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                         <Badge v-if="item.badge !== undefined && item.badge !== ''" class="ml-auto shrink-0 px-1 py-0 text-xs">{{ item.badge }}</Badge>
                                         <Icon
                                             icon="lucide:chevron-right"
-                                            class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                            data-sidebar-disclosure
+                                            class="ml-auto size-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none"
                                         />
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
-                                <CollapsibleContent>
+                                <CollapsibleContent class="app-sidebar-submenu">
                                     <SidebarMenuSub>
                                         <SidebarMenuSubItem
                                             v-for="subItem in item.children"
@@ -308,7 +309,8 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                                         <Badge v-if="item.badge !== undefined && item.badge !== ''" class="shrink-0 px-1 py-0 text-xs group-data-[collapsible=icon]:hidden">{{ item.badge }}</Badge>
                                         <Icon
                                             icon="lucide:chevron-right"
-                                            class="ml-auto transition-transform duration-200 group-data-[state=open]/dropdown-trigger:rotate-90"
+                                            data-sidebar-disclosure
+                                            class="ml-auto size-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none group-data-[collapsible=icon]:hidden"
                                         />
                                     </SidebarMenuButton>
                                 </DropdownMenuTrigger>

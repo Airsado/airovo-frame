@@ -12,6 +12,12 @@ export type BuiltInFormComponent =
     | 'date'
     | 'DateTimePicker'
     | 'datetime'
+    | 'DateRangePicker'
+    | 'daterange'
+    | 'DateTimeRangePicker'
+    | 'datetimerange'
+    | 'IconPicker'
+    | 'icon-picker'
 
 export type FormComponent = Component | BuiltInFormComponent
 
@@ -30,6 +36,10 @@ export interface FormFieldSchema {
     fieldName: string
     label: string
     component: FormComponent
+    /** Optional section heading rendered before the first field in a section. */
+    section?: string
+    /** Additional classes applied to the field wrapper for responsive layouts. */
+    fieldClass?: string
     componentProps?: Record<string, unknown> | ((context: FormFieldContext) => Record<string, unknown>)
     description?: string
     rules?: ZodTypeAny | string
@@ -87,7 +97,11 @@ export interface FormRuntimeProps {
     loading?: boolean
     showDefaultActions?: boolean
     layout?: 'horizontal' | 'vertical'
+    /** Use the compact spacing contract required by inline query forms. */
+    compact?: boolean
     wrapperClass?: string
+    /** Additional classes for the field group, such as a responsive grid. */
+    fieldGroupClass?: string
     handleSubmit?: FormSubmitHandler
 }
 
@@ -99,6 +113,7 @@ export interface FormApiLike {
     readonly isSubmitting: boolean
     readonly loading: boolean
     readonly disabled: boolean
+    readonly isDirty: boolean
     getValues(fields?: string[], shouldValidate?: boolean): Promise<Record<string, unknown>>
     getRawValues(): Promise<Record<string, unknown>>
     getValueSnapshot(): Promise<{ rawValues: Record<string, unknown>; values: Record<string, unknown> }>
@@ -111,7 +126,8 @@ export interface FormApiLike {
     setFieldValue(field: string, value: unknown): boolean
     /** Set or clear a renderer-owned custom component error. */
     setFieldError(field: string, message?: string): void
-    resetForm(): boolean
+    resetForm(values?: Record<string, unknown>): boolean
+    markPristine(): boolean
     resetFields(fields?: string[]): void
     validate(): Promise<{ valid: boolean; errors: Record<string, string> }>
     validateField(name: string): Promise<{ valid: boolean }>

@@ -1,360 +1,545 @@
 <script setup lang="ts">
-/**
- * BasicTabBar — vben-style multi-tab strip.
- *
- * Renders the open tabs as a horizontal scrollable strip with a
- * per-tab dropdown for actions (refresh, pin, close, close-others,
- * close-all, maximize). Right-click on a tab opens the context menu
- * at the mouse position.
- *
- * Designed to be slotted into the BasicLayout's <main> above the
- * native content viewport. Hidden automatically when there are no tabs.
- */
-import { computed, getCurrentInstance, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { Icon } from '@iconify/vue'
-import { useTabStore } from '@airovo/stores/tabs'
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+import { Icon } from "@iconify/vue";
+import { useTabStore, type TabItem } from "@airovo/stores/tabs";
+import { FrameworkTooltip } from "@airovo/components/overlay";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from "@airovo/uikit-shadcnui/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@airovo/uikit-shadcnui/components/ui/dropdown-menu";
+import TabActionItems from "./TabActionItems.vue";
+import { useTabActions } from "./tab-actions";
 
-defineOptions({ name: 'BasicTabBar' })
+defineOptions({ name: "BasicTabBar" });
 
-const router = useRouter()
-const route = useRoute()
-const tabs = useTabStore()
-const appGlobals = getCurrentInstance()?.appContext.config.globalProperties
+const tabs = useTabStore();
+const appGlobals = getCurrentInstance()?.appContext.config.globalProperties;
+const labels: Record<string, string> = {
+  navigation: "打开的页面",
+  previous: "向左滚动标签",
+  next: "向右滚动标签",
+  opened: "打开的标签页",
+  actions: "标签页操作",
+  refreshCurrent: "刷新当前页",
+  refresh: "刷新",
+  pin: "固定标签",
+  unpin: "取消固定",
+  maximize: "最大化",
+  restore: "退出最大化",
+  newWindow: "在新窗口打开",
+  closeCurrent: "关闭当前标签",
+  closeLeft: "关闭左侧标签",
+  closeRight: "关闭右侧标签",
+  closeOthers: "关闭其他标签",
+  closeAll: "关闭全部标签",
+  close: "关闭",
+  fixed: "固定标签",
+};
 
-const contextMenu = ref<{ x: number; y: number; tabId: string } | null>(null)
-const tabScroll = ref<HTMLElement | null>(null)
-const tabElements = new Map<string, HTMLElement>()
-const canScrollRight = ref(false)
-
-function isActive(id: string): boolean {
-    return id === tabs.activeTabId
+function t(key: string): string {
+  const translate = appGlobals?.$t as ((key: string) => string) | undefined;
+  const exists = appGlobals?.$te as ((key: string) => boolean) | undefined;
+  const localeKey = `tabs.${key}`;
+  return translate && exists?.(localeKey)
+    ? translate(localeKey)
+    : labels[key] ?? key;
 }
 
-function tabTitle(tab: { title: string; titleKey?: string }): string {
-    const translate = appGlobals?.$t as ((key: string) => string) | undefined
-    const exists = appGlobals?.$te as ((key: string) => boolean) | undefined
-    if (tab.titleKey && translate && exists?.(tab.titleKey)) return translate(tab.titleKey)
-    return tab.title
+function tabTitle(tab: TabItem): string {
+  const translate = appGlobals?.$t as ((key: string) => string) | undefined;
+  const exists = appGlobals?.$te as ((key: string) => boolean) | undefined;
+  return tab.titleKey && translate && exists?.(tab.titleKey)
+    ? translate(tab.titleKey)
+    : tab.title;
 }
 
-function clickTab(id: string, fullPath: string) {
-    tabs.activate(id)
-    nextTick(() => revealTab(id))
-    if (route.fullPath !== fullPath) {
-        router.push(fullPath)
-    }
-}
+const { actions, close, maximize, navigate } = useTabActions(t);
+const orderedTabs = computed(() => tabs.orderedTabs);
+const activeTab = computed(() =>
+  tabs.tabs.find((tab) => tab.id === tabs.activeTabId),
+);
+const tabScroll = ref<HTMLElement | null>(null);
+const tabElements = new Map<string, HTMLElement>();
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+const draggedTabId = ref<string | null>(null);
+const dropTargetId = ref<string | null>(null);
+const coarsePointer = ref(false);
+let resizeObserver: ResizeObserver | undefined;
+let pointerQuery: MediaQueryList | undefined;
 
 function setTabElement(id: string, element: unknown): void {
-    if (typeof HTMLElement !== 'undefined' && element instanceof HTMLElement) tabElements.set(id, element)
-    else tabElements.delete(id)
+  if (element instanceof HTMLElement) tabElements.set(id, element);
+  else tabElements.delete(id);
 }
 
 function updateScrollState(): void {
-    const element = tabScroll.value
-    if (!element) {
-        canScrollRight.value = false
-        return
-    }
-    canScrollRight.value = element.scrollLeft + element.clientWidth < element.scrollWidth - 4
+  const element = tabScroll.value;
+  canScrollLeft.value = Boolean(element && element.scrollLeft > 1);
+  canScrollRight.value = Boolean(
+    element &&
+      element.scrollLeft + element.clientWidth < element.scrollWidth - 1,
+  );
+}
+
+function scrollTo(left: number, smooth = true): void {
+  const element = tabScroll.value;
+  if (!element) return;
+  const clamped = Math.max(
+    0,
+    Math.min(left, element.scrollWidth - element.clientWidth),
+  );
+  const reducedMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  element.scrollTo({
+    left: clamped,
+    behavior: smooth && !reducedMotion ? "smooth" : "auto",
+  });
 }
 
 function revealTab(id: string): void {
-    const host = tabScroll.value
-    const tab = tabElements.get(id)
-    if (!host || !tab) return
-
-    const hostRect = host.getBoundingClientRect()
-    const tabRect = tab.getBoundingClientRect()
-    const edgePadding = 24
-    const isNearLeftEdge = tabRect.left < hostRect.left + edgePadding
-    const isNearRightEdge = tabRect.right > hostRect.right - edgePadding
-    if (!isNearLeftEdge && !isNearRightEdge) {
-        updateScrollState()
-        return
-    }
-
-    const maxScrollLeft = Math.max(0, host.scrollWidth - host.clientWidth)
-    const centeredLeft = tab.offsetLeft - (host.clientWidth - tab.offsetWidth) / 2
-    host.scrollTo({
-        left: Math.max(0, Math.min(centeredLeft, maxScrollLeft)),
-        behavior: 'smooth',
-    })
-    window.setTimeout(updateScrollState, 220)
+  const host = tabScroll.value;
+  const element = tabElements.get(id);
+  if (!host || !element) return;
+  const hostRect = host.getBoundingClientRect();
+  const tabRect = element.getBoundingClientRect();
+  if (tabRect.left < hostRect.left)
+    scrollTo(host.scrollLeft + tabRect.left - hostRect.left - 8);
+  else if (tabRect.right > hostRect.right)
+    scrollTo(host.scrollLeft + tabRect.right - hostRect.right + 8);
+  updateScrollState();
 }
 
-function scrollTabsRight(): void {
-    const element = tabScroll.value
-    if (!element) return
-    element.scrollBy({ left: Math.max(180, element.clientWidth * 0.7), behavior: 'smooth' })
-    window.setTimeout(updateScrollState, 220)
+function scrollTabs(direction: -1 | 1): void {
+  const element = tabScroll.value;
+  if (element)
+    scrollTo(
+      element.scrollLeft + direction * Math.max(180, element.clientWidth * 0.7),
+    );
 }
 
-function showContext(e: MouseEvent, id: string) {
-    e.preventDefault()
-    contextMenu.value = { x: e.clientX, y: e.clientY, tabId: id }
+function onWheel(event: WheelEvent): void {
+  const element = tabScroll.value;
+  if (!element || event.ctrlKey || element.scrollWidth <= element.clientWidth)
+    return;
+  const delta =
+    Math.abs(event.deltaX) > Math.abs(event.deltaY)
+      ? event.deltaX
+      : event.deltaY;
+  if (!delta) return;
+  event.preventDefault();
+  const pixels =
+    delta *
+    (event.deltaMode === 1
+      ? 16
+      : event.deltaMode === 2
+        ? element.clientWidth
+        : 1);
+  scrollTo(element.scrollLeft + pixels, false);
+  updateScrollState();
 }
 
-function closeContext() {
-    contextMenu.value = null
+async function clickTab(tab: TabItem, focus = false): Promise<void> {
+  if (!(await navigate(tab))) return;
+  await nextTick();
+  revealTab(tab.id);
+  if (focus)
+    tabElements
+      .get(tab.id)
+      ?.querySelector<HTMLButtonElement>('[role="tab"]')
+      ?.focus({ preventScroll: true });
 }
 
-function middleClickClose(e: MouseEvent, tab: { id: string; closable: boolean; affix: boolean }) {
-    if (e.button === 1 && tab.closable && !tab.affix) {
-        e.preventDefault()
-        closeTabAndNavigate(tab.id)
-    }
+async function closeTab(tab: TabItem, returnFocus = false): Promise<void> {
+  await close("current", tab.id);
+  if (returnFocus) {
+    await nextTick();
+    if (tabs.activeTabId)
+      tabElements
+        .get(tabs.activeTabId)
+        ?.querySelector<HTMLButtonElement>('[role="tab"]')
+        ?.focus({ preventScroll: true });
+  }
 }
 
-function navigateToActiveTab() {
-    const active = tabs.tabs.find((tab) => tab.id === tabs.activeTabId)
-    if (active && route.fullPath !== active.fullPath) void router.push(active.fullPath)
+function onTabKeydown(event: KeyboardEvent, tab: TabItem): void {
+  const index = orderedTabs.value.findIndex((item) => item.id === tab.id);
+  let target: TabItem | undefined;
+  if (event.key === "ArrowLeft")
+    target =
+      orderedTabs.value[
+        (index - 1 + orderedTabs.value.length) % orderedTabs.value.length
+      ];
+  if (event.key === "ArrowRight")
+    target = orderedTabs.value[(index + 1) % orderedTabs.value.length];
+  if (event.key === "Home") target = orderedTabs.value[0];
+  if (event.key === "End") target = orderedTabs.value.at(-1);
+  if (target) {
+    event.preventDefault();
+    void clickTab(target, true);
+  } else if (event.key === "Delete" && tabs.isClosable(tab)) {
+    event.preventDefault();
+    void closeTab(tab, true);
+  }
 }
 
-function closeTabAndNavigate(id: string) {
-    tabs.closeTab(id)
-    navigateToActiveTab()
+function middleClick(event: MouseEvent, tab: TabItem): void {
+  if (event.button !== 1) return;
+  event.preventDefault();
+  void closeTab(tab);
 }
 
-function closeOthersAndNavigate(id: string) {
-    tabs.closeOthers(id)
-    tabs.activate(id)
-    navigateToActiveTab()
+function canDrop(tab: TabItem): boolean {
+  const dragged = tabs.tabs.find((item) => item.id === draggedTabId.value);
+  return Boolean(
+    dragged &&
+      !dragged.affix &&
+      !tab.affix &&
+      dragged.pinned === tab.pinned &&
+      dragged.id !== tab.id,
+  );
 }
 
-function closeAllAndNavigate() {
-    tabs.closeAll()
-    if (tabs.activeTabId) navigateToActiveTab()
-    else void router.push('/')
+function startDrag(event: DragEvent, tab: TabItem): void {
+  if (tab.affix || coarsePointer.value) {
+    event.preventDefault();
+    return;
+  }
+  draggedTabId.value = tab.id;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", tab.id);
+  }
 }
 
-// Sorted tabs: affix first, then pinned, then the rest in insertion order.
-const sortedTabs = computed(() => {
-    return [...tabs.tabs].sort((a, b) => {
-        if (a.affix !== b.affix) return a.affix ? -1 : 1
-        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
-        return 0
-    })
-})
-
-function closeOtherFromContext() {
-    if (contextMenu.value) {
-        closeOthersAndNavigate(contextMenu.value.tabId)
-        closeContext()
-    }
+function dragOver(event: DragEvent, tab: TabItem): void {
+  if (!canDrop(tab)) return;
+  event.preventDefault();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+  dropTargetId.value = tab.id;
 }
 
-function closeAllFromContext() {
-    closeAllAndNavigate()
-    closeContext()
+function endDrag(): void {
+  draggedTabId.value = null;
+  dropTargetId.value = null;
 }
 
-function refreshFromContext() {
-    if (contextMenu.value) {
-        tabs.refreshTab(contextMenu.value.tabId)
-        closeContext()
-    }
+function drop(event: DragEvent, tab: TabItem): void {
+  if (canDrop(tab) && draggedTabId.value) {
+    event.preventDefault();
+    tabs.moveTab(draggedTabId.value, tab.id);
+  }
+  endDrag();
 }
 
-function pinFromContext() {
-    if (contextMenu.value) {
-        tabs.pinTab(contextMenu.value.tabId)
-        closeContext()
-    }
-}
-
-function maximizeFromContext() {
-    if (contextMenu.value) {
-        const tabId = contextMenu.value.tabId
-        tabs.maximizeTab(tabs.maximizedTabId === tabId ? null : tabId)
-        closeContext()
-    }
-}
-
-function closeFromContext() {
-    if (contextMenu.value) {
-        closeTabAndNavigate(contextMenu.value.tabId)
-        closeContext()
-    }
-}
-
-function stopClick(e: MouseEvent) {
-    e.stopPropagation()
+function updatePointer(): void {
+  coarsePointer.value = pointerQuery?.matches ?? false;
 }
 
 onMounted(() => {
-    document.addEventListener('click', closeContext)
-    window.addEventListener('resize', updateScrollState)
-    nextTick(() => {
-        updateScrollState()
-        if (tabs.activeTabId) revealTab(tabs.activeTabId)
-    })
-})
+  pointerQuery = window.matchMedia?.("(pointer: coarse)");
+  updatePointer();
+  pointerQuery?.addEventListener("change", updatePointer);
+  if (typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(() => {
+      updateScrollState();
+      if (tabs.activeTabId) revealTab(tabs.activeTabId);
+    });
+    if (tabScroll.value) resizeObserver.observe(tabScroll.value);
+  }
+  window.addEventListener("resize", updateScrollState);
+  updateScrollState();
+  if (tabs.activeTabId) revealTab(tabs.activeTabId);
+});
+
 onBeforeUnmount(() => {
-    document.removeEventListener('click', closeContext)
-    window.removeEventListener('resize', updateScrollState)
-})
+  resizeObserver?.disconnect();
+  pointerQuery?.removeEventListener("change", updatePointer);
+  window.removeEventListener("resize", updateScrollState);
+});
+
+watch(tabScroll, (element) => {
+  resizeObserver?.disconnect();
+  if (element) resizeObserver?.observe(element);
+});
 
 watch(
-    [() => tabs.activeTabId, () => sortedTabs.value.length],
-    () => nextTick(() => {
-        if (tabs.activeTabId) revealTab(tabs.activeTabId)
-        updateScrollState()
-    }),
-)
+  () => [
+    tabs.activeTabId,
+    ...orderedTabs.value.map((tab) => `${tab.id}:${tabTitle(tab)}`),
+  ],
+  async () => {
+    await nextTick();
+    if (tabs.activeTabId) revealTab(tabs.activeTabId);
+    updateScrollState();
+  },
+);
 </script>
 
 <template>
-    <div
-        v-if="sortedTabs.length > 0"
-        class="border-b border-border bg-card flex items-center"
-        @click="closeContext"
-    >
-        <div
-            ref="tabScroll"
-            data-slot="tabs-scroll"
-            class="no-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain"
-            @scroll="updateScrollState"
-        >
-            <div class="flex min-w-max items-center gap-1 px-2 py-1 pr-8 whitespace-nowrap">
-                <div
-                    v-for="t in sortedTabs"
-                    :key="t.id"
-                    :class="[
-                        'group relative flex shrink-0 items-center gap-1.5 h-8 px-3 rounded-md text-sm cursor-pointer select-none border border-transparent',
-                        isActive(t.id)
-                            ? 'bg-secondary text-secondary-foreground font-medium'
-                            : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                    ]"
-                    :ref="(element) => setTabElement(t.id, element)"
-                    :data-tab-id="t.id"
-                    @click="clickTab(t.id, t.fullPath)"
-                    @contextmenu="showContext($event, t.id)"
-                    @mousedown="middleClickClose($event, t)"
-                >
-                    <Icon
-                        v-if="t.icon"
-                        :icon="t.icon"
-                        class="size-3.5 shrink-0"
-                    />
-                    <span class="truncate max-w-40">{{ tabTitle(t) }}</span>
-                    <span
-                        v-if="t.pinned"
-                        class="text-[10px] text-muted-foreground/70"
-                    >📌</span>
-                    <button
-                        v-if="t.closable"
-                        type="button"
-                        class="ml-1 size-4 rounded-sm inline-flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-accent"
-                        @click.stop="closeTabAndNavigate(t.id)"
-                    >
-                        <Icon icon="lucide:x" class="size-3" />
-                    </button>
-                </div>
-            </div>
-        </div>
+  <div
+    v-if="orderedTabs.length"
+    data-slot="tab-bar"
+    class="flex min-w-0 shrink-0 items-center border-b border-border bg-card"
+  >
+    <FrameworkTooltip :content="t('previous')" side="bottom">
+      <template #trigger>
         <button
-            v-if="canScrollRight"
-            data-slot="tabs-scroll-next"
-            type="button"
-            class="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            title="显示更多标签"
-            aria-label="显示更多标签"
-            @click.stop="scrollTabsRight"
+          v-show="canScrollLeft"
+          type="button"
+          data-slot="tabs-scroll-prev"
+          :aria-label="t('previous')"
+          class="tab-bar-tool"
+          @click="scrollTabs(-1)"
         >
-            <Icon icon="lucide:chevron-right" class="size-4" />
+          <Icon icon="lucide:chevron-left" class="size-4" aria-hidden="true" />
         </button>
-        <div class="flex items-center gap-1 px-2 border-l border-border">
-            <button
-                type="button"
-                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground"
-                title="刷新当前"
-                @click="tabs.refreshTab(tabs.activeTabId ?? '')"
-            >
-                <Icon icon="lucide:rotate-ccw" class="size-3.5" />
-            </button>
-            <button
-                type="button"
-                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground"
-                title="关闭其他"
-                @click="closeOthersAndNavigate(tabs.activeTabId ?? '')"
-            >
-                <Icon icon="lucide:x-circle" class="size-3.5" />
-            </button>
-            <button
-                type="button"
-                class="size-7 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground"
-                :title="tabs.maximizedTabId === tabs.activeTabId ? '退出最大化' : '最大化'"
-                @click="tabs.maximizeTab(tabs.maximizedTabId === tabs.activeTabId ? null : tabs.activeTabId)"
-            >
-                <Icon :icon="tabs.maximizedTabId === tabs.activeTabId ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="size-3.5" />
-            </button>
-        </div>
-
-        <!-- Right-click context menu (positioned at mouse coords). -->
-        <Teleport to="body">
+      </template>
+    </FrameworkTooltip>
+    <div
+      ref="tabScroll"
+      data-slot="tabs-scroll"
+      class="tab-bar-scroll min-w-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain"
+      @scroll="updateScrollState"
+      @wheel="onWheel"
+    >
+      <div
+        role="tablist"
+        :aria-label="t('navigation')"
+        aria-orientation="horizontal"
+        class="flex w-max min-w-full items-center gap-1 whitespace-nowrap px-2 py-1"
+      >
+        <ContextMenu v-for="tab in orderedTabs" :key="tab.id">
+          <ContextMenuTrigger as-child>
             <div
-                v-if="contextMenu"
-                class="fixed z-50 min-w-40 rounded-md border bg-card p-1 shadow-md"
-                :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
-                @click="stopClick"
+              :ref="(element) => setTabElement(tab.id, element)"
+              :data-tab-id="tab.id"
+              :draggable="!tab.affix && !coarsePointer"
+              :class="[
+                'group relative flex h-8 shrink-0 select-none items-center rounded-md border border-transparent text-sm transition-colors motion-reduce:transition-none',
+                tab.id === tabs.activeTabId
+                  ? 'bg-secondary font-medium text-secondary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                dropTargetId === tab.id && 'border-primary',
+                draggedTabId === tab.id && 'opacity-50',
+              ]"
+              @mousedown.middle.prevent
+              @auxclick="middleClick($event, tab)"
+              @dragstart="startDrag($event, tab)"
+              @dragover="dragOver($event, tab)"
+              @dragleave="dropTargetId === tab.id && (dropTargetId = null)"
+              @drop="drop($event, tab)"
+              @dragend="endDrag"
             >
-                <button
-                    type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
-                    @click="refreshFromContext"
-                >
-                    <Icon icon="lucide:rotate-ccw" class="size-3.5" />刷新
-                </button>
-                <button
-                    type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
-                    @click="pinFromContext"
-                >
-                    <Icon icon="lucide:pin" class="size-3.5" />钉住
-                </button>
-                <button
-                    type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
-                    @click="maximizeFromContext"
-                >
-                    <Icon icon="lucide:maximize-2" class="size-3.5" />最大化
-                </button>
-                <div class="my-1 h-px bg-border" />
-                <button
-                    type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
-                    @click="closeFromContext"
-                >
-                    <Icon icon="lucide:x" class="size-3.5" />关闭
-                </button>
-                <button
-                    type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
-                    @click="closeOtherFromContext"
-                >
-                    关闭其他
-                </button>
-                <button
-                    type="button"
-                    class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent inline-flex items-center gap-2"
-                    @click="closeAllFromContext"
-                >
-                    关闭全部
-                </button>
+              <button
+                type="button"
+                role="tab"
+                :aria-selected="tab.id === tabs.activeTabId"
+                :tabindex="tab.id === tabs.activeTabId ? 0 : -1"
+                :title="tabTitle(tab)"
+                class="inline-flex h-full min-w-0 items-center gap-1.5 rounded-md pl-3 pr-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                @click="clickTab(tab)"
+                @dblclick="maximize(tab)"
+                @keydown="onTabKeydown($event, tab)"
+              >
+                <Icon
+                  v-if="tab.icon"
+                  :icon="tab.icon"
+                  class="size-3.5 shrink-0"
+                  aria-hidden="true"
+                />
+                <span class="max-w-40 truncate">{{ tabTitle(tab) }}</span>
+                <Icon
+                  v-if="tab.pinned || tab.affix"
+                  icon="lucide:pin"
+                  class="size-3 shrink-0 text-muted-foreground"
+                  :aria-label="t('fixed')"
+                />
+              </button>
+              <button
+                v-if="tabs.isClosable(tab)"
+                type="button"
+                :aria-label="`${t('close')} ${tabTitle(tab)}`"
+                class="mr-1.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm opacity-60 outline-none hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+                @click.stop="closeTab(tab, true)"
+                @mousedown.stop
+              >
+                <Icon icon="lucide:x" class="size-3" aria-hidden="true" />
+              </button>
             </div>
-        </Teleport>
+          </ContextMenuTrigger>
+          <ContextMenuContent class="min-w-48" :collision-padding="8">
+            <TabActionItems kind="context" :actions="actions(tab)" />
+          </ContextMenuContent>
+        </ContextMenu>
+      </div>
     </div>
+    <FrameworkTooltip :content="t('next')" side="bottom">
+      <template #trigger>
+        <button
+          v-show="canScrollRight"
+          type="button"
+          data-slot="tabs-scroll-next"
+          :aria-label="t('next')"
+          class="tab-bar-tool"
+          @click="scrollTabs(1)"
+        >
+          <Icon icon="lucide:chevron-right" class="size-4" aria-hidden="true" />
+        </button>
+      </template>
+    </FrameworkTooltip>
+    <div class="flex shrink-0 items-center gap-0.5 border-l border-border px-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button
+            type="button"
+            :aria-label="t('opened')"
+            :title="t('opened')"
+            class="tab-bar-tool"
+          >
+            <Icon
+              icon="lucide:chevrons-up-down"
+              class="size-4"
+              aria-hidden="true"
+            />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          class="min-w-48 max-w-80"
+          :collision-padding="8"
+        >
+          <DropdownMenuItem
+            v-for="tab in orderedTabs"
+            :key="tab.id"
+            class="gap-2 py-1.5"
+            @select="clickTab(tab)"
+          >
+            <Icon
+              :icon="
+                tab.id === tabs.activeTabId
+                  ? 'lucide:check'
+                  : tab.pinned || tab.affix
+                    ? 'lucide:pin'
+                    : 'lucide:file'
+              "
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <span class="truncate">{{ tabTitle(tab) }}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <FrameworkTooltip :content="t('refreshCurrent')" side="bottom">
+        <template #trigger>
+          <button
+            type="button"
+            :aria-label="t('refreshCurrent')"
+            :disabled="!activeTab"
+            class="tab-bar-tool"
+            @click="activeTab && tabs.refreshTab(activeTab.id)"
+          >
+            <Icon icon="lucide:rotate-cw" class="size-3.5" aria-hidden="true" />
+          </button>
+        </template>
+      </FrameworkTooltip>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button
+            type="button"
+            :aria-label="t('actions')"
+            :title="t('actions')"
+            :disabled="!activeTab"
+            class="tab-bar-tool"
+          >
+            <Icon
+              icon="lucide:chevron-down"
+              class="size-4"
+              aria-hidden="true"
+            />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          class="min-w-48"
+          :collision-padding="8"
+        >
+          <TabActionItems
+            v-if="activeTab"
+            kind="dropdown"
+            :actions="actions(activeTab)"
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <FrameworkTooltip
+        :content="t(tabs.maximizedTabId ? 'restore' : 'maximize')"
+        side="bottom"
+      >
+        <template #trigger>
+          <button
+            type="button"
+            :aria-label="t(tabs.maximizedTabId ? 'restore' : 'maximize')"
+            :disabled="!activeTab"
+            class="tab-bar-tool"
+            @click="activeTab && maximize(activeTab)"
+          >
+            <Icon
+              :icon="
+                tabs.maximizedTabId ? 'lucide:minimize-2' : 'lucide:maximize-2'
+              "
+              class="size-3.5"
+              aria-hidden="true"
+            />
+          </button>
+        </template>
+      </FrameworkTooltip>
+    </div>
+  </div>
 </template>
 
-<style>
-[data-slot='tabs-scroll'] {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+<style scoped>
+.tab-bar-scroll {
+  scrollbar-width: none;
 }
-
-[data-slot='tabs-scroll']::-webkit-scrollbar {
-    display: none;
+.tab-bar-scroll::-webkit-scrollbar {
+  display: none;
+}
+.tab-bar-tool {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  outline: none;
+}
+.tab-bar-tool:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.tab-bar-tool:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+.tab-bar-tool:disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 </style>

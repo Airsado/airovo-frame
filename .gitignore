@@ -9,6 +9,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Private business application; never publish with the framework.
+/apps/airhaven/
+
 # Local browser, test-runner, and Nitro runtime artifacts
 .codex-chrome-profile*/
 .nitro/

@@ -6,7 +6,16 @@
 
 布局系统参考 new-api 的后台工作区模式独立重写，框架负责壳层、导航和视觉偏好，业务包只提供菜单与页面内容。内置 `LayoutSettings` 设置抽屉，可切换侧栏布局、侧栏样式、内容宽度、主题和密度；偏好由 `@airovo/config` / `@airovo/stores` 持久化。
 
+应用的 Tailwind CSS 入口应依次引入 `@airovo/uikit-shadcnui/style.css` 与
+`@airovo/layouts/style.css`（脚手架已配置）。后者注册框架语义色工具类并加载主题；
+布局组件自动加载的 `theme.css` 只含标准 CSS，不携带需 Tailwind 编译的指令。
+
 - `LayoutSettings`：统一调整布局和外观偏好的设置抽屉。
+- `CommandSearch`：Header 内置的菜单搜索，复用 `@airovo/components/command-menu`。
+  点击或使用 `Ctrl+K`（macOS 为 `⌘K`）打开，输入后可用方向键和 Enter 导航，
+  Escape 关闭并恢复焦点。搜索仅索引应用传入的可见菜单，按侧栏分组和顺序展示，
+  支持一级菜单、多层子菜单名称及路径；禁用菜单不可跳转，外链在新标签页打开。
+  `header.menuSearch*` locale keys 提供搜索文案。
 
 `LayoutSettings` 的抽屉标题、说明、打开按钮和恢复默认按钮使用全局
 `common.layoutSettings*` locale keys；显式 title/description props 仍优先。
@@ -99,6 +108,18 @@ collapsed dropdown uses the new-api `secondary` surface and foreground token;
 unselected entries only receive the muted hover surface. The framework marker
 `data-app-sidebar-active="true"` is authoritative over primitive utility
 classes so application CSS order cannot remove the selected text color.
+
+The framework additionally emphasizes enabled navigation items with a 500 font
+weight on hover (including parent, child and collapsed dropdown entries). This
+is a framework presentation choice; new-api's reference only applies medium
+weight to active top-level entries. Disabled entries retain their existing
+appearance. These overrides live in the layout theme, not the ui-kit source.
+
+Default typography follows new-api's browser `sans-serif` stack. Public Sans
+is reserved for the explicit Sans font preference. At the default scale and a
+16px root size, primary and child menu labels use `text-sm` (14px / 20px), while
+group labels use 11px. Typography is configured in the framework theme without
+changing ui-kit primitives or hard-coding sidebar sizes that bypass theme scale.
 
 Header 右侧的业务区通过 `business` 插槽提供。默认只显示“开发者菜单”演示文本，框架不会把真实路由菜单复制到 Header；业务应用可以按需放入自己的链接或操作：
 

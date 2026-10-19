@@ -58,7 +58,7 @@ function updateOpen(value: boolean): void {
         :align="props.align"
         :side-offset="props.sideOffset"
         :align-offset="props.alignOffset"
-        :class="['inline-flex items-center gap-1.5 max-w-xs break-words text-balance', props.contentClass]"
+        :class="['inline-flex items-center gap-1.5 max-w-xs break-words text-balance origin-(--reka-tooltip-content-transform-origin) motion-reduce:animate-none motion-reduce:data-[state=closed]:animate-none', props.contentClass]"
         data-slot="framework-tooltip-content"
       >
         <slot name="content">{{ props.content }}</slot>

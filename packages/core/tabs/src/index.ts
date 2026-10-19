@@ -13,7 +13,7 @@
  */
 import { computed } from 'vue'
 import type { App } from 'vue'
-import type { Router } from 'vue-router'
+import type { RouteLocationNormalized, Router } from 'vue-router'
 import { useTabStore } from '@airovo/stores/tabs'
 import BasicTabBar from './components/BasicTabBar.vue'
 
@@ -30,17 +30,32 @@ export interface InstallTabsOptions {
     /** The Vue Router instance. */
     router: Router
     /**
-     * If set, the tab for this path is added once on first install
-     * (e.g. '/dashboard') so the strip isn't empty on first load.
+     * Fallback path for actions that close the last tab (e.g. '/dashboard').
+     * It is recorded without creating a tab before navigation succeeds.
      */
     defaultTabPath?: string
+}
+
+function shouldTrackRoute(
+    route: Pick<RouteLocationNormalized, 'meta' | 'matched'>,
+): boolean {
+    if (route.meta.hideInTab === true || route.meta.ignoreLayout === true)
+        return false
+    // A child cannot accidentally opt back into a standalone/hidden parent.
+    return !route.matched.some(
+        (record) =>
+            record.meta.hideInTab === true || record.meta.ignoreLayout === true,
+    )
 }
 
 /**
  * Install the tabs system: registers BasicTabBar as a global
  * component and wires router.afterEach to keep the tab list in sync.
  */
-export function installTabs(app: App, options: InstallTabsOptions): { tabStore: ReturnType<typeof useTabStore> } {
+export function installTabs(
+    app: App,
+    options: InstallTabsOptions,
+): { tabStore: ReturnType<typeof useTabStore> } {
     const store = useTabStore()
 
     // BasicLayout consumes the tab strip through its named slot. Registering
@@ -48,19 +63,22 @@ export function installTabs(app: App, options: InstallTabsOptions): { tabStore: 
     // the layout without importing the component into every root.
     app.component('BasicTabBar', BasicTabBar)
 
-    // Seed the default tab on first install (so the strip isn't empty
-    // before any navigation happens).
-    if (options.defaultTabPath && store.tabs.length === 0) {
-        const resolved = options.router.resolve(options.defaultTabPath)
-        if (resolved) store.addOrActivate(resolved)
-    }
+    store.defaultTabPath = options.defaultTabPath ?? null
 
-    // Auto-track every navigation.
-    options.router.afterEach((to) => {
-        // Skip tabs that opt out via meta.hideInTab.
-        if (to.meta?.hideInTab === true || to.meta?.ignoreLayout === true) return
+    // Route guards can cancel or supersede a navigation. Only the route
+    // actually displayed by the router may become an active tab.
+    options.router.afterEach((to, _from, failure) => {
+        if (failure) return
+        if (!shouldTrackRoute(to)) return
         store.addOrActivate(to)
     })
+
+    // Consumers may install tabs after initial navigation has already settled.
+    // START_LOCATION has no matched records and must not create a phantom '/'.
+    const current = options.router.currentRoute.value
+    if (current.matched.length > 0 && shouldTrackRoute(current)) {
+        store.addOrActivate(current)
+    }
 
     return { tabStore: store }
 }

@@ -1,0 +1,4 @@
+/* Compile-time utility registration belongs in the application's Tailwind
+ * entry. Keep theme.css valid plain CSS for the layout's automatic SFC style. */
+@import './theme-utilities.css';
+@import './theme.css';

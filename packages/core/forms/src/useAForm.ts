@@ -127,8 +127,8 @@ function nestedValueSchema(
         return item.array ? z.array(objectSchema) : objectSchema
     }
     const rules = fieldRules(item, values, api)
-    const leaf = z.object({ [item.ArrayField ?? 'value']: parseRules(rules) })
-    return item.array ? z.array(leaf) : parseRules(rules)
+    const leaf = z.object({ [item.ArrayField ?? 'value']: parseRules(rules, item.component) })
+    return item.array ? z.array(leaf) : parseRules(rules, item.component)
 }
 
 function fieldRowSchema(
@@ -142,7 +142,7 @@ function fieldRowSchema(
             .map((child) => [child.fieldName, nestedValueSchema(child, values, api)])))
     }
     const key = item.ArrayField ?? 'value'
-    return z.object({ [key]: parseRules(fieldRules(item, values, api)) })
+    return z.object({ [key]: parseRules(fieldRules(item, values, api), item.component) })
 }
 
 function fieldSchema(item: FormFieldSchema, values: Record<string, unknown>, api: FormApi): z.ZodTypeAny {

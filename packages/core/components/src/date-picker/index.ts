@@ -1,3 +1,6 @@
 export { default as DatePicker } from './DatePicker.vue'
 export { default as DateTimePicker } from './DateTimePicker.vue'
 export { default as DatePickerField } from './DatePickerField.vue'
+export { default as DateRangePicker } from './DateRangePicker.vue'
+export { default as DateTimeRangePicker } from './DateTimeRangePicker.vue'
+export type { DateRangePickerProps, DateRangePreset, DateRangeValue } from './date-range'

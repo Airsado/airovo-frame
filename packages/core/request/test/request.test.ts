@@ -17,6 +17,25 @@ function makeOptions(store: ReturnType<typeof makeStore>, overrides: Partial<Req
 }
 
 describe('@airovo/request', () => {
+    it('keeps native FormData through Axios transforms while still serializing plain JSON objects', async () => {
+        const instance = installRequest({ provide: vi.fn() } as any, makeOptions(makeStore()))
+        const captured: any[] = []
+        instance.defaults.adapter = async (config) => {
+            captured.push(config)
+            return { data: {}, status: 200, statusText: 'OK', headers: {}, config }
+        }
+        const form = new FormData()
+        form.append('file', new Blob(['image bytes'], { type: 'image/png' }), 'cover.png')
+        form.append('variant', 'original')
+        await instance.post('/upload', form)
+        expect(captured[0].data).toBe(form)
+        expect(captured[0].data.get('file').name).toBe('cover.png')
+        expect(captured[0].headers.get('Content-Type')).not.toContain('application/json')
+        await instance.post('/record', { title: 'JSON still works' })
+        expect(captured[1].data).toBe('{"title":"JSON still works"}')
+        expect(captured[1].headers.get('Content-Type')).toBe('application/json')
+    })
+
     it('normalizes Nitro nested error data', () => {
         const details = getRequestErrorDetails({
             response: {
