@@ -7,12 +7,9 @@ import {
     FieldLabel,
     FieldLegend,
     FieldSet,
-    Input,
-    Textarea,
-    Button,
 } from '@airovo/uikit-shadcnui'
-import { DatePickerField, PasswordInput, SelectBox } from '@airovo/components'
-import { Field as VeeField, FieldArray as VeeFieldArray } from 'vee-validate'
+import { Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, PasswordInput, SelectBox } from '@airovo/components'
+import { Field as VeeField, FieldArray as VeeFieldArray, type FieldBindingObject } from 'vee-validate'
 import { watchEffect } from 'vue'
 
 import type { FormFieldSchema } from './types'
@@ -20,6 +17,7 @@ import { isRequiredRule, parseRules } from './rules'
 import FormRequiredMark from './FormRequiredMark.vue'
 import { useFieldId } from './form-dom'
 import { resolveFieldDefault } from './form-defaults'
+import { updateFormFieldValue } from './form-field-update'
 
 const fieldId = useFieldId()
 
@@ -49,6 +47,10 @@ const componentMap: Record<string, any> = {
     DatePicker: DatePickerField,
     datetime: DatePickerField,
     DateTimePicker: DatePickerField,
+    daterange: DateRangePicker,
+    DateRangePicker,
+    datetimerange: DateTimeRangePicker,
+    DateTimeRangePicker,
 }
 
 const TEXT_INPUT_COMPONENTS = new Set([
@@ -230,8 +232,8 @@ function fieldRules(item: FormFieldSchema): FormFieldSchema['rules'] {
     return rules ?? 'required'
 }
 
-function handleInput(item: FormFieldSchema, onInput: (value: unknown) => void, value: unknown): void {
-    onInput(value)
+function handleInput(item: FormFieldSchema, field: Pick<FieldBindingObject, 'onInput' | 'onChange'>, value: unknown): void {
+    updateFormFieldValue(item.component, field, value)
     const callback = item.dependencies?.onChange
     if (!callback) return
     void callback(value, {
@@ -264,7 +266,13 @@ watchEffect(() => {
 </script>
 
 <template>
-    <template v-for="item in props.schema" :key="fieldPath(item)">
+    <template v-for="(item, itemIndex) in props.schema" :key="fieldPath(item)">
+        <div
+            v-if="item.section && item.section !== props.schema[itemIndex - 1]?.section"
+            class="col-span-full border-b border-border/70 pb-2 pt-1"
+        >
+            <p class="text-sm font-semibold tracking-tight">{{ item.section }}</p>
+        </div>
         <VeeFieldArray
             v-if="item.array && isRendered(item)"
             v-slot="{ fields, push, remove }"
@@ -288,17 +296,14 @@ watchEffect(() => {
                         v-else
                         v-slot="{ field, errors, handleBlur }"
                         :name="`${fieldPath(item)}[${index}].${getArrayField(item)}`"
-                        :rules="(parseRules(fieldRules(item)) as any)"
+                        :rules="(parseRules(fieldRules(item), item.component) as any)"
                     >
                         <Field
                             :orientation="props.api.props.layout === 'horizontal' ? 'horizontal' : 'vertical'"
-                            class="min-w-0 flex-1"
+                            :class="['min-w-0 flex-1', item.fieldClass]"
                             :data-invalid="!!getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) || !!errors.length"
                         >
                             <FieldContent>
-                                <FieldDescription v-if="item.description && index === 0">
-                                    {{ item.description }}
-                                </FieldDescription>
                                 <component
                                     :is="getComponent(item.component)"
                                     :id="fieldId(`${fieldPath(item)}[${index}].${getArrayField(item)}`)"
@@ -310,9 +315,12 @@ watchEffect(() => {
                                     :aria-labelledby="`${fieldId(fieldPath(item))}-label`"
                                     :aria-required="isRequired(item) || undefined"
                                     @parse-error="(message: string) => handleParseError(item, message)"
-                                    @update:model-value="handleInput(item, field.onInput, $event)"
+                                    @update:model-value="handleInput(item, field, $event)"
                                     @blur="handleBlur"
                                 />
+                                <FieldDescription v-if="item.description && index === 0">
+                                    {{ item.description }}
+                                </FieldDescription>
                                 <FieldError
                                     v-if="getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) || errors.length"
                                     :errors="[getError(`${fieldPath(item)}[${index}].${getArrayField(item)}`, item) ?? errors[0]]"
@@ -363,10 +371,11 @@ watchEffect(() => {
             v-else-if="isRendered(item)"
             v-slot="{ field, errors, handleBlur }"
             :name="fieldPath(item)"
-            :rules="(parseRules(fieldRules(item)) as any)"
+            :rules="(parseRules(fieldRules(item), item.component) as any)"
         >
             <Field
                 :orientation="props.api.props.layout === 'horizontal' ? 'horizontal' : 'vertical'"
+                :class="item.fieldClass"
                 :data-invalid="!!getError(fieldPath(item), item) || !!errors.length"
             >
                 <FieldContent>
@@ -374,9 +383,6 @@ watchEffect(() => {
                         {{ item.label || item.fieldName }}
                         <FormRequiredMark :required="isRequired(item)" />
                     </FieldLabel>
-                    <FieldDescription v-if="item.description">
-                        {{ item.description }}
-                    </FieldDescription>
                     <component
                         :is="getComponent(item.component)"
                         :id="fieldId(fieldPath(item))"
@@ -387,9 +393,12 @@ watchEffect(() => {
                         :aria-invalid="!!getError(fieldPath(item), item) || !!errors.length"
                         :aria-required="isRequired(item) || undefined"
                         @parse-error="(message: string) => handleParseError(item, message)"
-                        @update:model-value="handleInput(item, field.onInput, $event)"
+                        @update:model-value="handleInput(item, field, $event)"
                         @blur="handleBlur"
                     />
+                    <FieldDescription v-if="item.description">
+                        {{ item.description }}
+                    </FieldDescription>
                     <FieldError
                         v-if="getError(fieldPath(item), item) || errors.length"
                         :errors="[getError(fieldPath(item), item) ?? errors[0]]"

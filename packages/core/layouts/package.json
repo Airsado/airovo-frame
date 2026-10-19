@@ -4,7 +4,7 @@
     "exports": {
         ".": "./src/index.ts",
         "./basic": "./src/basic/layout.vue",
-        "./style.css": "./src/basic/theme.css",
+        "./style.css": "./src/basic/style.css",
         "./i18n": "./src/i18n.ts",
         "./locales/zh-CN": "./src/locales/zh-CN.json",
         "./locales/en-US": "./src/locales/en-US.json"
@@ -15,6 +15,7 @@
         "test": "vitest run --config vitest.config.ts"
     },
     "dependencies": {
+        "@airovo/components": "workspace:*",
         "@airovo/router": "workspace:*",
         "@airovo/shared": "workspace:*",
         "@airovo/stores": "workspace:*",
@@ -27,6 +28,8 @@
     "devDependencies": {
         "@types/nprogress": "catalog:",
         "@types/node": "catalog:",
+        "@vitejs/plugin-vue": "catalog:",
+        "@vue/test-utils": "^2.4.0",
         "happy-dom": "catalog:",
         "pinia": "catalog:",
         "vitest": "catalog:"

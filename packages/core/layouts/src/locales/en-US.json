@@ -1,4 +1,40 @@
 {
+    "tabs": {
+        "navigation": "Open pages",
+        "previous": "Scroll tabs left",
+        "next": "Scroll tabs right",
+        "opened": "Open tabs",
+        "actions": "Tab actions",
+        "refreshCurrent": "Refresh current page",
+        "refresh": "Refresh",
+        "pin": "Pin tab",
+        "unpin": "Unpin tab",
+        "maximize": "Maximize",
+        "restore": "Restore",
+        "newWindow": "Open in new window",
+        "closeCurrent": "Close current tab",
+        "closeLeft": "Close tabs to the left",
+        "closeRight": "Close tabs to the right",
+        "closeOthers": "Close other tabs",
+        "closeAll": "Close all tabs",
+        "close": "Close",
+        "fixed": "Pinned tab"
+    },
+    "dateRange": {
+        "placeholder": "Select date range",
+        "timePlaceholder": "Select date and time range",
+        "separator": "to",
+        "start": "Start time",
+        "end": "End time",
+        "clear": "Clear",
+        "cancel": "Cancel",
+        "confirm": "Apply",
+        "incomplete": "Select a start and end date",
+        "invalidTime": "Enter a valid time",
+        "reversed": "End time cannot be before start time",
+        "beforeMin": "Start time is before the allowed range",
+        "afterMax": "End time is after the allowed range"
+    },
     "navigation": {
         "back": "Back"
     },
@@ -7,7 +43,11 @@
     },
     "header": {
         "home": "Home",
-        "dataCenter": "Data Center"
+        "dataCenter": "Data Center",
+        "menuSearch": "Search menus",
+        "menuSearchDescription": "Search and open pages you can access.",
+        "menuSearchPlaceholder": "Search menus or paths…",
+        "menuSearchEmpty": "No matching menus. Try another keyword."
     },
     "common": {
         "toggle": "Toggle",
@@ -28,10 +68,12 @@
         "bulkActions": "Bulk actions for {count} selected records",
         "bulkAnnouncement": "{count} {entity} selected. Bulk actions are available.",
         "moreActions": "More actions",
+        "view": "View",
+        "toggleColumns": "Toggle columns",
         "columnVisibility": "Columns",
         "sortAscending": "Sort ascending",
         "sortDescending": "Sort descending",
-        "hideColumn": "Hide column",
+        "hideColumn": "Hide",
         "restoreColumns": "Restore default columns",
         "columnVisibilityOptions": "Column visibility options",
         "filter": "Filter",

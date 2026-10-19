@@ -6,6 +6,7 @@ import { cn, InputGroup, InputGroupAddon, InputGroupInput } from '@airovo/uikit-
 import { Command, CommandGroup, CommandItem, CommandList } from '@airovo/uikit-shadcnui/components/ui/command'
 import { Popover, PopoverAnchor, PopoverContent } from '@airovo/uikit-shadcnui/components/ui/popover'
 import { Icon } from '@airovo/shared/icons'
+import { useOverlayOwner } from '@airovo/shared/overlay'
 import { flattenSelectOptions, selectableSelectOptions, type FlattenedSelectOption, type SelectOption } from './options'
 
 defineOptions({ name: 'Combobox' })
@@ -19,12 +20,15 @@ const props = defineProps({
   allowCustomValue: { type: Boolean, default: false },
   showSelectedIcon: { type: Boolean, default: false },
   openOnFocus: { type: Boolean, default: false },
+  filterOptions: { type: Boolean, default: true },
+  selectedLabel: { type: String, default: undefined },
   popupClass: { type: String, default: undefined },
   id: { type: String, default: undefined },
   name: { type: String, default: undefined },
   ariaLabel: { type: String, default: undefined },
   ariaLabelledby: { type: String, default: undefined },
   ariaDescribedby: { type: String, default: undefined },
+  ariaBusy: { type: [Boolean, String] as PropType<boolean | string | undefined>, default: undefined },
   ariaInvalid: {
     type: [Boolean, String] as PropType<boolean | string | undefined>,
     default: undefined,
@@ -32,21 +36,32 @@ const props = defineProps({
   class: { type: String, default: undefined },
 })
 
+const emit = defineEmits<{
+  'open-change': [open: boolean]
+  search: [search: string]
+}>()
+
 const { t, te } = useI18n({ useScope: 'global' })
 const modelValue = defineModel<string | undefined>()
 const open = ref(false)
+const owner = useOverlayOwner()
+const popupStyle = computed(() => owner?.popupZIndex.value === undefined
+  ? undefined
+  : { zIndex: owner.popupZIndex.value })
 const search = ref('')
 const activeIndex = ref(-1)
 const activeDescendant = ref<string | undefined>()
 const restoreFocusOnClose = ref(false)
 const restoringFocus = ref(false)
 const searchInput = ref<{ $el?: HTMLInputElement } | null>(null)
+const inputAnchor = ref<HTMLElement | null>(null)
 const popupContent = ref<{ $el?: HTMLElement } | HTMLElement | null>(null)
 const listId = `combobox-list-${useId().replace(/:/g, '')}`
 
 const selectableOptions = computed(() => selectableSelectOptions(props.options))
 const hierarchicalOptions = computed(() => flattenSelectOptions(props.options))
 const filteredOptions = computed<FlattenedSelectOption[]>(() => {
+  if (!props.filterOptions) return hierarchicalOptions.value
   const term = search.value.trim().toLocaleLowerCase()
   if (!term) return hierarchicalOptions.value
   const matches = hierarchicalOptions.value.filter(item =>
@@ -63,7 +78,7 @@ const filteredOptions = computed<FlattenedSelectOption[]>(() => {
 })
 const filteredLeaves = computed(() => filteredOptions.value.filter(item => !item.group && item.option.value !== undefined))
 const selectedOption = computed(() => selectableOptions.value.find(option => option.value === modelValue.value))
-const selectedLabel = computed(() => selectedOption.value?.label ?? modelValue.value)
+const selectedLabel = computed(() => selectedOption.value?.label ?? props.selectedLabel ?? modelValue.value)
 const resolvedSearchPlaceholder = computed(() => props.searchPlaceholder ?? (te('common.selectSearch') ? t('common.selectSearch') : '搜索选项'))
 const resolvedEmptyText = computed(() => props.emptyText ?? (te('common.selectEmpty') ? t('common.selectEmpty') : '没有匹配的选项'))
 const triggerLabel = computed(() => props.ariaLabel ?? (te('common.open') ? t('common.open') : '打开'))
@@ -109,16 +124,23 @@ watch(filteredLeaves, resetActiveIndex, { flush: 'sync' })
 watch([open, activeOption, filteredOptions], () => {
   scheduleActiveDescendantSync()
 }, { flush: 'post' })
+watch(() => owner?.active.value, (active) => {
+  if (active === false) updateOpen(false)
+}, { flush: 'sync' })
+watch(() => props.disabled, (disabled) => {
+  if (disabled) updateOpen(false)
+})
 
 function updateOpen(value: boolean): void {
   const wasOpen = open.value
-  const nextOpen = value && !props.disabled
+  const nextOpen = value && !props.disabled && owner?.active.value !== false
   open.value = nextOpen
+  if (nextOpen !== wasOpen) emit('open-change', nextOpen)
   if (nextOpen && !wasOpen) resetActiveIndex()
   if (!open.value) {
     search.value = ''
     activeDescendant.value = undefined
-    if (wasOpen && restoreFocusOnClose.value) {
+    if (wasOpen && restoreFocusOnClose.value && owner?.active.value !== false) {
       restoringFocus.value = true
       void nextTick(() => {
         searchInput.value?.$el?.focus()
@@ -128,7 +150,27 @@ function updateOpen(value: boolean): void {
     restoreFocusOnClose.value = false
     return
   }
-  void nextTick(() => searchInput.value?.$el?.focus())
+  void nextTick(() => {
+    if (open.value && owner?.active.value !== false) searchInput.value?.$el?.focus()
+  })
+}
+
+function onCloseAutoFocus(event: Event): void {
+  // A covered/closed owner must not focus its hidden input over the new host.
+  if (owner?.active.value === false) event.preventDefault()
+}
+
+function onOpenAutoFocus(event: Event): void {
+  // Search stays in the anchored input rather than moving into the list.
+  event.preventDefault()
+}
+
+function onInteractOutside(event: Event): void {
+  // PopoverAnchor is not a PopoverTrigger. Reka therefore cannot recognize
+  // this input as part of the control when pointer/focus leaves the portal.
+  const original = (event as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent
+  const target = original?.target ?? event.target
+  if (target instanceof Node && inputAnchor.value?.contains(target)) event.preventDefault()
 }
 
 function select(value: string): void {
@@ -139,6 +181,7 @@ function select(value: string): void {
 
 function onSearchInput(value: string): void {
   search.value = value
+  emit('search', value)
   resetActiveIndex()
 }
 
@@ -210,8 +253,8 @@ function handleInputFocus(): void {
 <template>
   <Popover :open="open" @update:open="updateOpen">
     <PopoverAnchor class="block min-w-0">
-      <div class="min-w-0" :class="props.class" @mousedown="handleGroupClick" @click="handleGroupClick" @input="handleGroupInput" @keydown="selectCustom" @focusin="handleGroupFocus">
-        <InputGroup :class="cn('w-full', props.disabled && 'opacity-50')">
+      <div ref="inputAnchor" class="min-w-0" :class="props.class" @mousedown="handleGroupClick" @click="handleGroupClick" @input="handleGroupInput" @keydown="selectCustom" @focusin="handleGroupFocus">
+        <InputGroup :class="cn('w-full has-[[data-slot=input-group-control]:focus-visible]:ring-inset has-[[data-slot][aria-invalid=true]]:ring-inset', props.disabled && 'opacity-50')">
           <InputGroupAddon v-if="props.showSelectedIcon && !open && selectedOption?.icon" data-slot="combobox-selected-icon" align="inline-start" aria-hidden="true">
             <Icon :icon="selectedOption.icon" class="size-4" />
           </InputGroupAddon>
@@ -232,6 +275,7 @@ function handleInputFocus(): void {
             :aria-label="props.ariaLabel"
             :aria-labelledby="props.ariaLabelledby"
             :aria-describedby="props.ariaDescribedby"
+            :aria-busy="props.ariaBusy"
             :aria-invalid="props.ariaInvalid"
             class="h-full min-h-8"
             @focus="handleInputFocus"
@@ -251,10 +295,10 @@ function handleInputFocus(): void {
         </InputGroup>
       </div>
     </PopoverAnchor>
-    <PopoverContent ref="popupContent" :class="cn('w-(--reka-popover-anchor-width) min-w-[calc(var(--reka-popover-anchor-width)+--spacing(7))] max-h-[min(calc(--spacing(72)),calc(var(--reka-popover-content-available-height)))] overflow-hidden rounded-lg border-0 p-0 shadow-md ring-1 ring-foreground/10', props.popupClass)" align="start">
+    <PopoverContent ref="popupContent" :style="popupStyle" @open-auto-focus="onOpenAutoFocus" @close-auto-focus="onCloseAutoFocus" @interact-outside="onInteractOutside" :class="cn('w-[var(--reka-popover-trigger-width)] min-w-[var(--reka-popover-trigger-width)] max-h-[min(calc(--spacing(72)),calc(var(--reka-popover-content-available-height)))] overflow-hidden rounded-lg border-0 p-0 shadow-md ring-1 ring-foreground/10', props.popupClass)" align="start">
       <Command>
         <CommandList :id="listId">
-          <div v-if="!filteredLeaves.length" class="py-6 text-center text-sm text-muted-foreground">{{ resolvedEmptyText }}</div>
+          <div v-if="!filteredLeaves.length" class="py-6 text-center text-sm text-muted-foreground"><slot name="empty">{{ resolvedEmptyText }}</slot></div>
           <CommandGroup>
             <template v-for="option in filteredOptions" :key="option.key">
               <div
@@ -288,6 +332,7 @@ function handleInputFocus(): void {
             </template>
           </CommandGroup>
         </CommandList>
+        <slot name="footer" />
       </Command>
     </PopoverContent>
   </Popover>

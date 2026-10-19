@@ -40,6 +40,8 @@ export interface RouteMeta {
     cacheName?: string
     /** Keep this tab permanently open. */
     affix?: boolean
+    /** Set false to protect this tab from close actions without affixing it. */
+    closable?: boolean
     /** Do not create a tab for this route. */
     hideInTab?: boolean
     /** Keep a different menu entry active while this route is displayed. */
@@ -70,6 +72,7 @@ declare module 'vue-router' {
         keepAlive?: boolean
         cacheName?: string
         affix?: boolean
+        closable?: boolean
         hideInTab?: boolean
         activeMenu?: string
         component?: string

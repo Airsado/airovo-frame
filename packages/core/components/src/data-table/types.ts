@@ -10,6 +10,14 @@ export type DataTableSelectionScope = 'page' | 'persistent'
 export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
     key: string
     title: string
+    /** Optional metadata used by shared table controls (mirrors TanStack column meta). */
+    meta?: {
+        label?: string
+        /** Exclude presentation-only columns from the View menu. */
+        displayOnly?: boolean
+    }
+    /** Optional header label for adapters that supply a header instead of title. */
+    header?: string
     /** Stable id used by column visibility and persisted table settings. */
     id?: string
     sortable?: boolean
@@ -25,6 +33,8 @@ export interface DataTableColumn<T extends DataTableRow = DataTableRow> {
     maxSize?: number
     /** Hide the column while retaining it in the column configuration. */
     hidden?: boolean
+    /** Keep the column in the table while excluding it from column settings. */
+    displayOnly?: boolean
     /** Prefer this column as the generic card title. */
     mobileTitle?: boolean
     /** Render this column beside the generic card title as a badge/status. */

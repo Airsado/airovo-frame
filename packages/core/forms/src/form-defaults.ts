@@ -5,6 +5,10 @@ const DATE_COMPONENTS = new Set([
     'date',
     'DateTimePicker',
     'datetime',
+    'DateRangePicker',
+    'daterange',
+    'DateTimeRangePicker',
+    'datetimerange',
 ])
 
 /**

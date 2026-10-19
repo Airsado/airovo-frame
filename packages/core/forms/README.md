@@ -44,7 +44,24 @@ Built-in `DatePicker`/`date` and `DateTimePicker`/`datetime` fields map to
 preserved. This applies to top-level fields, nested `children`, and rows added
 to array fields.
 
-The controller exposes `getValues`, `setValues`, `setFieldValue`, `setFieldError`, `resetForm`, `resetFields`, `validate`, `validateField`, `clearValid`, `submitForm`, `updateSchema`, `resetSchema`, `appendSchemaByField`, `removeSchemaByField`, `setProps` and `scrollToField`. `formApi.values` and `formApi.errors` are reactive refs. Custom components that emit `parse-error` are synchronized into `FormApi.errors` by the renderer, so JSON draft errors participate in FieldError, aria-invalid, validation and reset flows. `setProps({ disabled, loading, showDefaultActions, layout, wrapperClass, handleSubmit })` updates the rendered form. The default layout is horizontal to preserve the existing framework presentation; pass `layout: 'vertical'` when stacked fields are preferred.
+`DateRangePicker`/`daterange` and `DateTimeRangePicker`/`datetimerange` expose
+one range field with a `[Date, Date] | undefined` value. The datetime version
+includes time selection; `componentProps` forwards options such as `presets`,
+`minDate`, `maxDate`, `locale` and `clearable`. A top-level form value retains
+the standard row wrapper: `{ period: [{ value: [start, end] }] }`; nested
+non-array children use the tuple directly. Empty ranges default to `undefined`.
+Use `rules: 'required'` for a required range, or an explicit tuple schema such
+as `z.tuple([z.date(), z.date()])` for custom validation. Convert dates into API formats in the
+application, keeping inclusive/exclusive end-time rules out of the component.
+
+The controller exposes `getValues`, `setValues`, `setFieldValue`, `setFieldError`, `resetForm`, `resetFields`, `validate`, `validateField`, `clearValid`, `submitForm`, `updateSchema`, `resetSchema`, `appendSchemaByField`, `removeSchemaByField`, `setProps` and `scrollToField`. `formApi.values` and `formApi.errors` are reactive refs. Custom components that emit `parse-error` are synchronized into `FormApi.errors` by the renderer, so JSON draft errors participate in FieldError, aria-invalid, validation and reset flows. `setProps({ disabled, loading, showDefaultActions, layout, wrapperClass, handleSubmit })` updates the rendered form. The default layout is vertical, placing labels above inputs; pass `layout: 'horizontal'` when a specific form needs inline labels. Input, Textarea and action buttons use the public core control compositions.
+
+`formApi.isDirty` reports whether current values differ from the form baseline.
+After loading an edit record, use `resetForm(recordValues)` to establish that
+record as a pristine baseline. `markPristine()` adopts current values after a
+successful save without changing them. Both preserve false, zero and empty
+values; independent form controllers retain independent baselines. Calling
+`resetForm()` without values continues to restore the configured `initialValues`.
 
 Schema fields can use `show`, `disabled`, `defaultValue` and `componentProps` functions with `{ values, api }`. For fields whose state depends on other fields, use the Vben-inspired `dependencies` contract:
 

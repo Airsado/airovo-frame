@@ -9,6 +9,15 @@ import { resolveChartColors } from '@airovo/uikit-shadcnui'
 const global = { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { common: { chartLoading: '正在加载图表', chartError: '图表加载失败', chartEmpty: '暂无图表数据', retry: '重试' } } } })] }
 
 describe('ChartCard', () => {
+    it('preserves missing observations as gaps while treating an all-null series as empty', () => {
+        const gaps = { labels: ['一', '二', '三'], datasets: [{ label: '请求', data: [0, null, 2], spanGaps: false }] }
+        const wrapper = mount(ChartCard, { global, props: { title: '真实趋势', data: gaps } })
+        expect(wrapper.findComponent(ChartContainer).props('data')).toEqual(gaps)
+        expect(wrapper.text()).not.toContain('暂无图表数据')
+        const empty = mount(ChartCard, { global, props: { title: '未覆盖', data: { labels: ['一'], datasets: [{ data: [null] }] } } })
+        expect(empty.findComponent(ChartContainer).exists()).toBe(false)
+        expect(empty.text()).toContain('暂无图表数据')
+    })
     it('renders a loading skeleton without mounting a chart', () => {
         const wrapper = mount(ChartCard, { global, props: { title: '调用趋势', loading: true } })
         expect(wrapper.attributes('aria-busy')).toBe('true')

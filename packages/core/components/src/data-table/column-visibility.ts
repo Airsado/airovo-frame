@@ -4,11 +4,17 @@ export function normalizeDataTableColumnVisibility(
     columns: readonly DataTableColumn[],
     value: DataTableColumnVisibility = {},
 ): DataTableColumnVisibility {
-    const visibleColumns = columns.filter((column) => column.id !== 'selection' && !column.hidden)
-    const configurable = visibleColumns.filter((column) => column.hideable !== false)
-    const next = Object.fromEntries(visibleColumns.map((column) => {
+    // Keep hidden-by-default columns in the normalized state so the View
+    // menu can still expose them and restore them.  Their default visibility
+    // is derived from `column.hidden`, while an explicit persisted/controlled
+    // value always wins.
+    const dataColumns = columns.filter((column) => column.id !== 'selection')
+    const configurable = dataColumns.filter((column) => column.hideable !== false)
+    const next = Object.fromEntries(dataColumns.map((column) => {
         const id = column.id ?? column.key
-        return [id, column.hideable === false ? true : value[id] !== false]
+        const explicit = value[id]
+        const resolved = typeof explicit === 'boolean' ? explicit : !column.hidden
+        return [id, column.hideable === false ? true : resolved]
     })) as DataTableColumnVisibility
     const visibleIds = Object.entries(next).filter(([, visible]) => visible).map(([id]) => id)
     if (configurable.length > 0 && visibleIds.length === 0) {

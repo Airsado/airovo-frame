@@ -10,11 +10,16 @@ describe('data table column visibility', () => {
 
     it('filters unknown and invalid stored values against current columns', () => {
         expect(normalizeDataTableColumnVisibility(columns, { name: false, kind: 'invalid' as never, old: false }))
-            .toEqual({ name: false, kind: true })
+            .toEqual({ name: false, kind: true, hidden: false })
     })
 
     it('keeps one configurable column visible when storage hides all', () => {
         expect(normalizeDataTableColumnVisibility(columns, { name: false, kind: false }))
-            .toEqual({ name: true, kind: false })
+            .toEqual({ name: true, kind: false, hidden: false })
+    })
+
+    it('keeps default-hidden columns restorable from the view menu', () => {
+        expect(normalizeDataTableColumnVisibility(columns, { hidden: true }))
+            .toEqual({ name: true, kind: true, hidden: true })
     })
 })

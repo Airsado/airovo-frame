@@ -19,6 +19,7 @@ import {
     Input,
 } from '@airovo/uikit-shadcnui'
 import { useAppContext } from './context'
+import { useTabViewCache } from './useTabViewCache'
 import type { AppShellAuthHandlers } from './AppShell.types'
 import type { SidebarView } from '@airovo/layouts'
 
@@ -34,7 +35,7 @@ const preferences = usePreferencesStore()
 const tabStore = useTabStore()
 const { t } = useI18n()
 
-const cachedTabNames = computed(() => tabStore.cachedComponentNames)
+const { cachedViewNames, viewFor } = useTabViewCache(tabStore, route)
 /**
  * Keep route changes subtle and consistent with the shell.  The preference
  * manager adds `no-anim` to the document root when animations are disabled;
@@ -126,8 +127,10 @@ async function logout() {
             <slot name="content">
                 <RouterView v-slot="{ Component, route: viewRoute }">
                     <Transition :name="routeTransitionName" mode="out-in">
-                        <KeepAlive :include="cachedTabNames">
-                            <component :is="Component" :key="viewKey(viewRoute)" />
+                        <KeepAlive :include="cachedViewNames">
+                            <component :is="viewFor(viewRoute).component" :key="viewFor(viewRoute).name">
+                                <component :is="Component" />
+                            </component>
                         </KeepAlive>
                     </Transition>
                 </RouterView>

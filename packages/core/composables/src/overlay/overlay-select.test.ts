@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, nextTick } from 'vue'
+import { createI18n } from 'vue-i18n'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import SelectBox from '../../../components/src/select/SelectBox.vue'
 import { useForm, type FormApi } from '../../../forms/src'
@@ -27,7 +28,10 @@ afterEach(async () => {
 })
 
 function attach(component: ReturnType<typeof defineComponent>) {
-    const wrapper = mount(component, { attachTo: document.body })
+    const wrapper = mount(component, {
+        attachTo: document.body,
+        global: { plugins: [createI18n({ legacy: false, locale: 'zh-CN', messages: {} })] },
+    })
     wrappers.push(wrapper)
     return wrapper
 }

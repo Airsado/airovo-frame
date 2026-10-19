@@ -10,10 +10,10 @@
  * - confirm patches the parent field, while cancel/close leaves it untouched;
  * - dependencies demonstrate fields that appear only when a switch is enabled.
  */
-import { computed, defineComponent, h, ref, type PropType } from 'vue'
+import { computed, defineComponent, h, markRaw, ref, type PropType } from 'vue'
 import { z } from 'zod'
 import { useForm, type FormFieldSchema } from '@airovo/forms'
-import { DatePickerField, JsonCodeEditor, JsonField } from '@airovo/components'
+import { CodeEditor, DatePickerField, JsonCodeEditor, JsonField } from '@airovo/components'
 import { SectionPage } from '@airovo/components'
 import { useModal } from '@airovo/composables'
 import {
@@ -131,6 +131,15 @@ const AdvancedConfigTrigger = defineComponent({
 })
 
 const schema: FormFieldSchema[] = [
+    {
+        component: markRaw(CodeEditor),
+        label: 'JavaScript 源码',
+        fieldName: 'sourceCode',
+        defaultValue: 'export function greet(name) {\n  return `Hello, ${name}!`;\n}\n',
+        componentProps: { language: 'javascript', height: 220 },
+        rules: 'required',
+        description: '支持语法高亮、行号、Tab 缩进、撤销重做、折叠和 Ctrl/⌘+F 搜索。源码只编辑，不执行。',
+    },
     {
         component: 'Input',
         label: '用户名称',
@@ -649,8 +658,11 @@ async function openTagDialog(): Promise<void> {
 
             <section class="rounded-xl border bg-card p-4 sm:p-5">
                 <h2 class="text-lg font-semibold">JsonField 回填与可视化编辑</h2>
-                <p class="mt-1 text-sm text-muted-foreground">表单只绑定 JSON 字符串，用户可以用键值行编辑或切换原始 JSON 模式；模板会同时作为 JSON 编辑器的占位提示。</p>
-                <JsonField v-model="jsonFieldValue" class="mt-4" :template="{ endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'demo' } }" value-type="any" nested />
+                <p class="mt-1 text-sm text-muted-foreground">表单只绑定 JSON 字符串，可用键值行或 JSON 模式编辑。选择模板后点击“加载模板”才会替换当前内容，模板还会作为编辑器占位提示。</p>
+                <JsonField v-model="jsonFieldValue" class="mt-4" :templates="[
+                  { label: '标准请求', description: '30 秒超时，带请求标识。', value: { endpoint: '/v1/chat/completions', timeout: 30, headers: { 'x-request-id': 'demo' } } },
+                  { label: '长任务请求', description: '120 秒超时，适合等待时间较长的请求。', value: { endpoint: '/v1/jobs', timeout: 120, retry: true } },
+                ]" value-type="any" nested />
                 <pre class="mt-3 max-h-40 overflow-auto rounded-lg bg-muted/60 p-3 text-xs">{{ jsonFieldValue }}</pre>
                 <div class="mt-6 border-t border-border/70 pt-5">
                     <h3 class="text-base font-medium">JsonCodeEditor 原始 JSON</h3>

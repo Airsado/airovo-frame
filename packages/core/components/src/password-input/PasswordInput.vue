@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from 'vue'
 import { computed, ref, useAttrs } from 'vue'
 import { Eye, EyeOff } from '@lucide/vue'
-import { Button, Input } from '@airovo/uikit-shadcnui'
+import { Button, Input } from '../controls'
 
 defineOptions({ name: 'PasswordInput', inheritAttrs: false })
 

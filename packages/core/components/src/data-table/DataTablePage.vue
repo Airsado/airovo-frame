@@ -1,138 +1,287 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, type Slot } from 'vue'
-import DataTableViewModeToggle from './DataTableViewModeToggle.vue'
-import DataTable from './DataTable.vue'
-import DataTableCardGrid from './DataTableCardGrid.vue'
-import DataTableMobileCardList from './DataTableMobileCardList.vue'
-import type { DataTableColumn, DataTableColumnPinning, DataTableColumnVisibility, DataTableRow, DataTableRowKey, DataTableSelectionScope, DataTableSort } from './types'
-import { useDataTableViewMode, type DataTableViewMode } from './view-mode'
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useSlots,
+  watch,
+  type Slot,
+} from "vue";
+import DataTableViewModeToggle from "./DataTableViewModeToggle.vue";
+import DataTable from "./DataTable.vue";
+import DataTableCardGrid from "./DataTableCardGrid.vue";
+import DataTableMobileCardList from "./DataTableMobileCardList.vue";
+import DataTablePagination from "./DataTablePagination.vue";
+import { normalizeDataTableColumnVisibility } from "./column-visibility";
+import PageFooterPortal from "../section-page/PageFooterPortal.vue";
+import { pageFooterTargetKey } from "../section-page/page-footer-context";
+import type {
+  DataTableColumn,
+  DataTableColumnPinning,
+  DataTableColumnVisibility,
+  DataTableRow,
+  DataTableRowKey,
+  DataTableSelectionScope,
+  DataTableSort,
+} from "./types";
+import { useDataTableViewMode, type DataTableViewMode } from "./view-mode";
 
-defineOptions({ name: 'DataTablePage' })
+defineOptions({ name: "DataTablePage" });
 
-const props = withDefaults(defineProps<{
-  class?: string
-  mobileCards?: boolean
-  enableViewModeToggle?: boolean
-  viewMode?: DataTableViewMode
-  defaultViewMode?: DataTableViewMode
-  viewModeStorageKey?: string
-  viewModeToggleDisabled?: boolean
+const props = withDefaults(
+  defineProps<{
+    class?: string;
+    mobileCards?: boolean;
+    /** Opt out of the new-api mobile card layout on narrow viewports. */
+    hideMobile?: boolean;
+    /** Render pagination in the surrounding SectionPage footer when available. */
+    paginationInFooter?: boolean;
+    enableViewModeToggle?: boolean;
+    /** Match new-api: hide floating bulk actions on mobile unless opted in. */
+    showMobileBulkActions?: boolean;
+    viewMode?: DataTableViewMode;
+    defaultViewMode?: DataTableViewMode;
+    viewModeStorageKey?: string;
+    viewModeToggleDisabled?: boolean;
 
-  /** Shared table/card source. Supplying rows and columns enables the built-in table. */
-  rows?: DataTableRow[]
-  columns?: DataTableColumn[]
-  rowKey?: string | ((row: DataTableRow) => DataTableRowKey)
-  loading?: boolean
-  error?: unknown
-  errorText?: string
-  emptyText?: string
-  emptyDescription?: string
-  emptyIcon?: string
-  selectable?: boolean
-  selectedKeys?: DataTableRowKey[]
-  selectionScope?: DataTableSelectionScope
-  pagination?: boolean
-  page?: number
-  pageSize?: number
-  total?: number
-  pageSizeOptions?: number[]
-  manualSort?: boolean
-  sort?: DataTableSort
-  columnVisibility?: DataTableColumnVisibility
-  columnSizing?: Record<string, number>
-  columnSizingStorageKey?: string
-  columnPinning?: DataTableColumnPinning
-  columnPinningStorageKey?: string
-  height?: string | number
-  maxHeight?: string | number
+    /** Shared table/card source. Supplying rows and columns enables the built-in table. */
+    rows?: DataTableRow[];
+    columns?: DataTableColumn[];
+    rowKey?: string | ((row: DataTableRow) => DataTableRowKey);
+    loading?: boolean;
+    error?: unknown;
+    errorText?: string;
+    emptyText?: string;
+    emptyDescription?: string;
+    emptyIcon?: string;
+    selectable?: boolean;
+    selectedKeys?: DataTableRowKey[];
+    selectionScope?: DataTableSelectionScope;
+    pagination?: boolean;
+    page?: number;
+    pageSize?: number;
+    total?: number;
+    pageSizeOptions?: number[];
+    manualSort?: boolean;
+    sort?: DataTableSort;
+    columnVisibility?: DataTableColumnVisibility;
+    columnVisibilityStorageKey?: string;
+    columnSizing?: Record<string, number>;
+    columnSizingStorageKey?: string;
+    /** Enable resizing for every column unless a column opts out explicitly. */
+    enableColumnResizing?: boolean;
+    columnPinning?: DataTableColumnPinning;
+    columnPinningStorageKey?: string;
+    height?: string | number;
+    maxHeight?: string | number;
 
-  /** Legacy card-only source. Prefer the shared source above. */
-  cardRows?: DataTableRow[]
-  cardColumns?: DataTableColumn[]
-  cardRowKey?: string | ((row: DataTableRow, index: number) => string | number)
-  cardLoading?: boolean
-  cardSelectable?: boolean
-  cardSelectedKeys?: DataTableRowKey[]
-  cardSelectionScope?: DataTableSelectionScope
-  cardEmptyText?: string
-  cardEmptyDescription?: string
-  cardError?: unknown
-  cardErrorText?: string
-}>(), {
-  mobileCards: false,
-  enableViewModeToggle: false,
-  defaultViewMode: 'table',
-  viewModeToggleDisabled: false,
-  cardLoading: false,
-  cardSelectable: false,
-  cardSelectionScope: 'page',
-})
+    /** Legacy card-only source. Prefer the shared source above. */
+    cardRows?: DataTableRow[];
+    cardColumns?: DataTableColumn[];
+    cardRowKey?:
+      | string
+      | ((row: DataTableRow, index: number) => string | number);
+    cardLoading?: boolean;
+    cardSelectable?: boolean;
+    cardSelectedKeys?: DataTableRowKey[];
+    cardSelectionScope?: DataTableSelectionScope;
+    cardEmptyText?: string;
+    cardEmptyDescription?: string;
+    cardError?: unknown;
+    cardErrorText?: string;
+  }>(),
+  {
+    mobileCards: false,
+    hideMobile: false,
+    enableViewModeToggle: false,
+    showMobileBulkActions: false,
+    viewModeToggleDisabled: false,
+    paginationInFooter: true,
+    cardLoading: false,
+    cardSelectable: false,
+    cardSelectionScope: "page",
+  },
+);
 
 const emit = defineEmits<{
-  (event: 'update:viewMode', value: DataTableViewMode): void
-  (event: 'update:selectedKeys', value: DataTableRowKey[]): void
-  (event: 'selection-change', value: DataTableRowKey[]): void
-  (event: 'update:cardSelectedKeys', value: DataTableRowKey[]): void
-  (event: 'card-selection-change', value: DataTableRowKey[]): void
-  (event: 'update:page', value: number): void
-  (event: 'update:pageSize', value: number): void
-  (event: 'update:sort', value?: DataTableSort): void
-  (event: 'sort-change', value?: DataTableSort): void
-  (event: 'update:columnVisibility', value: DataTableColumnVisibility): void
-  (event: 'update:columnSizing', value: Record<string, number>): void
-  (event: 'update:columnPinning', value: DataTableColumnPinning): void
-  (event: 'retry'): void
-}>()
+  (event: "update:viewMode", value: DataTableViewMode): void;
+  (event: "update:selectedKeys", value: DataTableRowKey[]): void;
+  (event: "selection-change", value: DataTableRowKey[]): void;
+  (event: "update:cardSelectedKeys", value: DataTableRowKey[]): void;
+  (event: "card-selection-change", value: DataTableRowKey[]): void;
+  (event: "update:page", value: number): void;
+  (event: "update:pageSize", value: number): void;
+  (event: "update:sort", value?: DataTableSort): void;
+  (event: "sort-change", value?: DataTableSort): void;
+  (event: "update:columnVisibility", value: DataTableColumnVisibility): void;
+  (event: "update:columnSizing", value: Record<string, number>): void;
+  (event: "update:columnPinning", value: DataTableColumnPinning): void;
+  (event: "retry"): void;
+}>();
 
-const slots = useSlots()
-const internalSelectedKeys = ref<DataTableRowKey[]>([])
-const internalPage = ref(props.page ?? 1)
-const internalPageSize = ref(props.pageSize ?? 20)
-const internalSort = ref<DataTableSort | undefined>(props.sort)
-const resolvedRows = computed(() => props.rows ?? props.cardRows ?? [])
-const resolvedColumns = computed(() => props.columns ?? props.cardColumns ?? [])
-const hasSharedSource = computed(() => props.rows !== undefined && props.columns !== undefined)
-const hasCardConfig = computed(() => Boolean((props.rows !== undefined || props.cardRows !== undefined) && (props.columns !== undefined || props.cardColumns !== undefined)))
-const hasCardLayout = computed(() => Boolean(slots.mobile || hasCardConfig.value))
-const resolvedLoading = computed(() => Boolean(props.loading || props.cardLoading))
-const resolvedError = computed(() => props.error ?? props.cardError)
-const resolvedErrorText = computed(() => props.errorText ?? props.cardErrorText)
-const resolvedSelectable = computed(() => Boolean(props.selectable || props.cardSelectable))
-const resolvedSelectionScope = computed(() => props.selectionScope ?? props.cardSelectionScope)
-const resolvedSelectedKeys = computed(() => props.selectedKeys ?? props.cardSelectedKeys ?? internalSelectedKeys.value)
-const resolvedPage = computed(() => props.page ?? internalPage.value)
-const resolvedPageSize = computed(() => props.pageSize ?? internalPageSize.value)
-const resolvedSort = computed(() => props.sort ?? internalSort.value)
-const resolvedTableRowKey = computed<string | ((row: DataTableRow) => DataTableRowKey)>(() => {
-  if (props.rowKey !== undefined) return props.rowKey
-  const legacyRowKey = props.cardRowKey
-  if (typeof legacyRowKey === 'function') {
+const slots = useSlots();
+const pageFooterTarget = inject(pageFooterTargetKey, null);
+const hasPageFooterTarget = computed(() => Boolean(pageFooterTarget?.value));
+const internalSelectedKeys = ref<DataTableRowKey[]>([]);
+const isMobileViewport = ref(
+  typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(max-width: 640px)").matches
+    : false,
+);
+let mobileMediaQuery: MediaQueryList | undefined;
+const internalPage = ref(props.page ?? 1);
+const internalPageSize = ref(props.pageSize ?? 20);
+const internalSort = ref<DataTableSort | undefined>(props.sort);
+const internalColumnVisibility = ref<DataTableColumnVisibility>(
+  normalizeDataTableColumnVisibility(
+    props.columns ?? props.cardColumns ?? [],
+    props.columnVisibility,
+  ),
+);
+const resolvedRows = computed(() => props.rows ?? props.cardRows ?? []);
+const resolvedColumns = computed(
+  () => props.columns ?? props.cardColumns ?? [],
+);
+const hasSharedSource = computed(
+  () => props.rows !== undefined && props.columns !== undefined,
+);
+const hasCardConfig = computed(() =>
+  Boolean(
+    (props.rows !== undefined || props.cardRows !== undefined) &&
+      (props.columns !== undefined || props.cardColumns !== undefined),
+  ),
+);
+const hasCardLayout = computed(() =>
+  Boolean(slots.mobile || hasCardConfig.value),
+);
+const resolvedLoading = computed(() =>
+  Boolean(props.loading || props.cardLoading),
+);
+const resolvedError = computed(() => props.error ?? props.cardError);
+const resolvedErrorText = computed(
+  () => props.errorText ?? props.cardErrorText,
+);
+const resolvedSelectable = computed(() =>
+  Boolean(props.selectable || props.cardSelectable),
+);
+const resolvedSelectionScope = computed(
+  () => props.selectionScope ?? props.cardSelectionScope,
+);
+const resolvedSelectedKeys = computed(
+  () =>
+    props.selectedKeys ?? props.cardSelectedKeys ?? internalSelectedKeys.value,
+);
+const resolvedPage = computed(() => props.page ?? internalPage.value);
+const resolvedPageSize = computed(
+  () => props.pageSize ?? internalPageSize.value,
+);
+const resolvedSort = computed(() => props.sort ?? internalSort.value);
+const resolvedColumnVisibility = computed(
+  () => props.columnVisibility ?? internalColumnVisibility.value,
+);
+const resolvedTableRowKey = computed<
+  string | ((row: DataTableRow) => DataTableRowKey)
+>(() => {
+  if (props.rowKey !== undefined) return props.rowKey;
+  const legacyRowKey = props.cardRowKey;
+  if (typeof legacyRowKey === "function") {
     // Keep the legacy callback's index when the shared source is rendered by
     // DataTable. DataTable callbacks currently receive only the row, so
     // resolve the index against the same rows collection.
-    return (row) => legacyRowKey(row, resolvedRows.value.indexOf(row))
+    return (row) => legacyRowKey(row, resolvedRows.value.indexOf(row));
   }
-  return typeof props.cardRowKey === 'string' ? props.cardRowKey : 'id'
-})
-const resolvedCardRowKey = computed(() => props.cardRowKey ?? props.rowKey ?? 'id')
-const hasAutoTable = computed(() => hasSharedSource.value && !slots.table)
-const hasToolbar = computed(() => Boolean(slots.toolbar || slots['view-toggle'] || props.enableViewModeToggle))
+  return typeof props.cardRowKey === "string" ? props.cardRowKey : "id";
+});
+const resolvedCardRowKey = computed(
+  () => props.cardRowKey ?? props.rowKey ?? "id",
+);
+const hasAutoTable = computed(() => hasSharedSource.value && !slots.table);
+const hasToolbar = computed(() =>
+  Boolean(slots.toolbar || slots["view-toggle"] || props.enableViewModeToggle),
+);
 
 const internal = useDataTableViewMode({
   storageKey: () => props.viewModeStorageKey,
-  defaultMode: () => props.defaultViewMode,
-})
-const resolvedViewMode = computed(() => props.viewMode ?? internal.viewMode.value)
-const cardView = computed(() => resolvedViewMode.value === 'card' && hasCardLayout.value)
+  // Match new-api: once a page opts into the card/table switch, cards are the
+  // first view unless the caller explicitly chooses another mode. A stored
+  // preference still wins inside useDataTableViewMode.
+  defaultMode: () =>
+    props.defaultViewMode ?? (props.enableViewModeToggle ? "card" : "table"),
+});
+const resolvedViewMode = computed(
+  () => props.viewMode ?? internal.viewMode.value,
+);
+const cardView = computed(
+  () => resolvedViewMode.value === "card" && hasCardLayout.value,
+);
+const showMobile = computed(() => {
+  if (props.hideMobile === true) return false;
+  // Keep the legacy `mobileCards` prop useful in non-browser test/SSR
+  // environments where there is no viewport media query. In a real browser
+  // the viewport decides the layout, matching new-api's `useMediaQuery`.
+  const noViewportApi =
+    typeof window !== "undefined" && typeof window.matchMedia !== "function";
+  return (
+    isMobileViewport.value || (noViewportApi && props.mobileCards === true)
+  );
+});
+
+function loadColumnVisibility(): void {
+  if (
+    !props.columnVisibilityStorageKey ||
+    typeof window === "undefined" ||
+    props.columnVisibility !== undefined
+  ) {
+    return;
+  }
+  try {
+    const raw = window.localStorage.getItem(props.columnVisibilityStorageKey);
+    if (!raw) return;
+    internalColumnVisibility.value = normalizeDataTableColumnVisibility(
+      resolvedColumns.value,
+      JSON.parse(raw) as DataTableColumnVisibility,
+    );
+  } catch {
+    // Invalid persisted state falls back to the column defaults.
+  }
+}
+
+watch(
+  () => props.columns ?? props.cardColumns,
+  (columns) => {
+    if (props.columnVisibility === undefined) {
+      internalColumnVisibility.value = normalizeDataTableColumnVisibility(
+        columns ?? [],
+        internalColumnVisibility.value,
+      );
+    }
+  },
+  { deep: true },
+);
+onMounted(loadColumnVisibility);
+function updateMobileViewport(): void {
+  isMobileViewport.value = mobileMediaQuery?.matches ?? false;
+}
+onMounted(() => {
+  if (typeof window === "undefined" || !window.matchMedia) return;
+  mobileMediaQuery = window.matchMedia("(max-width: 640px)");
+  updateMobileViewport();
+  mobileMediaQuery.addEventListener?.("change", updateMobileViewport);
+});
+onBeforeUnmount(() => {
+  mobileMediaQuery?.removeEventListener?.("change", updateMobileViewport);
+});
 
 const cardCellSlots = computed<Record<string, Slot>>(() => {
-  const forwarded: Record<string, Slot> = {}
+  const forwarded: Record<string, Slot> = {};
   for (const column of resolvedColumns.value) {
-    const slotName = `card-cell-${column.key}`
-    if (slots[slotName]) forwarded[column.key] = slots[slotName]!
+    const slotName = `card-cell-${column.key}`;
+    if (slots[slotName]) forwarded[column.key] = slots[slotName]!;
   }
-  return forwarded
-})
+  return forwarded;
+});
 
 const tableProps = computed(() => ({
   columns: resolvedColumns.value,
@@ -147,31 +296,43 @@ const tableProps = computed(() => ({
   selectable: resolvedSelectable.value,
   selectedKeys: resolvedSelectedKeys.value,
   selectionScope: resolvedSelectionScope.value,
-  pagination: props.pagination,
+  pagination: Boolean(props.pagination && !props.paginationInFooter),
   page: resolvedPage.value,
   pageSize: resolvedPageSize.value,
   total: props.total,
   pageSizeOptions: props.pageSizeOptions,
   manualSort: props.manualSort,
   sort: resolvedSort.value,
-  columnVisibility: props.columnVisibility,
+  columnVisibility: resolvedColumnVisibility.value,
+  columnVisibilityStorageKey: props.columnVisibilityStorageKey,
   columnSizing: props.columnSizing,
   columnSizingStorageKey: props.columnSizingStorageKey,
+  enableColumnResizing: props.enableColumnResizing,
   columnPinning: props.columnPinning,
   columnPinningStorageKey: props.columnPinningStorageKey,
   height: props.height,
   maxHeight: props.maxHeight,
-}))
+}));
 
 const tableSlotProps = computed(() => ({
   ...tableProps.value,
   selectedKeys: resolvedSelectedKeys.value,
   updateSelectedKeys,
+  // Custom table slots commonly render DataTable with `v-bind="tableProps"`.
+  // Forward the listeners as slot props too, otherwise a controlled table
+  // renders the checkbox but its selection event never reaches this page.
+  "onUpdate:selectedKeys": updateSelectedKeys,
+  onSelectionChange: updateSelectedKeys,
+  // Inline pagination also lives in the custom table, so its controlled
+  // page and page-size events need the same forwarding as selection.
+  "onUpdate:page": updatePage,
+  "onUpdate:pageSize": updatePageSize,
   updatePage,
   updatePageSize,
   updateSort,
+  "onUpdate:columnVisibility": updateColumnVisibility,
   retry,
-}))
+}));
 
 const cardGridProps = computed(() => ({
   rows: resolvedRows.value,
@@ -183,7 +344,7 @@ const cardGridProps = computed(() => ({
   selectable: resolvedSelectable.value,
   selectedKeys: resolvedSelectedKeys.value,
   selectionScope: resolvedSelectionScope.value,
-  pagination: props.pagination,
+  pagination: Boolean(props.pagination && !props.paginationInFooter),
   page: resolvedPage.value,
   pageSize: resolvedPageSize.value,
   total: props.total,
@@ -192,57 +353,100 @@ const cardGridProps = computed(() => ({
   emptyDescription: props.cardEmptyDescription ?? props.emptyDescription,
   emptyIcon: props.emptyIcon,
   cellSlots: cardCellSlots.value,
-}))
+}));
 
 function setViewMode(value: DataTableViewMode): void {
-  internal.setViewMode(value)
-  emit('update:viewMode', value)
+  internal.setViewMode(value);
+  emit("update:viewMode", value);
 }
 
-function updateSelectedKeys(value: DataTableRowKey[], source: 'table' | 'card' = 'table'): void {
-  if (props.selectedKeys === undefined && props.cardSelectedKeys === undefined) internalSelectedKeys.value = [...value]
-  emit('update:selectedKeys', value)
-  emit('selection-change', value)
-  if (props.cardSelectedKeys !== undefined || !hasSharedSource.value) emit('update:cardSelectedKeys', value)
-  if (source === 'card') emit('card-selection-change', value)
+function updateSelectedKeys(
+  value: DataTableRowKey[],
+  source: "table" | "card" = "table",
+): void {
+  if (props.selectedKeys === undefined && props.cardSelectedKeys === undefined)
+    internalSelectedKeys.value = [...value];
+  emit("update:selectedKeys", value);
+  emit("selection-change", value);
+  if (props.cardSelectedKeys !== undefined || !hasSharedSource.value)
+    emit("update:cardSelectedKeys", value);
+  if (source === "card") emit("card-selection-change", value);
 }
 
 function updatePage(value: number): void {
-  if (props.page === undefined) internalPage.value = value
-  emit('update:page', value)
+  if (props.page === undefined) internalPage.value = value;
+  emit("update:page", value);
 }
 
 function updatePageSize(value: number): void {
-  if (props.pageSize === undefined) internalPageSize.value = value
-  emit('update:pageSize', value)
+  if (props.pageSize === undefined) internalPageSize.value = value;
+  emit("update:pageSize", value);
 }
 
 function updateSort(value?: DataTableSort): void {
-  if (props.sort === undefined) internalSort.value = value
-  emit('update:sort', value)
-  emit('sort-change', value)
+  if (props.sort === undefined) internalSort.value = value;
+  emit("update:sort", value);
+  emit("sort-change", value);
+}
+
+function updateColumnVisibility(value: DataTableColumnVisibility): void {
+  const normalized = normalizeDataTableColumnVisibility(
+    resolvedColumns.value,
+    value,
+  );
+  if (props.columnVisibility === undefined) {
+    internalColumnVisibility.value = normalized;
+  }
+  emit("update:columnVisibility", normalized);
 }
 
 function retry(): void {
-  emit('retry')
+  emit("retry");
 }
 </script>
 
 <template>
-  <section :class="['min-w-0 space-y-3', $props.class]">
-    <div v-if="hasToolbar" class="flex min-w-0 flex-wrap items-center gap-2">
-      <slot name="toolbar" />
-      <slot name="view-toggle" :view-mode="resolvedViewMode" :set-view-mode="setViewMode">
+  <section
+    :class="[
+      'flex h-full min-h-0 min-w-0 flex-col gap-2.5 sm:gap-3',
+      $props.class,
+    ]"
+  >
+    <div
+      v-if="hasToolbar"
+      class="flex min-w-0 shrink-0 items-start gap-2.5 sm:gap-3"
+    >
+      <div v-if="$slots.toolbar" class="min-w-0 flex-1">
+        <slot
+          name="toolbar"
+          :view-mode="resolvedViewMode"
+          :set-view-mode="setViewMode"
+        />
+      </div>
+      <slot
+        name="view-toggle"
+        :view-mode="resolvedViewMode"
+        :set-view-mode="setViewMode"
+      >
         <DataTableViewModeToggle
-          v-if="props.enableViewModeToggle"
+          v-if="props.enableViewModeToggle && !$slots['view-toggle']"
           :model-value="resolvedViewMode"
           :disabled="props.viewModeToggleDisabled"
-          class="ml-auto"
+          class="ms-auto"
           @update:model-value="setViewMode"
         />
       </slot>
     </div>
-    <div v-if="($slots.table || hasAutoTable) && !cardView" :class="mobileCards ? 'hidden sm:block' : undefined">
+    <div class="shrink-0">
+      <slot name="toolbar-bottom" />
+    </div>
+    <div
+      v-if="($slots.table || hasAutoTable) && !cardView && !showMobile"
+      :class="[
+        'h-full min-h-0 min-w-0 flex-1',
+        mobileCards ? 'hidden sm:block' : undefined,
+      ]"
+    >
       <slot v-if="$slots.table" name="table" v-bind="tableSlotProps" />
       <DataTable
         v-else
@@ -251,14 +455,22 @@ function retry(): void {
         @update:page="updatePage"
         @update:page-size="updatePageSize"
         @update:sort="updateSort"
-        @update:column-visibility="(value) => emit('update:columnVisibility', value)"
+        @update:column-visibility="updateColumnVisibility"
         @update:column-sizing="(value) => emit('update:columnSizing', value)"
         @update:column-pinning="(value) => emit('update:columnPinning', value)"
         @retry="retry"
       />
     </div>
-    <div v-if="hasCardLayout && (cardView || mobileCards)" :class="cardView ? 'min-w-0' : 'sm:hidden'">
-      <slot v-if="$slots.mobile" name="mobile" :rows="resolvedRows" :selected-keys="resolvedSelectedKeys" />
+    <div
+      v-if="hasCardLayout && (cardView || showMobile)"
+      class="min-h-0 min-w-0 flex-1 overflow-y-auto"
+    >
+      <slot
+        v-if="$slots.mobile"
+        name="mobile"
+        :rows="resolvedRows"
+        :selected-keys="resolvedSelectedKeys"
+      />
       <DataTableCardGrid
         v-else-if="cardView"
         v-bind="cardGridProps"
@@ -267,8 +479,12 @@ function retry(): void {
         @update:page-size="updatePageSize"
         @retry="retry"
       >
-        <template v-if="$slots.card" #card="slotProps"><slot name="card" v-bind="slotProps" /></template>
-        <template v-if="$slots['card-actions']" #card-actions="slotProps"><slot name="card-actions" v-bind="slotProps" /></template>
+        <template v-if="$slots.card" #card="slotProps"
+          ><slot name="card" v-bind="slotProps"
+        /></template>
+        <template v-if="$slots['card-actions']" #card-actions="slotProps"
+          ><slot name="card-actions" v-bind="slotProps"
+        /></template>
       </DataTableCardGrid>
       <DataTableMobileCardList
         v-else
@@ -278,10 +494,48 @@ function retry(): void {
         @update:page-size="updatePageSize"
         @retry="retry"
       >
-        <template v-if="$slots.card" #card="slotProps"><slot name="card" v-bind="slotProps" /></template>
-        <template v-if="$slots['card-actions']" #card-actions="slotProps"><slot name="card-actions" v-bind="slotProps" /></template>
+        <template v-if="$slots.card" #card="slotProps"
+          ><slot name="card" v-bind="slotProps"
+        /></template>
+        <template v-if="$slots['card-actions']" #card-actions="slotProps"
+          ><slot name="card-actions" v-bind="slotProps"
+        /></template>
       </DataTableMobileCardList>
     </div>
-    <slot v-if="!$slots.table && !hasAutoTable && !mobileCards && !cardView" />
+    <slot v-if="!$slots.table && !hasAutoTable && !showMobile && !cardView" />
+
+    <!-- new-api renders bulk actions outside the table surface. -->
+    <slot
+      v-if="!showMobile || props.showMobileBulkActions"
+      name="bulk-actions"
+      :selected-keys="resolvedSelectedKeys"
+      :selected-count="resolvedSelectedKeys.length"
+      :clear-selection="() => updateSelectedKeys([])"
+    />
+
+    <PageFooterPortal
+      v-if="props.pagination && props.paginationInFooter && hasPageFooterTarget"
+    >
+      <DataTablePagination
+        :page="resolvedPage"
+        :page-size="resolvedPageSize"
+        :total="props.total ?? resolvedRows.length"
+        :page-size-options="props.pageSizeOptions"
+        :compact="false"
+        @update:page="updatePage"
+        @update:page-size="updatePageSize"
+      />
+    </PageFooterPortal>
+    <div v-else-if="props.pagination && props.paginationInFooter" class="pt-2">
+      <DataTablePagination
+        :page="resolvedPage"
+        :page-size="resolvedPageSize"
+        :total="props.total ?? resolvedRows.length"
+        :page-size-options="props.pageSizeOptions"
+        :compact="false"
+        @update:page="updatePage"
+        @update:page-size="updatePageSize"
+      />
+    </div>
   </section>
 </template>

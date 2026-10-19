@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
+import Button from '../controls/Button.vue'
+import { NEW_API_SELECT_ITEM_CLASS } from '../data-table/new-api-compat'
 import { useOverlayOwner } from '@airovo/shared/overlay'
 import { Icon } from '@airovo/shared/icons'
 import {
@@ -73,22 +75,24 @@ function clear(event: MouseEvent): void {
     <div class="relative w-full">
       <SelectTrigger
         v-bind="attrs"
-        :class="['w-full h-8 rounded-lg px-2.5 py-2', props.class, props.allowClear && modelValue ? 'pr-14' : undefined]"
+        :class="['w-full h-8 rounded-lg px-2.5 py-2 transition-colors motion-reduce:transition-none focus-visible:ring-inset aria-invalid:ring-3 aria-invalid:ring-inset dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40', props.class, props.allowClear && modelValue ? 'pr-14' : undefined]"
       >
         <SelectValue :placeholder="resolvedPlaceholder" />
       </SelectTrigger>
-      <button
+      <Button
         v-if="props.allowClear && modelValue"
         type="button"
-        class="absolute right-7 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm opacity-50 transition-opacity hover:opacity-100"
+        variant="ghost"
+        size="icon-xs"
+        class="absolute right-7 top-1/2 size-5 -translate-y-1/2 opacity-50 hover:opacity-100 focus-visible:ring-inset"
         :aria-label="clearText"
         :disabled="props.disabled"
         @click="clear"
       >
         <X class="size-3.5" />
-      </button>
+      </Button>
     </div>
-    <SelectContent class="w-(--reka-select-trigger-width) min-w-36 rounded-lg border-0 shadow-md ring-1 ring-foreground/10" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
+    <SelectContent class="w-(--reka-select-trigger-width) min-w-36 rounded-lg border-0 shadow-md ring-1 ring-foreground/10 origin-(--reka-select-content-transform-origin) duration-100 motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none" :style="popupStyle" @close-auto-focus="onCloseAutoFocus">
       <SelectGroup v-for="section in optionSections" :key="section.group?.key ?? section.items[0]?.key ?? 'root'">
         <SelectLabel v-if="section.group" class="px-1.5 py-1 text-xs" :style="{ paddingLeft: `${0.5 + section.group.depth * 0.75}rem` }">
           {{ section.group.option.label }}
@@ -97,7 +101,7 @@ function clear(event: MouseEvent): void {
           <SelectLabel v-if="item.group" class="px-1.5 py-1 text-xs" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
             {{ item.option.label }}
           </SelectLabel>
-          <SelectItem v-else-if="item.option.value !== undefined" class="rounded-md py-1 pr-8 pl-1.5 text-sm focus:bg-accent focus:text-accent-foreground" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
+          <SelectItem v-else-if="item.option.value !== undefined" :class="NEW_API_SELECT_ITEM_CLASS" :value="item.option.value" :disabled="item.option.disabled" :style="{ paddingLeft: `${0.5 + item.depth * 0.75}rem` }">
             <Icon v-if="item.option.icon" :icon="item.option.icon" class="size-4 shrink-0" aria-hidden="true" />
             <span class="min-w-0 flex-1">
               <span class="block truncate">{{ item.option.label }}</span>

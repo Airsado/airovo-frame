@@ -10,8 +10,8 @@ export function createAxios(opts: Pick<RequestOptions, 'baseURL' | 'timeout'>): 
     return axios.create({
         baseURL: opts.baseURL,
         timeout: opts.timeout ?? 15000,
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        // Axios infers JSON for plain objects and preserves FormData for the
+        // transport to add its multipart boundary. A forced JSON header would
+        // serialize uploaded files as JSON before they reach the backend.
     })
 }

@@ -11,6 +11,7 @@
         "test": "vitest run --config vitest.config.ts"
     },
     "dependencies": {
+        "@airovo/components": "workspace:*",
         "@airovo/forms": "workspace:*",
         "@airovo/shared": "workspace:*",
         "@airovo/uikit-shadcnui": "workspace:*",
@@ -25,6 +26,7 @@
         "happy-dom": "^15.0.0",
         "typescript": "catalog:",
         "vite": "catalog:",
-        "vitest": "catalog:"
+        "vitest": "catalog:",
+        "vue-i18n": "catalog:"
     }
 }

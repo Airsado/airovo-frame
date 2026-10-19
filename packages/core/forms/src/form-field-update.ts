@@ -1,0 +1,32 @@
+import {
+    ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
+    DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox,
+} from '@airovo/components'
+import { toRaw } from 'vue'
+import type { FieldBindingObject } from 'vee-validate'
+import type { FormFieldSchema } from './types'
+
+const COMMIT_COMPONENT_NAMES = new Set([
+    'Select', 'select', 'date', 'DatePicker', 'datetime', 'DateTimePicker',
+    'daterange', 'DateRangePicker', 'datetimerange', 'DateTimeRangePicker',
+    'IconPicker', 'icon-picker',
+])
+const COMMIT_COMPONENTS = new Set<unknown>([
+    ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
+    DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox,
+])
+
+/** A picker emits a committed value; a text field can still be mid-keystroke. */
+export function updateFormFieldValue(
+    component: FormFieldSchema['component'],
+    field: Pick<FieldBindingObject, 'onInput' | 'onChange'>,
+    value: unknown,
+): void {
+    // Identify actual framework components, including direct component objects.
+    // Unknown custom editors retain their input behavior; their names are not a contract.
+    const committed = typeof component === 'string'
+        ? COMMIT_COMPONENT_NAMES.has(component)
+        : COMMIT_COMPONENTS.has(toRaw(component))
+    if (committed) field.onChange(value)
+    else field.onInput(value)
+}

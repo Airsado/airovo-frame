@@ -148,6 +148,7 @@ import {
     TabsTrigger,
 } from '@airovo/uikit-shadcnui'
 import { Combobox, MultiSelect, SelectBox, SearchSelect } from '@airovo/components'
+import { DataTableQueryPage, type QueryFormValues, type FormFieldSchema } from '@airovo/forms'
 import { useDrawer, useModal } from '@airovo/composables'
 import { useEventSourceSession, type EventSourceProtocolEventPayload } from '@airovo/request'
 import { ServiceHealthCard } from '@airovo/app-ui'
@@ -413,6 +414,44 @@ function writeServerTableQuery(query: DataTableQuery): void {
     window.history.replaceState(window.history.state, '', url)
 }
 const serverTable = useDataTable({ fetcher: serverTableFetcher, filters: { search: '' }, querySync: { read: readServerTableQuery, write: writeServerTableQuery } })
+const queryDemoRows = Array.from({ length: 24 }, (_, index) => ({
+    id: index + 1,
+    name: `查询示例记录 ${String(index + 1).padStart(2, '0')}`,
+    owner: index % 2 === 0 ? '运营组' : '研发组',
+    status: index % 4 === 0 ? '已停用' : '运行中',
+    updatedAt: `2026-10-${String((index % 9) + 1).padStart(2, '0')}`,
+}))
+const queryDemoColumns: DataTableColumn[] = [
+    { key: 'name', title: '记录名称', sortable: true, mobileTitle: true },
+    { key: 'owner', title: '负责人', sortable: true },
+    { key: 'status', title: '状态', mobileBadge: true },
+    { key: 'updatedAt', title: '更新时间' },
+]
+const queryDemoFilters: DataTableFilterGroup[] = [
+    { key: 'status', title: '状态', singleSelect: true, options: [{ label: '运行中', value: '运行中', count: 18 }, { label: '已停用', value: '已停用', count: 6 }] },
+]
+const queryDemoSchema: FormFieldSchema[] = [
+    { fieldName: 'owner', label: '负责人', component: 'Input', componentProps: { placeholder: '按负责人筛选' } },
+    { fieldName: 'updatedAt', label: '更新时间', component: 'Input', componentProps: { placeholder: '按日期筛选' } },
+]
+const queryDemoFetcher: DataTableFetcher = async (query, { signal }) => {
+    await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(resolve, 120)
+        signal.addEventListener('abort', () => { clearTimeout(timer); reject(new DOMException('Request aborted', 'AbortError')) }, { once: true })
+    })
+    const search = String(query.filters?.search ?? '').trim().toLowerCase()
+    const owner = String(query.filters?.owner ?? '').trim().toLowerCase()
+    const updatedAt = String(query.filters?.updatedAt ?? '').trim()
+    const status = String(query.filters?.status ?? '')
+    const filtered = queryDemoRows.filter((row) => (!search || row.name.toLowerCase().includes(search)) && (!owner || row.owner.toLowerCase().includes(owner)) && (!updatedAt || row.updatedAt.includes(updatedAt)) && (!status || row.status === status))
+    const start = (query.page - 1) * query.pageSize
+    return { data: filtered.slice(start, start + query.pageSize), total: filtered.length }
+}
+const queryDemoTable = useDataTable({ fetcher: queryDemoFetcher, pageSize: 8, filters: { search: '' } })
+const queryDemoResult = ref('等待查询')
+function onQueryDemoSubmit(filters: QueryFormValues): void {
+    queryDemoResult.value = `已应用 ${Object.keys(filters).length} 个查询条件`
+}
 const serverTableSearch = ref('')
 const serverTableFilterValues = ref<Record<string, string | string[] | undefined>>({})
 const serverTableColumnVisibility = ref<Record<string, boolean>>({ id: false })
@@ -1308,6 +1347,65 @@ function sseItemData(item: unknown): unknown {
                         <span class="text-xs text-muted-foreground">StaticRowActions：编辑按钮与 destructive 删除菜单</span>
                         <StaticRowActions edit-label="编辑记录" delete-label="删除记录" menu-label="更多操作" @edit="batchActionResult = '编辑静态行'" @delete="batchActionResult = '删除静态行'" />
                     </div>
+                </DataPanel>
+            </section>
+
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-lg font-semibold">DataTableQueryPage 查询表单联动</h2>
+                    <p class="text-sm text-muted-foreground">查询表单保留 draft，点击搜索后才将规范化条件交给 useDataTable；工具栏沿用 new-api 的搜索、单选 FacetedFilter、刷新和列配置。</p>
+                </div>
+                <DataPanel>
+                    <DataTableQueryPage
+                        :table="queryDemoTable"
+                        :columns="queryDemoColumns"
+                        :query-schema="queryDemoSchema"
+                        :filters="queryDemoFilters"
+                        search-placeholder="按名称筛选…"
+                        :page-size-options="[8, 16, 24]"
+                        selectable
+                        enable-view-mode-toggle
+                        mobile-cards
+                        query-form-show-collapse-button
+                        @query-submit="onQueryDemoSubmit"
+                    >
+                        <template #toolbar-actions>
+                            <span class="text-xs text-muted-foreground">查询表单 + 表格</span>
+                        </template>
+                        <template #toolbar-tools>
+                            <Button size="sm" variant="outline" @click="queryDemoResult = '执行了自定义 toolbar action'">自定义动作</Button>
+                        </template>
+                        <template #actionbar="{ table }">
+                            <DataTableBulkActions :selected-count="0" entity-name="记录">
+                                <template #actions><span class="text-xs text-muted-foreground">{{ queryDemoResult }} · {{ table.total.value }} 条结果</span></template>
+                            </DataTableBulkActions>
+                        </template>
+                        <template #table="tableState">
+                            <DataTable
+                                :columns="tableState.columns"
+                                :data="tableState.data"
+                                :row-key="tableState.rowKey"
+                                :loading="tableState.loading"
+                                :error="tableState.error"
+                                :selected-keys="tableState.selectedKeys"
+                                :selection-scope="tableState.selectionScope"
+                                selectable
+                                pagination
+                                manual-sort
+                                :sort="tableState.sort"
+                                :page="tableState.page"
+                                :page-size="tableState.pageSize"
+                                :total="tableState.total"
+                                @update:selected-keys="tableState.updateSelectedKeys"
+                                @sort-change="tableState.updateSort"
+                                @update:page="tableState.updatePage"
+                                @update:page-size="tableState.updatePageSize"
+                                @retry="tableState.retry"
+                            >
+                                <template #cell-status="{ value }"><StatusBadge :status="value === '运行中' ? 'success' : 'disabled'" :text="String(value)" /></template>
+                            </DataTable>
+                        </template>
+                    </DataTableQueryPage>
                 </DataPanel>
             </section>
 

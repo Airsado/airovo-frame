@@ -1,4 +1,40 @@
 {
+    "tabs": {
+        "navigation": "打开的页面",
+        "previous": "向左滚动标签",
+        "next": "向右滚动标签",
+        "opened": "打开的标签页",
+        "actions": "标签页操作",
+        "refreshCurrent": "刷新当前页",
+        "refresh": "刷新",
+        "pin": "固定标签",
+        "unpin": "取消固定",
+        "maximize": "最大化",
+        "restore": "退出最大化",
+        "newWindow": "在新窗口打开",
+        "closeCurrent": "关闭当前标签",
+        "closeLeft": "关闭左侧标签",
+        "closeRight": "关闭右侧标签",
+        "closeOthers": "关闭其他标签",
+        "closeAll": "关闭全部标签",
+        "close": "关闭",
+        "fixed": "固定标签"
+    },
+    "dateRange": {
+        "placeholder": "选择日期范围",
+        "timePlaceholder": "选择日期时间范围",
+        "separator": "至",
+        "start": "开始时间",
+        "end": "结束时间",
+        "clear": "清除",
+        "cancel": "取消",
+        "confirm": "确定",
+        "incomplete": "请选择开始和结束日期",
+        "invalidTime": "请输入有效的时间",
+        "reversed": "结束时间不能早于开始时间",
+        "beforeMin": "开始时间早于允许范围",
+        "afterMax": "结束时间晚于允许范围"
+    },
     "navigation": {
         "back": "返回"
     },
@@ -7,7 +43,11 @@
     },
     "header": {
         "home": "首页",
-        "dataCenter": "数据中心"
+        "dataCenter": "数据中心",
+        "menuSearch": "搜索菜单",
+        "menuSearchDescription": "搜索并打开你有权限访问的页面。",
+        "menuSearchPlaceholder": "输入菜单名称或路径…",
+        "menuSearchEmpty": "没有匹配的菜单，请换个关键词。"
     },
     "common": {
         "toggle": "切换",
@@ -28,10 +68,12 @@
         "bulkActions": "批量操作：{count} 项已选择",
         "bulkAnnouncement": "已选择 {count} {entity}，可执行批量操作",
         "moreActions": "更多操作",
+        "view": "查看",
+        "toggleColumns": "切换列",
         "columnVisibility": "列显示",
         "sortAscending": "升序",
         "sortDescending": "降序",
-        "hideColumn": "隐藏列",
+        "hideColumn": "隐藏",
         "restoreColumns": "恢复默认列",
         "columnVisibilityOptions": "列显示选项",
         "filter": "筛选",

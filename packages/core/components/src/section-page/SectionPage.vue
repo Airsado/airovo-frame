@@ -20,19 +20,19 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-    <section class="flex min-h-0 flex-1 flex-col bg-background text-foreground" :class="$props.class">
+    <section class="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground" :class="$props.class">
         <header
             data-slot="section-page-header"
-            class="sticky top-0 z-20 shrink-0 bg-background/95 px-3 pb-2.5 pt-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4 sm:pb-3 sm:pt-5"
+            class="shrink-0 bg-background px-3 pb-2.5 pt-3 sm:px-4 sm:pb-3 sm:pt-5"
         >
             <div v-if="$slots.breadcrumb" class="mb-2 sm:mb-3">
                 <slot name="breadcrumb" />
             </div>
             <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4" :class="stackActionsOnMobile && 'max-sm:items-start'">
                 <div class="min-w-0 flex-1" :class="stackActionsOnMobile && 'max-sm:basis-full'">
-                    <slot name="title">
-                        <h1 class="truncate text-base font-bold tracking-tight sm:text-lg">{{ t('common.untitledPage') }}</h1>
-                    </slot>
+                    <h2 class="truncate text-base font-bold tracking-tight sm:text-lg">
+                        <slot name="title">{{ t('common.untitledPage') }}</slot>
+                    </h2>
                     <p v-if="$slots.description" class="mt-1 text-xs text-muted-foreground sm:text-sm">
                         <slot name="description" />
                     </p>
@@ -41,12 +41,12 @@ withDefaults(defineProps<{
                     <slot name="actions" />
                 </div>
             </div>
-            <div v-if="$slots.tabs" data-slot="section-page-tabs" class="mt-3 min-w-0 sm:mt-4">
-                <slot name="tabs" />
-            </div>
         </header>
 
         <div class="min-h-0 flex-1 px-3 pb-3 pt-1 sm:px-4 sm:pb-4 sm:pt-1.5" :class="fixedContent ? 'overflow-hidden' : 'overflow-auto'">
+            <div v-if="$slots.tabs" data-slot="section-page-tabs" class="mb-3 min-w-0 sm:mb-4">
+                <slot name="tabs" />
+            </div>
             <slot />
         </div>
 

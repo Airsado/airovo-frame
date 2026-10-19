@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineComponent, h, ref, useSlots, type VNodeChild } from 'vue'
+import { computed, defineComponent, h, ref, useSlots, watch, type VNodeChild } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
 import { ArrowRightLeft, Check, ChevronDown, X } from '@lucide/vue'
@@ -7,6 +7,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from '@airovo/uikit-s
 import { Popover, PopoverContent, PopoverTrigger } from '@airovo/uikit-shadcnui/components/ui/popover'
 import { cn } from '@airovo/uikit-shadcnui'
 import { Icon } from '@airovo/shared/icons'
+import { useOverlayOwner } from '@airovo/shared/overlay'
 
 export interface MultiSelectOption {
   label: string
@@ -43,6 +44,15 @@ const emit = defineEmits<{ (event: 'update:modelValue', value: string[]): void }
 const slots = useSlots()
 const model = computed(() => props.modelValue ?? [])
 const open = ref(false)
+const owner = useOverlayOwner()
+const popupStyle = computed(() => owner?.popupZIndex.value === undefined
+  ? undefined
+  : { zIndex: owner.popupZIndex.value })
+// Portaled options inherit their main overlay's layer, as SelectBox does.
+// Closing or covering that owner must close its popup without stealing focus.
+watch(() => owner?.active.value, (active) => {
+  if (active === false) open.value = false
+}, { flush: 'sync' })
 const inputValue = ref('')
 const expanded = ref(false)
 const activeIndex = ref(0)
@@ -82,7 +92,11 @@ const summaryRenderer = computed(() => {
 })
 
 function updateOpen(value: boolean): void {
-  open.value = props.disabled ? false : value
+  open.value = props.disabled || owner?.active.value === false ? false : value
+}
+
+function onCloseAutoFocus(event: Event): void {
+  if (owner?.active.value === false) event.preventDefault()
 }
 
 function setValues(values: string[]): void { emit('update:modelValue', [...new Set(values.filter(Boolean))]) }
@@ -151,7 +165,7 @@ function createLabel(): string { return props.createLabel?.replace('{{value}}', 
 <template>
   <Popover :open="open" @update:open="updateOpen">
     <PopoverTrigger as-child>
-      <div data-slot="combobox-chips" role="combobox" :aria-expanded="open" :aria-disabled="props.disabled || undefined" :class="cn('border-input focus-within:border-ring focus-within:ring-ring/50 flex min-h-8 w-full flex-wrap items-center gap-1 rounded-lg border bg-transparent bg-clip-padding px-2.5 py-1 text-sm transition-colors focus-within:ring-3 dark:bg-input/30', props.disabled && 'cursor-not-allowed opacity-50', props.class)">
+      <div data-slot="combobox-chips" role="combobox" :aria-expanded="open" :aria-disabled="props.disabled || undefined" :class="cn('border-input focus-within:border-ring focus-within:ring-ring/50 flex min-h-8 w-full flex-wrap items-center gap-1 rounded-lg border bg-transparent bg-clip-padding px-2.5 py-1 text-sm transition-colors focus-within:ring-3 focus-within:ring-inset aria-invalid:ring-inset dark:bg-input/30', props.disabled && 'cursor-not-allowed opacity-50', props.class)">
         <span class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-left">
           <template v-if="hasSummarySlot">
             <span class="inline-flex h-[calc(--spacing(5.25))] w-fit items-center justify-center rounded-sm bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground whitespace-nowrap"><slot name="selected-summary" :values="model" /></span>
@@ -174,7 +188,7 @@ function createLabel(): string { return props.createLabel?.replace('{{value}}', 
         <ChevronDown class="size-4 shrink-0 opacity-50" />
       </div>
     </PopoverTrigger>
-    <PopoverContent align="start" class="w-(--reka-popover-trigger-width) min-w-56 rounded-lg border-0 p-0 shadow-md ring-1 ring-foreground/10">
+    <PopoverContent align="start" :style="popupStyle" @close-auto-focus="onCloseAutoFocus" class="w-(--reka-popover-trigger-width) min-w-56 rounded-lg border-0 p-0 shadow-md ring-1 ring-foreground/10">
       <Command>
         <CommandList>
           <div v-if="!menuEntries.length" class="py-6 text-center text-sm text-muted-foreground">{{ resolvedEmptyText }}</div>

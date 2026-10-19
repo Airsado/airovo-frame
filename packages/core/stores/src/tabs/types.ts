@@ -1,7 +1,7 @@
 /**
- * TabItem — a single open tab. \`id\` is the stable identity (path +
- * params hash); \`affix\` means the tab can't be closed; \`pinned\` is
- * the user-pinned state (separate from \`affix\`).
+ * TabItem — a single open tab. \`id\` is the stable fullPath identity;
+ * \`affix\` is route-fixed and \`pinned\` is user-fixed. Both are protected
+ * from individual and bulk close actions.
  */
 export interface TabItem {
     id: string
@@ -13,6 +13,7 @@ export interface TabItem {
     icon?: string
     affix: boolean
     pinned: boolean
+    /** Applications may protect a normal tab without moving it to a fixed group. */
     closable: boolean
     scrollTop: number
     params?: Record<string, unknown>
