@@ -8,7 +8,7 @@ import {
     FieldLegend,
     FieldSet,
 } from '@airovo/uikit-shadcnui'
-import { Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, PasswordInput, SelectBox } from '@airovo/components'
+import { ApiMultiSelect, Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, TagInput } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray, type FieldBindingObject } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -16,7 +16,7 @@ import type { FormFieldSchema } from './types'
 import { isRequiredRule, parseRules } from './rules'
 import FormRequiredMark from './FormRequiredMark.vue'
 import { useFieldId } from './form-dom'
-import { resolveFieldDefault } from './form-defaults'
+import { isMultiSelectFieldComponent, resolveFieldDefault } from './form-defaults'
 import { updateFormFieldValue } from './form-field-update'
 
 const fieldId = useFieldId()
@@ -43,6 +43,12 @@ const componentMap: Record<string, any> = {
     Email: Input,
     select: SelectBox,
     Select: SelectBox,
+    TagInput,
+    'tag-input': TagInput,
+    MultiSelect,
+    'multi-select': MultiSelect,
+    ApiMultiSelect,
+    'api-multi-select': ApiMultiSelect,
     date: DatePickerField,
     DatePicker: DatePickerField,
     datetime: DatePickerField,
@@ -59,6 +65,7 @@ const TEXT_INPUT_COMPONENTS = new Set([
     'password', 'Password',
     'number', 'Number',
     'email', 'Email',
+    'TagInput', 'tag-input',
 ])
 
 const INPUT_TYPES: Record<string, string | undefined> = {
@@ -128,6 +135,7 @@ function fieldPath(item: FormFieldSchema): string {
 }
 
 function isTextInput(component: FormFieldSchema['component']): boolean {
+    if (isMultiSelectFieldComponent(component)) return false
     return typeof component !== 'string' || TEXT_INPUT_COMPONENTS.has(component)
 }
 
@@ -259,7 +267,7 @@ watchEffect(() => {
                 ? item.array
                     ? [createRow(item)]
                     : createRow(item)
-                : resolve(item.defaultValue, ''),
+                : resolveFieldDefault(item, { values, api: props.api }),
         )
     }
 }, { flush: 'post' })

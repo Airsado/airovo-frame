@@ -14,7 +14,7 @@
 import { computed } from 'vue'
 import type { App } from 'vue'
 import type { RouteLocationNormalized, Router } from 'vue-router'
-import { useTabStore } from '@airovo/stores/tabs'
+import { setTabStorageKey, useTabStore } from '@airovo/stores/tabs'
 import BasicTabBar from './components/BasicTabBar.vue'
 
 export { useTabStore } from '@airovo/stores/tabs'
@@ -34,6 +34,8 @@ export interface InstallTabsOptions {
      * It is recorded without creating a tab before navigation succeeds.
      */
     defaultTabPath?: string
+    /** Storage namespace for this application's opened tabs. */
+    storageKey?: string
 }
 
 function shouldTrackRoute(
@@ -56,6 +58,7 @@ export function installTabs(
     app: App,
     options: InstallTabsOptions,
 ): { tabStore: ReturnType<typeof useTabStore> } {
+    setTabStorageKey(options.storageKey)
     const store = useTabStore()
 
     // BasicLayout consumes the tab strip through its named slot. Registering

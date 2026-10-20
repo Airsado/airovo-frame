@@ -30,4 +30,6 @@ export * from "./controls";
 export * from "./video-player";
 export * from "./code-editor";
 export * from "./icon-picker";
+export * from "./tag-input";
+export * from "./hls-workbench";
 /// <reference path="./shims.d.ts" />

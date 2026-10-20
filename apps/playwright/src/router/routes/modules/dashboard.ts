@@ -39,15 +39,94 @@ const dashboard: RouteRecordRaw = {
         {
             path: 'components',
             name: 'DashboardComponents',
-            component: () => import('../../../views/ComponentsDemo.vue'),
+            redirect: '/dashboard/components/media',
+            component: () => import('../../../views/ComponentsHub.vue'),
             meta: {
                 title: '框架组件',
                 titleKey: 'navigation.components',
                 icon: 'lucide:layout-grid',
-                cacheName: 'ComponentsDemo',
                 group: '组件与表单',
                 groupKey: 'navigation.interface',
             },
+            children: [
+                {
+                    path: 'media',
+                    name: 'DashboardComponentsMedia',
+                    component: () => import('../../../views/ComponentsCategory.vue'),
+                    props: { category: 'media' },
+                    meta: {
+                        title: '媒体与图标',
+                        titleKey: 'navigation.componentMedia',
+                        cacheName: 'ComponentsMediaDemo',
+                    },
+                },
+                {
+                    path: 'basic',
+                    name: 'DashboardComponentsBasic',
+                    component: () => import('../../../views/ComponentsCategory.vue'),
+                    props: { category: 'basic' },
+                    meta: {
+                        title: '基础组件',
+                        titleKey: 'navigation.componentBasic',
+                        cacheName: 'ComponentsBasicDemo',
+                    },
+                },
+                {
+                    path: 'data',
+                    name: 'DashboardComponentsData',
+                    component: () => import('../../../views/ComponentsCategory.vue'),
+                    props: { category: 'data' },
+                    meta: {
+                        title: '数据展示',
+                        titleKey: 'navigation.componentData',
+                        cacheName: 'ComponentsDataDemo',
+                    },
+                },
+                {
+                    path: 'forms',
+                    name: 'DashboardComponentsForms',
+                    component: () => import('../../../views/ComponentsCategory.vue'),
+                    props: { category: 'forms' },
+                    meta: {
+                        title: '表单与选择',
+                        titleKey: 'navigation.componentForms',
+                        cacheName: 'ComponentsFormsDemo',
+                    },
+                },
+                {
+                    path: 'feedback',
+                    name: 'DashboardComponentsFeedback',
+                    component: () => import('../../../views/ComponentsCategory.vue'),
+                    props: { category: 'feedback' },
+                    meta: {
+                        title: '反馈与弹层',
+                        titleKey: 'navigation.componentFeedback',
+                        cacheName: 'ComponentsFeedbackDemo',
+                    },
+                },
+                {
+                    path: 'layout',
+                    name: 'DashboardComponentsLayout',
+                    component: () => import('../../../views/ComponentsCategory.vue'),
+                    props: { category: 'layout' },
+                    meta: {
+                        title: '页面与布局',
+                        titleKey: 'navigation.componentLayout',
+                        cacheName: 'ComponentsLayoutDemo',
+                    },
+                },
+                {
+                    path: 'all',
+                    name: 'DashboardComponentsAll',
+                    component: () => import('../../../views/ComponentsDemo.vue'),
+                    meta: {
+                        title: '全部组件',
+                        titleKey: 'navigation.componentAll',
+                        hideInMenu: true,
+                        cacheName: 'ComponentsDemo',
+                    },
+                },
+            ],
         },
         {
             path: 'my-form',

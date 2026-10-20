@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import {
   DataPanel,
   CommandMenu,
@@ -42,6 +42,7 @@ import {
   FrameworkTooltip,
   FrameworkCalendar,
   PasswordInput,
+  TagInput,
   type DataTableColumn,
   type DataTableColumnPinning,
   type DataTableFilterGroup,
@@ -169,6 +170,7 @@ import { ServiceHealthCard } from "@airovo/app-ui";
 import OverlaySelectExample from "./_examples/OverlaySelectExample.vue";
 import OverlayDatePickerExample from "./_examples/OverlayDatePickerExample.vue";
 import VideoPlayerExample from "../components/VideoPlayerExample.vue";
+import HlsWorkbenchExample from "../components/HlsWorkbenchExample.vue";
 import ApiSelectExample from "../components/ApiSelectExample.vue";
 import IconPickerExample from "../components/IconPickerExample.vue";
 import { getDemoEventsUrl } from "../api/core/events";
@@ -186,6 +188,35 @@ function retryDataPanel() {
 }
 
 defineOptions({ name: "ComponentsDemo" });
+
+const props = withDefaults(
+  defineProps<{ category?: "all" | "basic" | "forms" | "data" | "feedback" | "media" | "layout" }>(),
+  { category: "all" },
+);
+
+function showCategory(category: Exclude<NonNullable<typeof props.category>, "all">): boolean {
+  return props.category === "all" || props.category === category;
+}
+
+const categoryTitle = computed(() => {
+  const titles: Record<NonNullable<typeof props.category>, string> = {
+    all: "框架组件库演示",
+    basic: "基础组件演示",
+    forms: "表单与选择组件",
+    data: "数据展示组件",
+    feedback: "反馈与弹层组件",
+    media: "媒体与图标组件",
+    layout: "页面与布局组件",
+  };
+  return titles[props.category];
+});
+
+const categoryDescription = computed(() => {
+  if (props.category === "all") {
+    return "@airovo/components 提供的通用后台组件；页面骨架和基础交互由框架包提供。";
+  }
+  return "按组件职责拆分的独立演示页；可从左侧子导航切换其它组件类别。";
+});
 
 const showResult = ref(false);
 const search = ref("");
@@ -211,6 +242,7 @@ const dateRangePresets = [7, 30].map((days) => ({
   },
 }));
 const demoPassword = ref("demo-secret");
+const demoTags = ref<string[]>(["示例标签", "支持回车添加"]);
 const selectedProvider = ref<string | undefined>("openai");
 const selectedCombobox = ref<string | undefined>();
 const selectedMultiSelect = ref<string[]>(["openai"]);
@@ -700,13 +732,10 @@ function sseItemData(item: unknown): unknown {
         >开发者工具 / framework-ui</span
       ></template
     >
-    <template #title>框架组件库演示</template>
-    <template #description
-      >@airovo/components
-      提供的通用后台组件；页面骨架和基础交互由框架包提供。</template
-    >
+    <template #title>{{ categoryTitle }}</template>
+    <template #description>{{ categoryDescription }}</template>
     <div class="space-y-8">
-      <section class="space-y-4">
+      <section v-if="showCategory('media')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">IconPicker 图标选择器</h2>
           <p class="text-sm text-muted-foreground">
@@ -717,7 +746,7 @@ function sseItemData(item: unknown): unknown {
         <IconPickerExample />
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('media')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">VideoPlayer 视频播放器</h2>
           <p class="text-sm text-muted-foreground">
@@ -725,9 +754,16 @@ function sseItemData(item: unknown): unknown {
           </p>
         </div>
         <VideoPlayerExample />
+        <div class="mt-6 space-y-2">
+          <h2 class="text-lg font-semibold">HlsWorkbench 分片可视化</h2>
+          <p class="text-sm text-muted-foreground">
+            预览原片、拖动完整分片选区，并读取当前分片原文。业务保存由应用自行接入。
+          </p>
+        </div>
+        <HlsWorkbenchExample />
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('basic')" class="space-y-4">
         <h2 class="text-lg font-semibold">Progress primitive</h2>
         <div class="rounded-lg border bg-card p-4">
           <Progress :model-value="64" aria-label="演示进度" />
@@ -759,6 +795,39 @@ function sseItemData(item: unknown): unknown {
             <p class="text-xs text-muted-foreground">
               禁用时输入和显隐按钮都不可操作。
             </p>
+          </div>
+        </div>
+        <h2 class="text-lg font-semibold">TagInput 标签输入</h2>
+        <div class="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2">
+          <div class="space-y-2">
+            <label for="tag-input-demo" class="text-sm font-medium">标签</label>
+            <TagInput
+              id="tag-input-demo"
+              v-model="demoTags"
+              placeholder="输入后按回车或逗号"
+              :remove-tag-label="(tag) => `删除 ${tag}`"
+            />
+            <p class="text-xs text-muted-foreground">
+              失焦自动添加；空输入框按退格删除末项。当前值：{{ demoTags }}
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label for="tag-input-disabled" class="text-sm font-medium"
+              >禁用状态</label
+            >
+            <TagInput
+              id="tag-input-disabled"
+              :model-value="['不可编辑']"
+              disabled
+            />
+            <label for="tag-input-readonly" class="text-sm font-medium"
+              >只读状态</label
+            >
+            <TagInput
+              id="tag-input-readonly"
+              :model-value="['可聚焦查看']"
+              read-only
+            />
           </div>
         </div>
         <h2 class="text-lg font-semibold">RadioGroup primitive</h2>
@@ -927,7 +996,7 @@ function sseItemData(item: unknown): unknown {
         </AspectRatio>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('forms')" class="space-y-4">
         <h2 class="text-lg font-semibold">FrameworkCalendar</h2>
         <p class="text-sm text-muted-foreground">
           统一 new-api calendar surface、outside days、日期 cell 状态和 heading
@@ -936,7 +1005,7 @@ function sseItemData(item: unknown): unknown {
         <FrameworkCalendar class="w-fit rounded-lg border" />
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('feedback')" class="space-y-4">
         <h2 class="text-lg font-semibold">Tooltip / Popover 框架组合</h2>
         <p class="text-sm text-muted-foreground">
           复用 Reka primitive，统一 new-api surface、尺寸、箭头、focus 和
@@ -977,7 +1046,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('feedback')" class="space-y-4">
         <h2 class="text-lg font-semibold">CommandMenu 框架组合</h2>
         <p class="text-sm text-muted-foreground">
           业务只提供分组和命令数据；new-api 风格 Dialog
@@ -1003,7 +1072,7 @@ function sseItemData(item: unknown): unknown {
         />
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('layout')" class="space-y-4">
         <h2 class="text-lg font-semibold">New API 风格页面骨架</h2>
         <SectionPage
           class="min-h-96 rounded-lg border"
@@ -1074,7 +1143,7 @@ function sseItemData(item: unknown): unknown {
         </SectionPage>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('basic')" class="space-y-4">
         <h2 class="text-lg font-semibold">Tabs primitive</h2>
         <Tabs default-value="overview" class="rounded-lg border bg-card p-4">
           <TabsList>
@@ -1091,7 +1160,7 @@ function sseItemData(item: unknown): unknown {
         </Tabs>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('feedback')" class="space-y-4">
         <h2 class="text-lg font-semibold">
           ErrorState / LoadingState 状态组件
         </h2>
@@ -1260,7 +1329,7 @@ function sseItemData(item: unknown): unknown {
         </Carousel>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">app-ui 业务扩展示例</h2>
           <p class="text-sm text-muted-foreground">
@@ -1300,7 +1369,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('feedback')" class="space-y-4">
         <h2 class="text-lg font-semibold">Dialog、Modal 与日期组件</h2>
         <div class="grid gap-4 lg:grid-cols-2">
           <div class="flex flex-col gap-3 rounded-lg border bg-card p-4">
@@ -1529,10 +1598,15 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <OverlaySelectExample />
-      <OverlayDatePickerExample />
+      <section v-if="showCategory('forms')" class="space-y-4">
+        <h2 class="text-lg font-semibold">弹层选择器与日期选择</h2>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <OverlaySelectExample />
+          <OverlayDatePickerExample />
+        </div>
+      </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('forms')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">Select 下拉选择</h2>
           <p class="text-sm text-muted-foreground">
@@ -1660,7 +1734,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <h2 class="text-lg font-semibold">StatCard 数据统计</h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
@@ -1703,7 +1777,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <h2 class="text-lg font-semibold">UserCard 用户卡片</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <UserCard
@@ -1747,7 +1821,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <h2 class="text-lg font-semibold">DataTable 框架表格</h2>
         <p class="text-xs text-muted-foreground">
           点击可排序列头可打开 new-api 风格的升序、降序和隐藏列菜单。
@@ -1780,7 +1854,7 @@ function sseItemData(item: unknown): unknown {
         </DataPanel>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">ChartCard 图表组合</h2>
           <p class="text-sm text-muted-foreground">
@@ -1830,7 +1904,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">DataTable 服务端查询演示</h2>
           <p class="text-sm text-muted-foreground">
@@ -2032,7 +2106,7 @@ function sseItemData(item: unknown): unknown {
         </DataPanel>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">DataTableQueryPage 查询表单联动</h2>
           <p class="text-sm text-muted-foreground">
@@ -2109,7 +2183,7 @@ function sseItemData(item: unknown): unknown {
         </DataPanel>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <h2 class="text-lg font-semibold">StatusBadge 状态徽章</h2>
         <div class="flex flex-wrap gap-2">
           <StatusBadge status="success" />
@@ -2169,7 +2243,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('data')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">SSE 实时日志</h2>
           <p class="text-sm text-muted-foreground">
@@ -2225,7 +2299,7 @@ function sseItemData(item: unknown): unknown {
         </DataPanel>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('feedback')" class="space-y-4">
         <h2 class="text-lg font-semibold">EmptyState 空状态</h2>
         <div class="grid gap-4 lg:grid-cols-2">
           <div data-testid="empty-state-default" class="bg-card">
@@ -2255,7 +2329,7 @@ function sseItemData(item: unknown): unknown {
         </div>
       </section>
 
-      <section class="space-y-4">
+      <section v-if="showCategory('feedback')" class="space-y-4">
         <h2 class="text-lg font-semibold">ResultPage 结果页</h2>
         <div class="grid gap-4 lg:grid-cols-2">
           <Button variant="outline" @click="showResult = !showResult">

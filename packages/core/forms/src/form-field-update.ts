@@ -1,6 +1,6 @@
 import {
-    ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
-    DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox,
+    ApiMultiSelect, ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
+    DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox, TagInput,
 } from '@airovo/components'
 import { toRaw } from 'vue'
 import type { FieldBindingObject } from 'vee-validate'
@@ -10,10 +10,12 @@ const COMMIT_COMPONENT_NAMES = new Set([
     'Select', 'select', 'date', 'DatePicker', 'datetime', 'DateTimePicker',
     'daterange', 'DateRangePicker', 'datetimerange', 'DateTimeRangePicker',
     'IconPicker', 'icon-picker',
+    'TagInput', 'tag-input',
+    'MultiSelect', 'multi-select', 'ApiMultiSelect', 'api-multi-select',
 ])
 const COMMIT_COMPONENTS = new Set<unknown>([
-    ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
-    DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox,
+    ApiMultiSelect, ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
+    DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox, TagInput,
 ])
 
 /** A picker emits a committed value; a text field can still be mid-keystroke. */

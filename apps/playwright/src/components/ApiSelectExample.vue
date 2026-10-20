@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import {
   ApiSelect,
+  ApiMultiSelect,
   type ApiSelectContext,
   type ApiSelectPage,
   type SelectOption,
@@ -10,6 +11,7 @@ import {
 const localValue = ref<string>();
 const remoteValue = ref<string>();
 const pagedValue = ref<string>("2105964780501078022");
+const multipleValues = ref<string[]>(["custom-node"]);
 const requests = ref(0);
 const options: SelectOption[] = [
   {
@@ -118,6 +120,24 @@ async function resolveNode(
         />
         <p class="text-xs text-muted-foreground">
           按页加载选项，已有值通过详情查询直接显示名称。
+        </p>
+      </div>
+      <div class="space-y-1.5">
+        <label
+          for="api-multi-select"
+          class="text-xs font-medium text-muted-foreground"
+          >接口标签多选</label
+        >
+        <ApiMultiSelect
+          id="api-multi-select"
+          v-model="multipleValues"
+          :api="loadOptions"
+          allow-create
+          placeholder="搜索节点或输入自定义标识"
+          hint="候选项由接口加载；自定义标识可回车添加。"
+        />
+        <p class="text-xs text-muted-foreground">
+          已选择：{{ multipleValues.join("、") || "未选择" }}
         </p>
       </div>
     </div>

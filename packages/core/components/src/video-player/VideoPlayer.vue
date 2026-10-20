@@ -14,6 +14,7 @@ import {
 import { Button } from "../controls";
 import { loadArtplayer, loadHls } from "./runtime";
 import { isHlsSource, unsupportedSource } from "./source";
+import { installSubtitleController } from "./subtitle-controller";
 import type {
   VideoPlayerApi,
   VideoPlayerError,
@@ -21,6 +22,7 @@ import type {
   VideoPlayerOptions,
   VideoPlayerProgress,
   VideoPlayerType,
+  VideoPlayerSubtitle,
 } from "./types";
 
 defineOptions({ name: "VideoPlayer" });
@@ -32,6 +34,7 @@ const props = withDefaults(
     type?: VideoPlayerType;
     active?: boolean;
     options?: VideoPlayerOptions;
+    subtitle?: VideoPlayerSubtitle;
   }>(),
   { type: "auto", active: true, title: "视频播放器" },
 );
@@ -56,8 +59,11 @@ let suspended = false;
 let revision = 0;
 let instance: Artplayer | undefined;
 let decoder: Hls | undefined;
+let subtitles: ReturnType<typeof installSubtitleController> | undefined;
 
 function destroyPlayer() {
+  subtitles?.dispose();
+  subtitles = undefined;
   decoder?.destroy();
   decoder = undefined;
   const previous = instance;
@@ -189,16 +195,31 @@ async function initialize() {
       playsInline: true,
       lock: true,
       ...options,
+      // The controller handles initial captions too: the native constructor's
+      // async subtitle init has neither cancellation nor rejection handling.
+      subtitle: { ...(options.subtitle ?? {}), url: "" },
+      subtitleOffset: false,
       // The native screenshot click drops its rejected promise on CORS failure.
       // Add the equivalent control below with a non-fatal, handled failure.
       screenshot: false,
       container: host.value,
       url: props.src.trim(),
-      poster: props.poster ?? options.poster,
+      // Artplayer validates this as a required string after merging defaults.
+      poster: props.poster ?? options.poster ?? "",
       type: isHlsSource(props.src, props.type) ? "m3u8" : "native",
       customType: { m3u8: attachHls },
     });
     instance = art;
+    subtitles = installSubtitleController(
+      art,
+      Player.utils,
+      current,
+      (error) => emit("warning", error),
+      options.subtitleOffset !== false,
+    );
+    void subtitles.apply(
+      props.subtitle ?? (options.subtitle as VideoPlayerSubtitle | undefined),
+    );
     art.video.setAttribute("aria-label", props.title);
     if (options.screenshot !== false) {
       art.controls.add({
@@ -324,6 +345,15 @@ watch(
   () => [props.src, props.type, props.active, props.poster, props.options],
   () => {
     void initialize();
+  },
+  { deep: true, flush: "post" },
+);
+watch(
+  () => props.subtitle,
+  (subtitle) => {
+    void subtitles?.apply(
+      subtitle ?? (props.options?.subtitle as VideoPlayerSubtitle | undefined),
+    );
   },
   { deep: true, flush: "post" },
 );

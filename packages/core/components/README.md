@@ -3,6 +3,80 @@
 Framework-level UI compositions live here; the shadcn-vue primitives remain
 unchanged in `packages/ui-kit/shadcn-vue`.
 
+## HlsWorkbench
+
+`HlsWorkbench` composes the framework `VideoPlayer` with a playlist resolver,
+seek timeline, two segment-snapping range handles, original-fragment inspector
+and a 50-row paginated fragment list. Import from `@airovo/components` or
+`@airovo/components/hls-workbench`. It has no application endpoint, persistence,
+rule scope or business-specific authorization behavior.
+
+```vue
+<HlsWorkbench
+  :manifest="{
+    text: mediaPlaylist,
+    url: originalMediaUrl,
+    playbackUrl: authorizedOriginalUrl,
+  }"
+  :ranges="filters"
+  :markers="insertions"
+  :active="drawerOpen"
+  @select-range="addFilter"
+  @select-insertion="chooseInsertionTime"
+  @fragment-change="inspectFragment"
+/>
+```
+
+`disabled` makes rule editing read-only while retaining playback and seeking;
+`active=false` stops media, dragging and pending playlist requests. The application supplies the episode's **original**
+media or master playlist. `url` resolves relative resource references; optional
+`playbackUrl` is its playable unprocessed URL (e.g. an application-signed proxy).
+Media playlists are parsed locally without a network request. A master playlist
+automatically loads its first media variant and offers a quality selector.
+Relative variant paths use the master URL, while segment/key/map paths use the
+selected media playlist's final URL, including redirects. Nested masters are
+followed up to five levels, with loop detection and a 30-second overall limit.
+The default browser loader omits credentials and referrers; playlists and media
+must permit CORS. No application request client or authentication headers are used.
+
+Supply `loadManifest(url, { signal }): Promise<HlsManifestSource>` to load child
+playlists through an application adapter. Respect the abort signal and return
+the final playlist URL as `url`; return a leaf-specific `playbackUrl` if playback
+requires a signed gateway. The initial master's `playbackUrl` is deliberately
+not inherited by child variants, so automatic quality switching cannot make
+the player diverge from the inspected timeline. AirHaven continues resolving
+authorized episodes on its backend and supplies the resulting media playlist;
+its browser does not need to fetch an untrusted upstream URL directly.
+
+Dragging the seek slider previews continuously. Dragging either range handle
+snaps to whole-segment boundaries; arrow keys move one boundary and Home/End
+move to the first/last valid boundary while retaining at least one segment.
+`select-range({ startSeconds, endSeconds })` fires only on confirmation.
+`select-insertion(seconds)` uses the next original segment edge at or after the
+current frame, including zero or the final duration. `ranges`/`markers` only draw existing rules; the
+component does not edit or persist them. `range-label`, `insertion-label` and
+`selection-help` slots adapt the generic actions to a host workflow.
+
+`fragment-change` emits an `HlsFragment` (or `undefined` after invalidation),
+including its index, lossless decimal media-sequence string, timing, original
+URI, resolved URL and `rawText`. The raw text includes the effective KEY, MAP,
+MAP encryption key and discontinuity context without rewriting source lines.
+It renders as escaped text and copies only after a user click. The exposed
+`HlsWorkbenchApi` provides `seek`, `getSelection` and `getCurrentFragment`.
+Seeks before metadata are queued, source changes discard stale pending seeks,
+and deactivation/unmount release dragging listeners and player resources.
+
+The exported helpers `parseHlsManifest`, `parseHlsMasterManifest`,
+`resolveHlsManifest`, `findHlsFragment` and `snapHlsBoundary` support host validation
+and loading. The synchronous media parser accepts BOM/CRLF,
+relative HTTP(S) references and identity AES-128/fMP4 context. It rejects live,
+master playlists (use the resolver first), byte ranges, LL-HLS,
+DRM, missing/incomplete fragments, manifests over 4 MiB, more than 50,000
+fragments and accumulated durations over seven days. It performs no transcoding
+or media validation and does not create thumbnails. Masters requiring separate
+audio/subtitle renditions remain unsupported by this editing timeline. See
+`apps/playwright/src/components/HlsWorkbenchExample.vue` for a generic example.
+
 ## CodeEditor
 
 `CodeEditor` is a generic CodeMirror 6 editor. Import it from
@@ -84,13 +158,18 @@ import {
   VideoPlayer,
   type VideoPlayerMetadata,
   type VideoPlayerOptions,
+  type VideoPlayerSubtitle,
 } from "@airovo/components/video-player";
 
 const options: VideoPlayerOptions = {
   muted: false,
-  subtitle: { url: "/subtitles/example.vtt", type: "vtt" },
   // Quality variants should use the same transport as src.
   quality: [{ html: "1080P", url: "/video/1080.m3u8", default: true }],
+};
+const subtitle: VideoPlayerSubtitle = {
+  url: "/subtitles/example.vtt",
+  type: "vtt",
+  name: "简体中文",
 };
 function metadata(value: VideoPlayerMetadata) {
   console.info(value.duration, value.width, value.height);
@@ -104,14 +183,15 @@ function metadata(value: VideoPlayerMetadata) {
     title="视频预览"
     :active="true"
     :options="options"
+    :subtitle="subtitle"
     @loadedmetadata="metadata"
   />
 </template>
 ```
 
 The public props are `src`, `poster`, `title`, `type` (`auto`, `hls` or `native`),
-`active` (defaults to true) and `options`. `auto` recognizes `.m3u8` in paths and
-encoded query URLs; use `hls` for extensionless manifest endpoints. Hls.js uses
+`active` (defaults to true), `subtitle` and `options`. `auto` recognizes `.m3u8`
+in paths and encoded query URLs; use `hls` for extensionless manifest endpoints. Hls.js uses
 MediaSource when supported and falls back to native HLS on Safari/iOS. Ordinary
 media uses the browser decoder. DASH/FLV engines, DRM, parser/proxy services and
 application-specific reports are outside this component. Unsupported media
@@ -124,6 +204,24 @@ subtitles, quality, live mode, language, themes and other native options.
 Autoplay defaults to false. Browser support and cross-origin resource headers
 still determine available PIP/fullscreen/codec/canvas capabilities. Screenshot
 failures are caught and emit a non-fatal `warning`; playback continues.
+
+Use `subtitle` for external captions that can change during playback. It takes
+`{ url, type?, name?, encoding? }`; `type` supports VTT, SRT and ASS and can be
+inferred from a URL extension, including signed URLs. UTF-8 is the default
+encoding. ASS is converted to plain text cues: its positioning, fonts, effects
+and styling are not rendered. Caption text is escaped instead of interpreted as
+trusted HTML. Subtitle URLs must allow browser cross-origin fetching.
+
+Changing `subtitle` retains the player, current time and playing state. An empty
+URL removes external captions; when `subtitle` is omitted, `options.subtitle` is
+used as a fallback. The settings menu adds caption visibility and a -10 to +10
+second offset control when captions are loaded (`options.subtitleOffset=false`
+disables the offset control). Previous caption requests are cancelled and stale
+results are ignored. Fetch, conversion and track failures emit
+`warning({ code: "subtitle", ... })` and show a brief notice without pausing video
+or switching to the player error screen. A previously loaded caption remains
+until a replacement is ready. Use the `subtitle` prop rather than changing
+`options.subtitle` when switching captions without resetting playback.
 
 Source, poster, type or option updates recreate the instance. `active=false`,
 KeepAlive deactivation and unmount release both player and decoder, detach media
@@ -802,20 +900,26 @@ envelopes. Import `ApiSelectLoader` for a typed adapter:
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ApiSelect, type ApiSelectLoader } from '@airovo/components'
+import { ref } from "vue";
+import { ApiSelect, type ApiSelectLoader } from "@airovo/components";
 
-const providerId = ref<string>()
+const providerId = ref<string>();
 const loadProviders: ApiSelectLoader = async ({ signal }) => {
-  const response = await fetch('/api/providers', { signal })
-  if (!response.ok) throw new Error('Cannot load providers')
-  const body = await response.json() as { items: { id: string; name: string }[] }
-  return body.items.map(item => ({ label: item.name, value: item.id }))
-}
+  const response = await fetch("/api/providers", { signal });
+  if (!response.ok) throw new Error("Cannot load providers");
+  const body = (await response.json()) as {
+    items: { id: string; name: string }[];
+  };
+  return body.items.map((item) => ({ label: item.name, value: item.id }));
+};
 </script>
 
 <template>
-  <ApiSelect v-model="providerId" :api="loadProviders" placeholder="选择提供商" />
+  <ApiSelect
+    v-model="providerId"
+    :api="loadProviders"
+    placeholder="选择提供商"
+  />
 </template>
 ```
 
@@ -1080,11 +1184,11 @@ so applications do not need to install another copy of `@iconify/vue`.
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue'
-import { IconPicker } from '@airovo/components'
-import { Icon } from '@airovo/shared/icons'
+import { ref } from "vue";
+import { IconPicker } from "@airovo/components";
+import { Icon } from "@airovo/shared/icons";
 
-const icon = ref('lucide:home')
+const icon = ref("lucide:home");
 </script>
 
 <template>
@@ -1111,10 +1215,10 @@ file. The `body` is SVG markup without the enclosing `svg` element; width and
 height describe its viewBox. Registration does not sanitize untrusted uploads.
 
 ```ts
-import { registerIconCollection } from '@airovo/shared/icons'
-import appIcons from './assets/app-icons.json'
+import { registerIconCollection } from "@airovo/shared/icons";
+import appIcons from "./assets/app-icons.json";
 
-registerIconCollection(appIcons, { title: '应用图标' })
+registerIconCollection(appIcons, { title: "应用图标" });
 // app-icons.json: { prefix: 'my-app', icons: { logo: { body: '...' } } }
 // The selected value is my-app:logo.
 ```
@@ -1127,27 +1231,27 @@ application's authenticated business client and do not receive its access token.
 The source must permit browser cross-origin requests.
 
 ```ts
-import { createIconifySource, type IconPickerSource } from '@airovo/components'
-import { addAPIProvider } from '@airovo/shared/icons'
+import { createIconifySource, type IconPickerSource } from "@airovo/components";
+import { addAPIProvider } from "@airovo/shared/icons";
 
 const publicSources = [
-  createIconifySource({ prefix: 'mdi', label: 'Material Design' }),
-  createIconifySource({ prefix: 'tabler', label: 'Tabler' }),
-]
+  createIconifySource({ prefix: "mdi", label: "Material Design" }),
+  createIconifySource({ prefix: "tabler", label: "Tabler" }),
+];
 
 // Configure once at startup. The provider must serve both the collection
 // catalog and Iconify SVG data endpoints; replace this example with your host.
-addAPIProvider('company', {
-  resources: ['https://icons.example.com'],
-  path: '/',
-})
+addAPIProvider("company", {
+  resources: ["https://icons.example.com"],
+  path: "/",
+});
 const companySources: IconPickerSource[] = [
   createIconifySource({
-    provider: 'company',
-    prefix: 'brand',
-    label: '品牌图标',
+    provider: "company",
+    prefix: "brand",
+    label: "品牌图标",
   }),
-]
+];
 // <IconPicker v-model="icon" :sources="companySources" />
 // A company icon is saved as @company:brand:logo.
 ```
@@ -1168,15 +1272,17 @@ containing modal or drawer and closes when that owner becomes inactive.
 
 ```ts
 const [Form, formApi] = useForm({
-  schema: [{
-    component: 'IconPicker',
-    fieldName: 'icon',
-    label: '图标',
-    defaultValue: 'lucide:home',
-    rules: 'required',
-    componentProps: { clearable: true },
-  }],
-})
+  schema: [
+    {
+      component: "IconPicker",
+      fieldName: "icon",
+      label: "图标",
+      defaultValue: "lucide:home",
+      rules: "required",
+      componentProps: { clearable: true },
+    },
+  ],
+});
 ```
 
 See `apps/playwright/src/components/IconPickerExample.vue` for local, online,

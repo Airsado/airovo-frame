@@ -9,7 +9,7 @@ import {
     FieldSet,
     FieldLegend,
 } from '@airovo/uikit-shadcnui'
-import { Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, PasswordInput, SelectBox, IconPicker } from '@airovo/components'
+import { ApiMultiSelect, Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, IconPicker, TagInput } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray, type FieldBindingObject } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -18,7 +18,7 @@ import { isRequiredRule, parseRules } from './rules'
 import FormFieldNodes from './FormFieldNodes.vue'
 import FormRequiredMark from './FormRequiredMark.vue'
 import { useFieldId } from './form-dom'
-import { resolveFieldDefault } from './form-defaults'
+import { isMultiSelectFieldComponent, resolveFieldDefault } from './form-defaults'
 import { updateFormFieldValue } from './form-field-update'
 
 const fieldId = useFieldId()
@@ -63,6 +63,12 @@ const componentMap: Record<string, any> = {
     Email: Input,
     select: SelectBox,
     Select: SelectBox,
+    TagInput,
+    'tag-input': TagInput,
+    MultiSelect,
+    'multi-select': MultiSelect,
+    ApiMultiSelect,
+    'api-multi-select': ApiMultiSelect,
     date: DatePickerField,
     DatePicker: DatePickerField,
     datetime: DatePickerField,
@@ -80,6 +86,7 @@ const TEXT_INPUT_COMPONENTS = new Set([
     'password', 'Password',
     'number', 'Number',
     'email', 'Email',
+    'TagInput', 'tag-input',
 ])
 const INPUT_TYPES: Record<string, string | undefined> = {
     Number: 'number', number: 'number',
@@ -91,6 +98,7 @@ const DATE_TYPES: Record<string, 'date' | 'datetime' | undefined> = {
 }
 
 function isTextInput(component: FormFieldSchema['component']): boolean {
+    if (isMultiSelectFieldComponent(component)) return false
     if (typeof component !== 'string') return true
     return TEXT_INPUT_COMPONENTS.has(component)
 }

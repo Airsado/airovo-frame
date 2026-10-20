@@ -3,6 +3,14 @@ import type { Option } from "artplayer";
 
 export type VideoPlayerType = "auto" | "hls" | "native";
 
+/** External text captions; ASS is converted to text cues, without ASS styling. */
+export interface VideoPlayerSubtitle {
+  url: string;
+  type?: "vtt" | "srt" | "ass";
+  name?: string;
+  encoding?: string;
+}
+
 /** Source and decoder lifecycle belong to VideoPlayer, not an option spread. */
 export type VideoPlayerOptions = Partial<
   Omit<Option, "container" | "url" | "type" | "customType">
@@ -20,7 +28,7 @@ export interface VideoPlayerProgress {
 }
 
 export interface VideoPlayerError {
-  code: "load" | "unsupported" | "network" | "media" | "playback";
+  code: "load" | "unsupported" | "network" | "media" | "playback" | "subtitle";
   message: string;
   /** Original diagnostic data is emitted, never interpolated into the player UI. */
   cause?: unknown;

@@ -209,7 +209,11 @@ export async function createApp(options: FrameworkAppOptions): Promise<Framework
             void router.router.replace('/403')
         }
     })
-    installTabs(app, { router: router.router, defaultTabPath: preferences.app.homePath })
+    installTabs(app, {
+        router: router.router,
+        defaultTabPath: preferences.app.homePath,
+        storageKey: `framework-tabs:${preferences.app.name}`,
+    })
     for (const guard of routerRegistration?.beforeEach ?? []) {
         router.router.beforeEach(guard as Parameters<typeof router.router.beforeEach>[0])
     }

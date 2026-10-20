@@ -17,6 +17,18 @@ import type {
 } from 'vue-router'
 import type { TabItem } from './types'
 
+// A browser may host more than one framework application (for example the
+// playground and a business app) at the same origin.  The tab state belongs
+// to the application runtime, so its persistence key is selected by
+// installTabs before the store is first created.  Keep the historic key as
+// the fallback for consumers that use the store directly.
+let configuredTabStorageKey = 'framework-tabs'
+
+export function setTabStorageKey(key?: string): void {
+    const normalized = key?.trim()
+    if (normalized) configuredTabStorageKey = normalized
+}
+
 function hashId(
     to: RouteLocationNormalized | RouteLocationResolvedGeneric,
 ): string {
@@ -331,7 +343,11 @@ export const useTabStore = defineStore(
     {
         persist: {
             pick: ['tabs', 'cachedTabIds', 'cachedComponentNames'],
-            key: 'framework-tabs',
+            // Resolve the key when the persisted-state plugin creates the
+            // store.  `installTabs()` runs after this module is imported, so
+            // evaluating the variable here would freeze the historic
+            // `framework-tabs` key and make every app share its tab cache.
+            key: () => configuredTabStorageKey,
             storage: localStorage,
         },
     },

@@ -5,5 +5,6 @@ export type {
   VideoPlayerMetadata,
   VideoPlayerOptions,
   VideoPlayerProgress,
+  VideoPlayerSubtitle,
   VideoPlayerType,
 } from "./types";
