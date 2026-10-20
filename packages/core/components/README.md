@@ -24,6 +24,7 @@ rule scope or business-specific authorization behavior.
   @select-range="addFilter"
   @select-insertion="chooseInsertionTime"
   @fragment-change="inspectFragment"
+  @retry="refreshPlaybackSource"
 />
 ```
 
@@ -44,9 +45,15 @@ playlists through an application adapter. Respect the abort signal and return
 the final playlist URL as `url`; return a leaf-specific `playbackUrl` if playback
 requires a signed gateway. The initial master's `playbackUrl` is deliberately
 not inherited by child variants, so automatic quality switching cannot make
-the player diverge from the inspected timeline. AirHaven continues resolving
-authorized episodes on its backend and supplies the resulting media playlist;
-its browser does not need to fetch an untrusted upstream URL directly.
+the player diverge from the inspected timeline. A host may resolve authorized
+media on its backend and supply the resulting playlist without fetching an
+untrusted upstream URL directly in the browser.
+
+`retry` forwards the inner player's retry request without arguments. A host
+owning expiring playback URLs can use this event to refresh `manifest` with a
+new authorized playback URL. The inner player also retries its current source;
+it does not wait for an asynchronous host refresh. The component does not renew
+credentials or request an application-specific playback session itself.
 
 Dragging the seek slider previews continuously. Dragging either range handle
 snaps to whole-segment boundaries; arrow keys move one boundary and Home/End

@@ -7,7 +7,7 @@ const seek = vi.fn();
 const PlayerStub = defineComponent({
   name: "VideoPlayer",
   props: ["src", "active", "type"],
-  emits: ["loadedmetadata", "timeupdate"],
+  emits: ["loadedmetadata", "timeupdate", "retry"],
   setup(_props, { expose }) {
     expose({ seek });
     return () => h("div", { "data-player": true });
@@ -84,6 +84,12 @@ afterEach(() => {
 });
 
 describe("HlsWorkbench", () => {
+  it("lets a host renew expired playback URLs when the player is retried", async () => {
+    const wrapper = render();
+    await flushPromises();
+    wrapper.getComponent(PlayerStub).vm.$emit("retry");
+    expect(wrapper.emitted("retry")).toEqual([[]]);
+  });
   it("loads the relative media variant before inspecting or playing a collection master", async () => {
     const loadManifest = vi.fn(async (url: string) => ({
       text: sample,

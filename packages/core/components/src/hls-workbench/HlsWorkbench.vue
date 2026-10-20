@@ -53,6 +53,8 @@ const emit = defineEmits<{
   "select-range": [range: HlsRange];
   "select-insertion": [seconds: number];
   "fragment-change": [fragment: HlsFragment | undefined];
+  /** A host owning expiring playback URLs can obtain a new capability. */
+  retry: [];
   error: [message: string];
 }>();
 
@@ -520,6 +522,7 @@ onBeforeUnmount(() => {
               :options="playerOptions"
               @loadedmetadata="metadataReady"
               @timeupdate="updateTime"
+              @retry="emit('retry')"
             />
             <div class="space-y-4 border-t px-4 py-4">
               <div
