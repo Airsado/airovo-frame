@@ -60,7 +60,6 @@ const emit = defineEmits<{
 
 const player = ref<VideoPlayerApi>();
 const variantControlId = `${useId()}-hls-variant`;
-const rail = ref<HTMLDivElement>();
 const parsed = shallowRef<HlsMediaManifest>();
 const resolvedSource = shallowRef<HlsManifestSource>();
 const variants = shallowRef<HlsVariant[]>([]);
@@ -85,13 +84,25 @@ let copyTimer: ReturnType<typeof setTimeout> | undefined;
 let loadController: AbortController | undefined;
 let loadRevision = 0;
 let dragging:
-  | { target: "seek" | "start" | "end"; pointerId: number }
+  | { target: "seek" | "start" | "end"; pointerId: number; track: HTMLElement }
   | undefined;
 
 const fragment = computed(
   () => parsed.value && findHlsFragment(parsed.value, currentTime.value),
 );
 const duration = computed(() => parsed.value?.duration ?? 0);
+const selectionStartMax = computed(() => {
+  const edges = parsed.value?.boundaries ?? [];
+  return edges[Math.max(0, edges.indexOf(selectionEnd.value) - 1)] ?? 0;
+});
+const selectionEndMin = computed(() => {
+  const edges = parsed.value?.boundaries ?? [];
+  return (
+    edges[
+      Math.min(edges.length - 1, edges.indexOf(selectionStart.value) + 1)
+    ] ?? 0
+  );
+});
 const pageCount = computed(() =>
   Math.max(1, Math.ceil((parsed.value?.fragments.length ?? 0) / pageSize)),
 );
@@ -157,6 +168,7 @@ function endDrag() {
   window.removeEventListener("pointermove", moveDrag);
   window.removeEventListener("pointerup", finishDrag);
   window.removeEventListener("pointercancel", finishDrag);
+  window.removeEventListener("blur", endDrag);
 }
 
 function cancelLoad() {
@@ -331,7 +343,9 @@ function setSelectionBoundary(target: "start" | "end", seconds: number) {
   }
 }
 function timeFromPointer(event: PointerEvent) {
-  const box = rail.value?.getBoundingClientRect();
+  // The three tracks can have different geometry after a host layout change.
+  // Keep the pointer mapped to the track where this drag actually began.
+  const box = dragging?.track.getBoundingClientRect();
   if (!box || box.width <= 0) return undefined;
   return (
     Math.max(0, Math.min(1, (event.clientX - box.left) / box.width)) *
@@ -359,14 +373,20 @@ function finishDrag(event: PointerEvent) {
 function beginDrag(event: PointerEvent, target: "seek" | "start" | "end") {
   if (
     !(target === "seek" ? canPreview.value : canEdit.value) ||
-    event.button !== 0
+    event.button !== 0 ||
+    event.isPrimary === false
   )
     return;
+  const control = event.currentTarget as HTMLElement;
+  const track = control.closest<HTMLElement>(".hls-track");
+  if (!track) return;
   endDrag();
-  dragging = { target, pointerId: event.pointerId };
+  dragging = { target, pointerId: event.pointerId, track };
+  control.focus({ preventScroll: true });
   window.addEventListener("pointermove", moveDrag, { passive: false });
   window.addEventListener("pointerup", finishDrag);
   window.addEventListener("pointercancel", finishDrag);
+  window.addEventListener("blur", endDrag);
   moveDrag(event);
 }
 function boundaryKey(event: KeyboardEvent, target: "start" | "end") {
@@ -537,11 +557,42 @@ onBeforeUnmount(() => {
               <div class="hls-timeline-stack" data-slot="hls-timeline-controls">
                 <div class="hls-timeline-row">
                   <div class="hls-timeline-label">
-                    <span class="font-medium">播放位置</span>
-                    <span class="tabular-nums text-muted-foreground">{{ formatTime(currentTime) }}</span>
+                    <span class="font-medium">选区开始</span>
+                    <span class="tabular-nums text-muted-foreground">{{
+                      formatTime(selectionStart)
+                    }}</span>
                   </div>
                   <div
-                    ref="rail"
+                    class="hls-track hls-boundary-track relative touch-none"
+                    @pointerdown="beginDrag($event, 'start')"
+                  >
+                    <button
+                      type="button"
+                      role="slider"
+                      data-slot="hls-range-start"
+                      class="hls-range-handle absolute z-20 -translate-x-1/2 rounded-sm border-2 border-primary bg-background text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="选区开始"
+                      :aria-valuemin="0"
+                      :aria-valuemax="selectionStartMax"
+                      :aria-valuenow="selectionStart"
+                      :aria-valuetext="formatTime(selectionStart)"
+                      :style="{ left: percent(selectionStart) }"
+                      :disabled="!canEdit"
+                      @pointerdown.stop="beginDrag($event, 'start')"
+                      @keydown.stop="boundaryKey($event, 'start')"
+                    >
+                      <span aria-hidden="true">⋮</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="hls-timeline-row">
+                  <div class="hls-timeline-label">
+                    <span class="font-medium">播放位置</span>
+                    <span class="tabular-nums text-muted-foreground">{{
+                      formatTime(currentTime)
+                    }}</span>
+                  </div>
+                  <div
                     data-slot="hls-selection-rail"
                     role="slider"
                     aria-label="播放位置"
@@ -549,79 +600,61 @@ onBeforeUnmount(() => {
                     :aria-valuemax="duration"
                     :aria-valuenow="currentTime"
                     :aria-valuetext="formatTime(currentTime)"
-                    tabindex="0"
-                    class="hls-selection-rail hls-track relative h-3 touch-none rounded-full bg-muted"
+                    :aria-disabled="!canPreview"
+                    :tabindex="canPreview ? 0 : -1"
+                    class="hls-selection-rail hls-track relative touch-none rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     @pointerdown="beginDrag($event, 'seek')"
                     @keydown="playbackKey"
                   >
                     <span
                       v-for="(range, index) in ranges"
                       :key="`range-${index}`"
-                      class="pointer-events-none absolute inset-y-0 rounded-full bg-destructive/30"
+                      class="pointer-events-none absolute top-1/2 h-3 -translate-y-1/2 rounded-sm bg-destructive/30"
                       :style="rangeStyle(range)"
                       :title="range.label || '已配置过滤区间'"
                     />
                     <span
-                      class="pointer-events-none absolute inset-y-0 rounded-full border-x border-primary/60 bg-primary/25"
-                      :style="rangeStyle({ startSeconds: selectionStart, endSeconds: selectionEnd })"
+                      data-slot="hls-selection-highlight"
+                      class="pointer-events-none absolute top-1/2 h-3 -translate-y-1/2 rounded-sm border-x border-primary/60 bg-primary/25"
+                      :style="
+                        rangeStyle({
+                          startSeconds: selectionStart,
+                          endSeconds: selectionEnd,
+                        })
+                      "
                     />
                     <span
                       v-for="(marker, index) in markers"
                       :key="`marker-${index}`"
-                      class="pointer-events-none absolute -top-1 h-5 w-0.5 bg-violet-500"
+                      class="pointer-events-none absolute top-0.5 h-5 w-0.5 bg-violet-500"
                       :style="{ left: percent(marker.atSeconds) }"
                       :title="marker.label || '已配置插入点'"
                     />
                     <span
-                      class="pointer-events-none absolute -top-2 -bottom-2 z-10 w-0.5 bg-foreground"
+                      data-slot="hls-playhead"
+                      class="pointer-events-none absolute inset-y-0 z-10 w-1 -translate-x-1/2 rounded-full bg-foreground"
                       :style="{ left: percent(currentTime) }"
                     />
                   </div>
                 </div>
                 <div class="hls-timeline-row">
                   <div class="hls-timeline-label">
-                    <span class="font-medium">选区开始</span>
-                    <span class="tabular-nums text-muted-foreground">{{ formatTime(selectionStart) }}</span>
-                  </div>
-                  <div
-                    class="hls-track hls-boundary-track relative h-3 touch-none rounded-full bg-muted"
-                    @pointerdown="beginDrag($event, 'start')"
-                  >
-                    <span class="pointer-events-none absolute inset-y-0 rounded-full bg-primary/20" :style="rangeStyle({ startSeconds: 0, endSeconds: selectionStart })" />
-                    <button
-                      type="button"
-                      role="slider"
-                      data-slot="hls-range-start"
-                      class="hls-range-handle absolute inset-y-0 z-20 -translate-x-1/2 rounded-sm border-2 border-primary bg-background text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      aria-label="选区开始"
-                      :aria-valuemin="0"
-                      :aria-valuemax="selectionEnd"
-                      :aria-valuenow="selectionStart"
-                      :aria-valuetext="formatTime(selectionStart)"
-                      :style="{ left: percent(selectionStart) }"
-                      :disabled="!canEdit"
-                      @pointerdown.stop="beginDrag($event, 'start')"
-                      @keydown.stop="boundaryKey($event, 'start')"
-                    ><span aria-hidden="true">⋮</span></button>
-                  </div>
-                </div>
-                <div class="hls-timeline-row">
-                  <div class="hls-timeline-label">
                     <span class="font-medium">选区结束</span>
-                    <span class="tabular-nums text-muted-foreground">{{ formatTime(selectionEnd) }}</span>
+                    <span class="tabular-nums text-muted-foreground">{{
+                      formatTime(selectionEnd)
+                    }}</span>
                   </div>
                   <div
-                    class="hls-track hls-boundary-track relative h-3 touch-none rounded-full bg-muted"
+                    class="hls-track hls-boundary-track relative touch-none"
                     @pointerdown="beginDrag($event, 'end')"
                   >
-                    <span class="pointer-events-none absolute inset-y-0 rounded-full bg-primary/20" :style="rangeStyle({ startSeconds: selectionEnd, endSeconds: duration })" />
                     <button
                       type="button"
                       role="slider"
                       data-slot="hls-range-end"
-                      class="hls-range-handle absolute inset-y-0 z-20 -translate-x-1/2 rounded-sm border-2 border-primary bg-background text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      class="hls-range-handle absolute z-20 -translate-x-1/2 rounded-sm border-2 border-primary bg-background text-primary shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="选区结束"
-                      :aria-valuemin="selectionStart"
+                      :aria-valuemin="selectionEndMin"
                       :aria-valuemax="duration"
                       :aria-valuenow="selectionEnd"
                       :aria-valuetext="formatTime(selectionEnd)"
@@ -629,7 +662,9 @@ onBeforeUnmount(() => {
                       :disabled="!canEdit"
                       @pointerdown.stop="beginDrag($event, 'end')"
                       @keydown.stop="boundaryKey($event, 'end')"
-                    ><span aria-hidden="true">⋮</span></button>
+                    >
+                      <span aria-hidden="true">⋮</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -652,7 +687,7 @@ onBeforeUnmount(() => {
                     {{ selectedCount }} 个完整分片
                   </p>
                   <p>
-                    播放位置、选区开始、选区结束分开显示；按完整分片调整选区，聚焦后可用方向键逐片移动。
+                    上方调整开始，中间拖动播放位置，下方调整结束；高亮区域为当前选区。聚焦手柄后可用方向键逐片调整。
                   </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -764,7 +799,9 @@ onBeforeUnmount(() => {
           >
             <LocateFixed class="size-3.5" />
             分片列表
-            <span class="font-normal text-muted-foreground">{{ parsed.fragments.length }} 个</span>
+            <span class="font-normal text-muted-foreground"
+              >{{ parsed.fragments.length }} 个</span
+            >
           </Button>
           <div
             v-show="fragmentListOpen"
@@ -772,52 +809,80 @@ onBeforeUnmount(() => {
             @mouseenter="openFragmentList"
             @mouseleave="closeFragmentList"
           >
-            <div class="flex items-center justify-between gap-2 border-b px-4 py-3">
+            <div
+              class="flex items-center justify-between gap-2 border-b px-4 py-3"
+            >
               <span class="text-sm font-medium">选择要定位的分片</span>
-              <Button variant="ghost" size="sm" :disabled="!active" @click="locateCurrent">
+              <Button
+                variant="ghost"
+                size="sm"
+                :disabled="!active"
+                @click="locateCurrent"
+              >
                 <LocateFixed class="size-3.5" />定位当前
               </Button>
             </div>
             <ol data-slot="hls-fragments" class="max-h-64 overflow-y-auto p-1">
-          <li v-for="part in visibleFragments" :key="part.index">
-            <button
-              type="button"
-              class="flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
-              :class="
-                fragment?.index === part.index
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-foreground'
-              "
-              :aria-current="
-                fragment?.index === part.index ? 'true' : undefined
-              "
-              :disabled="!active"
-              @click="seek(part.startSeconds)"
-            >
-              <span class="w-10 shrink-0 tabular-nums"
-                >#{{ part.index + 1 }}</span
-              >
-              <span class="w-44 shrink-0 tabular-nums"
-                >{{ formatTime(part.startSeconds) }} —
-                {{ formatTime(part.endSeconds) }}</span
-              >
-              <span class="min-w-0 flex-1 truncate" :title="part.uri">{{
-                part.uri
-              }}</span>
-              <span
-                v-if="part.discontinuity"
-                class="shrink-0 text-muted-foreground"
-                >断点</span
-              >
-            </button>
-          </li>
+              <li v-for="part in visibleFragments" :key="part.index">
+                <button
+                  type="button"
+                  class="flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  :class="
+                    fragment?.index === part.index
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground'
+                  "
+                  :aria-current="
+                    fragment?.index === part.index ? 'true' : undefined
+                  "
+                  :disabled="!active"
+                  @click="seek(part.startSeconds)"
+                >
+                  <span class="w-10 shrink-0 tabular-nums"
+                    >#{{ part.index + 1 }}</span
+                  >
+                  <span class="w-44 shrink-0 tabular-nums"
+                    >{{ formatTime(part.startSeconds) }} —
+                    {{ formatTime(part.endSeconds) }}</span
+                  >
+                  <span class="min-w-0 flex-1 truncate" :title="part.uri">{{
+                    part.uri
+                  }}</span>
+                  <span
+                    v-if="part.discontinuity"
+                    class="shrink-0 text-muted-foreground"
+                    >断点</span
+                  >
+                </button>
+              </li>
             </ol>
-            <div class="flex items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground">
-              <span>{{ (page - 1) * pageSize + 1 }}–{{ Math.min(page * pageSize, parsed.fragments.length) }} / {{ parsed.fragments.length }}</span>
+            <div
+              class="flex items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground"
+            >
+              <span
+                >{{ (page - 1) * pageSize + 1 }}–{{
+                  Math.min(page * pageSize, parsed.fragments.length)
+                }}
+                / {{ parsed.fragments.length }}</span
+              >
               <div class="flex items-center gap-2">
-                <Button variant="ghost" size="sm" aria-label="上一页分片" :disabled="page <= 1" @click="page--"><ChevronLeft class="size-4" /></Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="上一页分片"
+                  :disabled="page <= 1"
+                  @click="page--"
+                  ><ChevronLeft class="size-4"
+                /></Button>
                 <span class="tabular-nums">{{ page }} / {{ pageCount }}</span>
-                <Button variant="ghost" size="sm" aria-label="下一页分片" :disabled="page >= pageCount" @click="page++"><ChevronRight class="size-4" /></Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="下一页分片"
+                  :disabled="page >= pageCount"
+                  @click="page++"
+                  ><ChevronRight class="size-4"
+                /></Button>
               </div>
             </div>
           </div>
@@ -856,6 +921,16 @@ onBeforeUnmount(() => {
 }
 .hls-track {
   min-width: 8rem;
+  height: 1.5rem;
+}
+.hls-track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% - 2px);
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--muted);
 }
 .hls-fragment-popover {
   position: relative;
@@ -866,12 +941,10 @@ onBeforeUnmount(() => {
 }
 /* Keep both handles reachable even when one segment is only a few pixels wide. */
 [data-slot="hls-range-start"] {
-  top: -0.375rem;
-  bottom: auto;
+  top: 0;
 }
 [data-slot="hls-range-end"] {
-  top: auto;
-  bottom: -0.375rem;
+  top: 0;
 }
 .hls-seek {
   height: 1rem;
