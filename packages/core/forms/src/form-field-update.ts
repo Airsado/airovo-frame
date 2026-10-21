@@ -1,5 +1,5 @@
 import {
-    ApiMultiSelect, ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
+    ApiMultiSelect, ApiSelect, ColorPicker, Combobox, DatePicker, DatePickerField, DateRangePicker,
     DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox, TagInput,
 } from '@airovo/components'
 import { toRaw } from 'vue'
@@ -10,11 +10,12 @@ const COMMIT_COMPONENT_NAMES = new Set([
     'Select', 'select', 'date', 'DatePicker', 'datetime', 'DateTimePicker',
     'daterange', 'DateRangePicker', 'datetimerange', 'DateTimeRangePicker',
     'IconPicker', 'icon-picker',
+    'ColorPicker', 'color-picker',
     'TagInput', 'tag-input',
     'MultiSelect', 'multi-select', 'ApiMultiSelect', 'api-multi-select',
 ])
 const COMMIT_COMPONENTS = new Set<unknown>([
-    ApiMultiSelect, ApiSelect, Combobox, DatePicker, DatePickerField, DateRangePicker,
+    ApiMultiSelect, ApiSelect, ColorPicker, Combobox, DatePicker, DatePickerField, DateRangePicker,
     DateTimePicker, DateTimeRangePicker, IconPicker, MultiSelect, SearchSelect, SelectBox, TagInput,
 ])
 

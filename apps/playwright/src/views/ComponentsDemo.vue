@@ -173,6 +173,7 @@ import VideoPlayerExample from "../components/VideoPlayerExample.vue";
 import HlsWorkbenchExample from "../components/HlsWorkbenchExample.vue";
 import ApiSelectExample from "../components/ApiSelectExample.vue";
 import IconPickerExample from "../components/IconPickerExample.vue";
+import ColorPickerExample from "../components/ColorPickerExample.vue";
 import { getDemoEventsUrl } from "../api/core/events";
 
 const frameworkPopoverOpen = ref(false);
@@ -1003,6 +1004,14 @@ function sseItemData(item: unknown): unknown {
           slot；行为由 Reka Calendar primitive 提供。
         </p>
         <FrameworkCalendar class="w-fit rounded-lg border" />
+      </section>
+
+      <section v-if="showCategory('forms')" class="space-y-4">
+        <div>
+          <h2 class="text-lg font-semibold">ColorPicker 颜色选择器</h2>
+          <p class="text-sm text-muted-foreground">色板、HEX 输入、预设颜色与透明度，支持键盘操作和表单集成。</p>
+        </div>
+        <ColorPickerExample />
       </section>
 
       <section v-if="showCategory('feedback')" class="space-y-4">

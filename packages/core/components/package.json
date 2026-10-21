@@ -32,6 +32,7 @@
     "./video-player": "./src/video-player/index.ts",
     "./code-editor": "./src/code-editor/index.ts",
     "./icon-picker": "./src/icon-picker/index.ts",
+    "./color-picker": "./src/color-picker/index.ts",
     "./tag-input": "./src/tag-input/index.ts",
     "./hls-workbench": "./src/hls-workbench/index.ts"
   },
