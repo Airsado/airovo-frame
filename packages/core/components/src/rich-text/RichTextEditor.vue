@@ -15,6 +15,8 @@ import {
 import { Editor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import ImageUpload from "../image-upload/ImageUpload.vue";
+import type { ImageUploadHandler } from "../image-upload";
 
 import {
   Bold,
@@ -44,6 +46,8 @@ const props = withDefaults(
     maxHeight?: number | string;
     /** Change when opening another document/session, even if its HTML is identical. */
     resetKey?: string | number;
+    /** Optional application-owned upload adapter. No endpoint is built in. */
+    uploadImage?: ImageUploadHandler;
   }>(),
   {
     modelValue: "",
@@ -68,6 +72,7 @@ const mode = ref<"visual" | "source">("visual");
 const sourceOnly = ref(false);
 const transactionVersion = ref(0);
 const linkOpen = ref(false);
+const imageOpen = ref(false);
 const linkURL = ref("");
 const linkError = ref("");
 let mounted = false;
@@ -83,8 +88,7 @@ const surfaceStyle = computed(() => ({
 const rootStyle = computed(() => ({
   "--rich-text-min-height": cssSize(props.minHeight),
 }));
-// The stock image extension accepts arbitrary Markdown image URLs. Only existing
-// safe image URLs are supported; this component owns no upload or image command UI.
+// Keep image parsing safe for existing HTML as well as newly uploaded images.
 const SafeImage = Image.extend({
   parseHTML() {
     return [
@@ -147,6 +151,7 @@ function focusFromLabel(event: MouseEvent): void {
 }
 
 function resetEditor(value: string): void {
+  imageOpen.value = false;
   editor.value?.destroy();
   editor.value = undefined;
   linkOpen.value = false;
@@ -350,6 +355,16 @@ function applyLink(): void {
         >HTML 源码</Button
       >
       <template v-if="mode === 'visual'">
+        <Button
+          v-if="uploadImage"
+          size="sm"
+          variant="ghost"
+          icon="lucide:image-plus"
+          :disabled="locked"
+          :aria-expanded="imageOpen"
+          @click="imageOpen = !imageOpen"
+          >插入图片</Button
+        >
         <span class="mx-1 h-4 w-px bg-border" aria-hidden="true" />
         <Button
           v-for="action in actions"
@@ -400,6 +415,21 @@ function applyLink(): void {
           ><Redo2 class="size-3.5"
         /></Button>
       </template>
+    </div>
+    <div
+      v-if="imageOpen && uploadImage && mode === 'visual'"
+      class="border-b border-border p-2"
+    >
+      <ImageUpload
+        :upload="uploadImage"
+        :disabled="locked"
+        @uploaded="
+          (url) => {
+            editor?.chain().focus().setImage({ src: url }).run();
+            imageOpen = false;
+          }
+        "
+      />
     </div>
     <div
       v-if="linkOpen"

@@ -9,7 +9,7 @@ import {
     FieldSet,
     FieldLegend,
 } from '@airovo/uikit-shadcnui'
-import { ApiMultiSelect, Button, ColorPicker, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, IconPicker, TagInput } from '@airovo/components'
+import { ApiMultiSelect, Button, ColorPicker, ImageUpload, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, IconPicker, TagInput } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray, type FieldBindingObject } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -51,6 +51,8 @@ function isAtMax(item: FormFieldSchema, length: number): boolean {
 
 // ── 组件映射 ──
 const componentMap: Record<string, any> = {
+    ImageUpload,
+    'image-upload': ImageUpload,
     input: Input,
     Input,
     textarea: Textarea,
@@ -212,7 +214,7 @@ function isRequired(item: FormFieldSchema): boolean {
 }
 
 function handleInput(item: FormFieldSchema, field: Pick<FieldBindingObject, 'onInput' | 'onChange'>, value: unknown): void {
-    updateFormFieldValue(item.component, field, value)
+    updateFormFieldValue(item.component, field, value, item.validateOnModelUpdate)
     const callback = item.dependencies?.onChange
     if (!callback) return
     void callback(value, {

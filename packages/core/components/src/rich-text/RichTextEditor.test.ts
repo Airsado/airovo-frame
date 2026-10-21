@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
 import RichTextEditor from "./RichTextEditor.vue";
 import { inspectRichTextHTML, isSafeRichTextURL } from "./rich-text-html";
+vi.mock('@airovo/shared/icons', () => ({ Icon: { render: () => null } }));
 
 const wrappers: VueWrapper[] = [];
 function attach(props: Record<string, unknown> = {}) {
@@ -34,6 +35,51 @@ afterEach(async () => {
 });
 
 describe("RichTextEditor with real Tiptap transactions", () => {
+  it("inserts an uploaded image through a real editor transaction", async () => {
+    const wrapper = attach({
+      modelValue: "<p>正文</p>",
+      uploadImage: vi.fn().mockResolvedValue("/uploads/body.png"),
+    });
+    await settle();
+    await modeButton(wrapper, "插入图片").trigger("click");
+    const input = wrapper.get("input[type=file]");
+    Object.defineProperty(input.element, "files", {
+      value: [new File(["image"], "body.png", { type: "image/png" })],
+    });
+    await input.trigger("change");
+    await settle();
+    expect(updates(wrapper).at(-1)).toContain('src="/uploads/body.png"');
+    expect(wrapper.find("input[type=file]").exists()).toBe(false);
+  });
+
+  it("cancels a pending image insertion when switching documents", async () => {
+    let finish!: (url: string) => void;
+    let signal!: AbortSignal;
+    const wrapper = attach({
+      modelValue: "<p>旧文档</p>",
+      resetKey: "old",
+      uploadImage: (_file: File, context: { signal: AbortSignal }) => {
+        signal = context.signal;
+        return new Promise<string>((resolve) => {
+          finish = resolve;
+        });
+      },
+    });
+    await settle();
+    await modeButton(wrapper, "插入图片").trigger("click");
+    const input = wrapper.get("input[type=file]");
+    Object.defineProperty(input.element, "files", {
+      value: [new File(["image"], "body.png", { type: "image/png" })],
+    });
+    await input.trigger("change");
+    await wrapper.setProps({ modelValue: "<p>新文档</p>", resetKey: "new" });
+    expect(signal.aborted).toBe(true);
+    finish("/uploads/old-document.png");
+    await settle();
+    expect(updates(wrapper)).toEqual([]);
+    expect(currentEditor(wrapper).getHTML()).toBe("<p>新文档</p>");
+  });
+
   it("keeps the exact original HTML through mount, focus and mode changes", async () => {
     const original = "<p><b>Original&nbsp;HTML</b>  spacing</p>";
     const wrapper = attach({ modelValue: original });

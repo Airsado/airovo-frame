@@ -174,6 +174,7 @@ import HlsWorkbenchExample from "../components/HlsWorkbenchExample.vue";
 import ApiSelectExample from "../components/ApiSelectExample.vue";
 import IconPickerExample from "../components/IconPickerExample.vue";
 import ColorPickerExample from "../components/ColorPickerExample.vue";
+import ImageUploadExample from "../components/ImageUploadExample.vue";
 import { getDemoEventsUrl } from "../api/core/events";
 
 const frameworkPopoverOpen = ref(false);
@@ -191,11 +192,22 @@ function retryDataPanel() {
 defineOptions({ name: "ComponentsDemo" });
 
 const props = withDefaults(
-  defineProps<{ category?: "all" | "basic" | "forms" | "data" | "feedback" | "media" | "layout" }>(),
+  defineProps<{
+    category?:
+      | "all"
+      | "basic"
+      | "forms"
+      | "data"
+      | "feedback"
+      | "media"
+      | "layout";
+  }>(),
   { category: "all" },
 );
 
-function showCategory(category: Exclude<NonNullable<typeof props.category>, "all">): boolean {
+function showCategory(
+  category: Exclude<NonNullable<typeof props.category>, "all">,
+): boolean {
   return props.category === "all" || props.category === category;
 }
 
@@ -737,6 +749,13 @@ function sseItemData(item: unknown): unknown {
     <template #description>{{ categoryDescription }}</template>
     <div class="space-y-8">
       <section v-if="showCategory('media')" class="space-y-4">
+        <h2 class="text-lg font-semibold">ImageUpload 图片上传</h2>
+        <p class="text-sm text-muted-foreground">
+          上传、拖放、预览与表单集成；上传接口由应用传入。
+        </p>
+        <ImageUploadExample />
+      </section>
+      <section v-if="showCategory('media')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">IconPicker 图标选择器</h2>
           <p class="text-sm text-muted-foreground">
@@ -1009,7 +1028,9 @@ function sseItemData(item: unknown): unknown {
       <section v-if="showCategory('forms')" class="space-y-4">
         <div>
           <h2 class="text-lg font-semibold">ColorPicker 颜色选择器</h2>
-          <p class="text-sm text-muted-foreground">色板、HEX 输入、预设颜色与透明度，支持键盘操作和表单集成。</p>
+          <p class="text-sm text-muted-foreground">
+            色板、HEX 输入、预设颜色与透明度，支持键盘操作和表单集成。
+          </p>
         </div>
         <ColorPickerExample />
       </section>

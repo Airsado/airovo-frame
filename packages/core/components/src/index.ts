@@ -31,6 +31,7 @@ export * from "./video-player";
 export * from "./code-editor";
 export * from "./icon-picker";
 export * from "./color-picker";
+export * from "./image-upload";
 export * from "./tag-input";
 export * from "./hls-workbench";
 /// <reference path="./shims.d.ts" />
