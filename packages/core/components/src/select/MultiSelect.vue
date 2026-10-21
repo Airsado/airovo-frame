@@ -470,6 +470,7 @@ defineExpose({
           <input
             ref="input"
             v-bind="inputAttrs"
+            autocomplete="off"
             role="combobox"
             :aria-expanded="open"
             aria-autocomplete="list"

@@ -587,6 +587,9 @@ Nested labels are indented by depth; `SearchSelect` now reuses the Combobox
 input surface from new-api, so the selected label and search query share one
 control while descendant paths remain visible. Existing flat options keep
 their behavior.
+Searchable single and multi-select inputs disable browser form-history
+autocomplete so native suggestions do not cover the component's option list.
+Their `aria-autocomplete="list"` state still describes that option list.
 Default SelectBox/SearchSelect placeholder, search and empty-result text uses
 the global `common.select*` locale keys; explicit props remain authoritative.
 
