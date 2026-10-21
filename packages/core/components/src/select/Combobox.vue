@@ -266,6 +266,7 @@ function handleInputFocus(): void {
             :placeholder="open ? resolvedSearchPlaceholder : (!selectedLabel ? props.placeholder : undefined)"
             :readonly="!open && Boolean(selectedLabel)"
             :disabled="props.disabled"
+            autocomplete="off"
             role="combobox"
             :aria-expanded="open"
             aria-autocomplete="list"
