@@ -194,7 +194,8 @@ function handleMenuClick(event: MouseEvent, item: SidebarMenuItemType): void {
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent class="py-2">
+        <!-- The primitive hides overflow in icon mode; long menus must still scroll. -->
+        <SidebarContent class="py-2 group-data-[collapsible=icon]:overflow-y-auto">
             <Transition name="sidebar-view" mode="out-in" :css="true">
                 <div :key="sidebarViewKey" data-sidebar-view class="flex min-h-0 flex-col">
                     <SidebarGroup v-for="group in groupedMenus" :key="group.titleKey ?? group.title" class="px-2 py-1">
