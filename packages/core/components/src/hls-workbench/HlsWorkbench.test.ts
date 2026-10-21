@@ -1,6 +1,7 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
+import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
+import { defineComponent, h, ref } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { provideOverlayOwner } from "@airovo/shared/overlay";
 import HlsWorkbench from "./HlsWorkbench.vue";
 
 const seek = vi.fn();
@@ -53,6 +54,7 @@ const collectionLeaf =
 const wrappers: ReturnType<typeof mount>[] = [];
 function render(props: Record<string, unknown> = {}) {
   const wrapper = mount(HlsWorkbench, {
+    attachTo: document.body,
     props: { manifest, ...props },
     global: {
       stubs: { VideoPlayer: PlayerStub, SelectBox: VariantSelectStub },
@@ -60,6 +62,16 @@ function render(props: Record<string, unknown> = {}) {
   });
   wrappers.push(wrapper);
   return wrapper;
+}
+async function openFragments(wrapper: ReturnType<typeof render>) {
+  await flushPromises();
+  await wrapper
+    .get('[data-slot="hls-fragments-trigger"]')
+    .trigger("mouseenter");
+  await flushPromises();
+  return new DOMWrapper(
+    document.querySelector<HTMLElement>(".hls-fragment-popover-panel")!,
+  );
 }
 function pointer(type: string, clientX: number, pointerId = 1) {
   const event = new Event(type, { bubbles: true, cancelable: true });
@@ -81,6 +93,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   wrappers.splice(0).forEach((wrapper) => wrapper.unmount());
+  document.body.innerHTML = "";
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -265,22 +278,81 @@ describe("HlsWorkbench", () => {
     expect(rows[1]?.text()).toContain("播放位置");
     expect(rows[2]?.text()).toContain("选区结束");
 
-    const panel = wrapper.get(".hls-fragment-popover-panel");
-    expect(panel.element.style.display).toBe("none");
+    expect(document.querySelector(".hls-fragment-popover-panel")).toBeNull();
+    const panel = await openFragments(wrapper);
+    // The real portal must escape the workbench's clipping/scroll ancestors.
+    expect(wrapper.element.contains(panel.element)).toBe(false);
+    expect(document.body.contains(panel.element)).toBe(true);
+    expect(panel.attributes("role")).toBe("dialog");
+    await wrapper.get(".hls-fragment-popover").trigger("mouseleave");
+    await panel.trigger("mouseenter");
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    expect(document.body.contains(panel.element)).toBe(true);
+    await panel.trigger("mouseleave");
+    await vi.waitFor(() =>
+      expect(document.querySelector(".hls-fragment-popover-panel")).toBeNull(),
+    );
+  });
+
+  it("keeps focus through the portalled list and closes it when preview stops", async () => {
+    const wrapper = render();
+    await flushPromises();
+    const trigger = wrapper.get('[data-slot="hls-fragments-trigger"]');
+    (trigger.element as HTMLButtonElement).focus();
+    const panel = await openFragments(wrapper);
+    expect(document.activeElement).toBe(trigger.element);
+    expect(trigger.attributes("aria-controls")).toBe(panel.attributes("id"));
+    const part = panel.get(
+      '[data-slot="hls-fragments"] li:nth-child(2) button',
+    );
+    (part.element as HTMLButtonElement).focus();
+    await part.trigger("click");
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    expect(document.body.contains(panel.element)).toBe(true);
+    expect(wrapper.get('[data-slot="hls-fragment-text"]').text()).toContain(
+      "two.ts",
+    );
+    await wrapper.setProps({ active: false });
+    await flushPromises();
+    expect(document.querySelector(".hls-fragment-popover-panel")).toBeNull();
+    expect(trigger.attributes("aria-expanded")).toBe("false");
+  });
+
+  it("inherits its overlay owner's popup layer and dismisses when the host is covered", async () => {
+    const active = ref(true);
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          provideOverlayOwner({ active, popupZIndex: ref(72) });
+          return () => h(HlsWorkbench, { manifest });
+        },
+      }),
+      {
+        attachTo: document.body,
+        global: {
+          stubs: { VideoPlayer: PlayerStub, SelectBox: VariantSelectStub },
+        },
+      },
+    );
+    wrappers.push(wrapper);
+    const panel = await openFragments(wrapper);
+    expect(panel.element.style.zIndex).toBe("72");
+    active.value = false;
+    await flushPromises();
+    expect(document.querySelector(".hls-fragment-popover-panel")).toBeNull();
     await wrapper
       .get('[data-slot="hls-fragments-trigger"]')
       .trigger("mouseenter");
-    expect(panel.element.style.display).not.toBe("none");
-    await wrapper.get(".hls-fragment-popover").trigger("mouseleave");
-    expect(panel.element.style.display).toBe("none");
+    expect(document.querySelector(".hls-fragment-popover-panel")).toBeNull();
   });
 
   it("queues only the latest seek until media metadata is ready", async () => {
     const wrapper = render();
-    await wrapper
+    const fragments = await openFragments(wrapper);
+    await fragments
       .get('[data-slot="hls-fragments"] li:nth-child(2) button')
       .trigger("click");
-    await wrapper
+    await fragments
       .get('[data-slot="hls-fragments"] li:nth-child(3) button')
       .trigger("click");
     expect(seek).not.toHaveBeenCalled();
@@ -382,7 +454,8 @@ describe("HlsWorkbench", () => {
 
   it("selects the current full fragment without adding a rule until confirmation", async () => {
     const wrapper = render();
-    await wrapper
+    const fragments = await openFragments(wrapper);
+    await fragments
       .get('[data-slot="hls-fragments"] li:nth-child(2) button')
       .trigger("click");
     await wrapper
@@ -401,21 +474,26 @@ describe("HlsWorkbench", () => {
   it("paginates large lists and locates the current fragment without rendering every row", async () => {
     const text = `#EXTM3U\n${"#EXTINF:1,\na.ts\n".repeat(123)}#EXT-X-ENDLIST`;
     const wrapper = render({ manifest: { ...manifest, text } });
-    expect(wrapper.findAll('[data-slot="hls-fragments"] li')).toHaveLength(50);
-    await wrapper.get('button[aria-label="下一页分片"]').trigger("click");
-    expect(wrapper.get('[data-slot="hls-fragments"] li').text()).toContain(
+    const fragments = await openFragments(wrapper);
+    expect(fragments.findAll('[data-slot="hls-fragments"] li')).toHaveLength(
+      50,
+    );
+    await fragments.get('button[aria-label="下一页分片"]').trigger("click");
+    expect(fragments.get('[data-slot="hls-fragments"] li').text()).toContain(
       "#51",
     );
     wrapper
       .findComponent(PlayerStub)
       .vm.$emit("timeupdate", { currentTime: 122, duration: 123 });
     await flushPromises();
-    await wrapper
+    await fragments
       .findAll("button")
       .find((button) => button.text() === "定位当前")!
       .trigger("click");
-    expect(wrapper.findAll('[data-slot="hls-fragments"] li')).toHaveLength(23);
-    expect(wrapper.find('button[aria-current="true"]').text()).toContain(
+    expect(fragments.findAll('[data-slot="hls-fragments"] li')).toHaveLength(
+      23,
+    );
+    expect(fragments.find('button[aria-current="true"]').text()).toContain(
       "#123",
     );
   });
