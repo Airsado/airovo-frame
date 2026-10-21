@@ -11,7 +11,11 @@ import {
 import { Button } from "../controls";
 import { SelectBox } from "../select";
 import { VideoPlayer } from "../video-player";
-import type { VideoPlayerApi, VideoPlayerProgress } from "../video-player";
+import type {
+  VideoPlayerApi,
+  VideoPlayerError,
+  VideoPlayerProgress,
+} from "../video-player";
 import {
   findHlsFragment,
   parseHlsManifest,
@@ -56,6 +60,8 @@ const emit = defineEmits<{
   /** A host owning expiring playback URLs can obtain a new capability. */
   retry: [];
   error: [message: string];
+  /** Preserve player initialization / decoding diagnostics for the host. */
+  "player-error": [error: VideoPlayerError];
 }>();
 
 const player = ref<VideoPlayerApi>();
@@ -543,6 +549,7 @@ onBeforeUnmount(() => {
               @loadedmetadata="metadataReady"
               @timeupdate="updateTime"
               @retry="emit('retry')"
+              @error="emit('player-error', $event)"
             />
             <div class="space-y-4 border-t px-4 py-4">
               <div

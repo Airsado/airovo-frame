@@ -30,6 +30,8 @@ export interface VideoPlayerProgress {
 export interface VideoPlayerError {
   code: "load" | "unsupported" | "network" | "media" | "playback" | "subtitle";
   message: string;
+  /** Initialization boundary; optional for playback errors and older consumers. */
+  stage?: "player-load" | "player-init" | "player-setup" | "hls-load";
   /** Original diagnostic data is emitted, never interpolated into the player UI. */
   cause?: unknown;
 }

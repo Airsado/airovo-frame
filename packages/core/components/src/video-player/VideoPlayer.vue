@@ -115,6 +115,7 @@ async function initialize() {
   }
 
   initializing.value = true;
+  let stage: "player-load" | "player-init" | "player-setup" = "player-load";
   try {
     const Player = await loadArtplayer();
     if (!mounted || request !== revision || !host.value) return;
@@ -167,7 +168,12 @@ async function initialize() {
       } catch (cause) {
         if (!current() || stream !== streamRevision) return;
         report(
-          { code: "load", message: "HLS 播放模块加载失败，请重试。", cause },
+          {
+            code: "load",
+            stage: "hls-load",
+            message: "HLS 播放模块加载失败，请重试。",
+            cause,
+          },
           request,
         );
       }
@@ -181,6 +187,7 @@ async function initialize() {
       customType: _customType,
       ...options
     } = (props.options ?? {}) as VideoPlayerOptions & Record<string, unknown>;
+    stage = "player-init";
     const art = new Player({
       lang: "zh-cn",
       autoplay: false,
@@ -210,6 +217,7 @@ async function initialize() {
       customType: { m3u8: attachHls },
     });
     instance = art;
+    stage = "player-setup";
     subtitles = installSubtitleController(
       art,
       Player.utils,
@@ -281,10 +289,12 @@ async function initialize() {
     });
     initializing.value = false;
   } catch (cause) {
-    report(
-      { code: "load", message: "播放器加载失败，请重试。", cause },
-      request,
-    );
+    const messages = {
+      "player-load": "播放器资源加载失败，请刷新页面后重试。",
+      "player-init": "播放器初始化失败，请重新加载。",
+      "player-setup": "播放器控件初始化失败，请重新加载。",
+    };
+    report({ code: "load", stage, message: messages[stage], cause }, request);
   }
 }
 
@@ -383,6 +393,9 @@ onBeforeUnmount(() => {
       class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center"
     >
       <p class="max-w-lg text-sm leading-6">{{ failure.message }}</p>
+      <p v-if="failure.stage" class="text-xs text-white/60">
+        错误代码：{{ failure.stage }}
+      </p>
       <Button variant="secondary" size="sm" @click="retry">重新加载</Button>
     </div>
     <div

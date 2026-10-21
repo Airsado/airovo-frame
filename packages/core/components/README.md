@@ -55,6 +55,10 @@ new authorized playback URL. The inner player also retries its current source;
 it does not wait for an asynchronous host refresh. The component does not renew
 credentials or request an application-specific playback session itself.
 
+`player-error(VideoPlayerError)` forwards the inner player's complete error,
+including initialization stage and original `cause`. The existing string `error`
+event continues to report playlist resolution/parsing failures only.
+
 The timeline places the start handle above the seek slider and the end handle
 below it. Only the current selection on the middle track is highlighted; the
 outer tracks remain neutral. Each track has its own pointer target, so seeking
@@ -248,6 +252,10 @@ Events: `ready(Artplayer)`, `error(VideoPlayerError)`, `warning(VideoPlayerError
 `duration` follows the browser value and can be `Infinity` for live streams;
 applications that report finite durations must validate it. Diagnostics remain
 in the error payload's `cause`; source URLs/tokens are never rendered as errors.
+Initialization failures identify `stage` as `player-load` (Artplayer import),
+`player-init` (constructor/options), `player-setup` (controls/events), or
+`hls-load` (HLS decoder import/setup). The player displays a safe stage code and
+a corresponding recovery message; raw exceptions remain in the event payload.
 The exposed `VideoPlayerApi` provides `getInstance`, `play`, `pause`, `seek`,
 `screenshot` and `retry`. `getInstance()` exposes Artplayer for advanced controls;
 use the props to change the source so decoder cleanup remains deterministic.
