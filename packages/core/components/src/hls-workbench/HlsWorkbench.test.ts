@@ -68,10 +68,12 @@ function pointer(type: string, clientX: number, pointerId = 1) {
 }
 function sizeRail(wrapper: ReturnType<typeof render>) {
   const rail = wrapper.get('[data-slot="hls-selection-rail"]').element;
-  vi.spyOn(rail, "getBoundingClientRect").mockReturnValue({
-    left: 0,
-    width: 200,
-  } as DOMRect);
+  wrapper.findAll(".hls-track").forEach((track) => {
+    vi.spyOn(track.element, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      width: 200,
+    } as DOMRect);
+  });
   return rail;
 }
 beforeEach(() => {
@@ -243,14 +245,19 @@ describe("HlsWorkbench", () => {
 
   it("shows start and end controls as separate rows and keeps the fragment list in a hover popover", async () => {
     const wrapper = render();
-    const rows = wrapper.findAll('[data-slot="hls-timeline-controls"] .hls-timeline-row');
+    const rows = wrapper.findAll(
+      '[data-slot="hls-timeline-controls"] .hls-timeline-row',
+    );
     expect(rows).toHaveLength(3);
-    expect(rows[1]?.text()).toContain("选区开始");
+    expect(rows[0]?.text()).toContain("选区开始");
+    expect(rows[1]?.text()).toContain("播放位置");
     expect(rows[2]?.text()).toContain("选区结束");
 
     const panel = wrapper.get(".hls-fragment-popover-panel");
     expect(panel.element.style.display).toBe("none");
-    await wrapper.get('[data-slot="hls-fragments-trigger"]').trigger("mouseenter");
+    await wrapper
+      .get('[data-slot="hls-fragments-trigger"]')
+      .trigger("mouseenter");
     expect(panel.element.style.display).not.toBe("none");
     await wrapper.get(".hls-fragment-popover").trigger("mouseleave");
     expect(panel.element.style.display).toBe("none");
@@ -317,6 +324,31 @@ describe("HlsWorkbench", () => {
       [{ startSeconds: 0, endSeconds: 10 }],
     ]);
     expect(wrapper.emitted("select-insertion")).toBeUndefined();
+  });
+
+  it("maps each drag to its own track and stops when the window loses focus", async () => {
+    const wrapper = render();
+    const player = wrapper.findComponent(PlayerStub);
+    player.vm.$emit("loadedmetadata", { duration: 20 });
+    await wrapper
+      .get('[data-slot="hls-range-end"]')
+      .trigger("keydown", { key: "End" });
+    sizeRail(wrapper);
+    const start = wrapper.get('[data-slot="hls-range-start"]');
+    const startTrack = start.element.closest(".hls-track")!;
+    vi.mocked(startTrack.getBoundingClientRect).mockReturnValue({
+      left: 100,
+      width: 400,
+    } as DOMRect);
+    start.element.dispatchEvent(pointer("pointerdown", 180));
+    await flushPromises();
+    expect(start.attributes("aria-valuenow")).toBe("4");
+    expect(seek).toHaveBeenLastCalledWith(4);
+    window.dispatchEvent(new Event("blur"));
+    window.dispatchEvent(pointer("pointermove", 300));
+    await flushPromises();
+    expect(start.attributes("aria-valuenow")).toBe("4");
+    expect(seek).toHaveBeenLastCalledWith(4);
   });
 
   it("supports keyboard segment steps, keeps one fragment minimum and inserts at an edge", async () => {

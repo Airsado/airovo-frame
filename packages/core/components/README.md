@@ -55,6 +55,10 @@ new authorized playback URL. The inner player also retries its current source;
 it does not wait for an asynchronous host refresh. The component does not renew
 credentials or request an application-specific playback session itself.
 
+The timeline places the start handle above the seek slider and the end handle
+below it. Only the current selection on the middle track is highlighted; the
+outer tracks remain neutral. Each track has its own pointer target, so seeking
+and selecting stay aligned even when a host gives the tracks different widths.
 Dragging the seek slider previews continuously. Dragging either range handle
 snaps to whole-segment boundaries; arrow keys move one boundary and Home/End
 move to the first/last valid boundary while retaining at least one segment.
@@ -71,7 +75,8 @@ MAP encryption key and discontinuity context without rewriting source lines.
 It renders as escaped text and copies only after a user click. The exposed
 `HlsWorkbenchApi` provides `seek`, `getSelection` and `getCurrentFragment`.
 Seeks before metadata are queued, source changes discard stale pending seeks,
-and deactivation/unmount release dragging listeners and player resources.
+and window blur, deactivation or unmount release dragging listeners. Deactivation
+and unmount also release player resources.
 
 The exported helpers `parseHlsManifest`, `parseHlsMasterManifest`,
 `resolveHlsManifest`, `findHlsFragment` and `snapHlsBoundary` support host validation
