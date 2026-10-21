@@ -20,7 +20,8 @@
  */
 import { z, ZodString, type ZodTypeAny } from 'zod'
 import type { FormFieldSchema } from './types'
-import { isArrayValueFieldComponent } from './form-defaults'
+import { normalizeHexColor } from '@airovo/components'
+import { isArrayValueFieldComponent, isColorPickerFieldComponent } from './form-defaults'
 
 const RANGE_COMPONENTS = new Set(['DateRangePicker', 'daterange', 'DateTimeRangePicker', 'datetimerange'])
 
@@ -28,6 +29,13 @@ export function parseRules(
     rules: ZodTypeAny | string | undefined,
     component?: FormFieldSchema['component'],
 ): ZodTypeAny {
+    if (isColorPickerFieldComponent(component)
+        && (rules === undefined || rules === '' || rules === 'required')) {
+        const color = z.string({ required_error: '必填' })
+        const value = rules === 'required' ? color.min(1, '必填') : color
+        const hex = value.refine(value => value === '' || Boolean(normalizeHexColor(value)), '颜色格式错误')
+        return rules === 'required' ? hex : hex.optional()
+    }
     if (isArrayValueFieldComponent(component)
         && (rules === undefined || rules === '' || rules === 'required')) {
         const values = z.array(z.string().trim().min(1), { required_error: '必填' })

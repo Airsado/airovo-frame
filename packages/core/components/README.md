@@ -1196,6 +1196,53 @@ Default title, description, placeholder and empty-result copy uses the global
 `common.commandTitle`, `common.commandDescription`, `common.commandPlaceholder`
 and `common.commandEmpty` keys; explicit props remain authoritative.
 
+## ColorPicker
+
+`ColorPicker` combines the installed Reka color primitives with the framework's
+input, button and portalled popover styles. It supports pointer and keyboard
+selection, a saturation/brightness area, a hue slider, HEX input and presets.
+It does not use the browser's native color dialog or modify ui-kit source.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { ColorPicker } from "@airovo/components/color-picker";
+const theme = ref("#c2410c");
+</script>
+
+<template>
+  <ColorPicker v-model="theme" :clearable="false" aria-label="主题颜色" />
+</template>
+```
+
+The model is a HEX string. `#RGB`, `#RRGGBB` and `#RRGGBBAA` are accepted;
+updates use lowercase six-digit HEX, with two alpha digits when `showAlpha`
+is enabled and the color is translucent. With `showAlpha: false` (default),
+selection is opaque. An empty string represents a cleared value. HEX edits
+commit on Enter or blur; invalid drafts restore the previous color and never
+replace the model. Wheel scrolling does not change the color.
+
+| Prop                    | Default    | Behavior                                                   |
+| ----------------------- | ---------- | ---------------------------------------------------------- |
+| `presets`               | ten colors | Normalized and deduplicated HEX colors; `[]` hides presets |
+| `showAlpha`             | `false`    | Show opacity slider and preserve alpha                     |
+| `clearable`             | `true`     | Allow clearing the current value                           |
+| `disabled` / `readonly` | `false`    | Prevent opening, editing and clearing                      |
+| `placeholder`           | `选择颜色` | Text shown for an empty value                              |
+| `name`                  | —          | Submit the model through a hidden native form input        |
+
+`change(value)` accompanies committed model updates and `open-change(open)`
+reports popup changes. Component refs expose `open()` and `close()`. Standard
+attributes such as `id`, `aria-label`, `aria-describedby` and `aria-invalid`
+reach the trigger. Modal/drawer owner state closes covered popups and keeps
+their z-index above the owner. `normalizeHexColor(value)` is exported for
+validating stored values; invalid external values show the empty placeholder.
+
+`useForm` supports `ColorPicker` / `color-picker`, nested fields and direct
+component objects. Ordinary optional/required rules validate HEX format;
+explicit Zod rules remain application-owned. See the **表单与选择** demo for
+alpha, disabled, readonly, form reset and modal examples.
+
 ## IconPicker
 
 `IconPicker` selects an Iconify name such as `lucide:home`. It provides a preview,

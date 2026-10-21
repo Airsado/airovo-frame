@@ -1,5 +1,5 @@
 import type { FormFieldContext, FormFieldSchema } from './types'
-import { ApiMultiSelect, MultiSelect, TagInput } from '@airovo/components'
+import { ApiMultiSelect, ColorPicker, MultiSelect, TagInput } from '@airovo/components'
 import { toRaw } from 'vue'
 
 const DATE_COMPONENTS = new Set([
@@ -39,6 +39,12 @@ export function isMultiSelectFieldComponent(component: FormFieldSchema['componen
 
 export function isArrayValueFieldComponent(component: FormFieldSchema['component'] | undefined): boolean {
     return isTagInputFieldComponent(component) || isMultiSelectFieldComponent(component)
+}
+
+export function isColorPickerFieldComponent(component: FormFieldSchema['component'] | undefined): boolean {
+    return typeof component === 'string'
+        ? component === 'ColorPicker' || component === 'color-picker'
+        : Boolean(component) && toRaw(component) === ColorPicker
 }
 
 export function resolveFieldDefault(

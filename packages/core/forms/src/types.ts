@@ -24,6 +24,8 @@ export type BuiltInFormComponent =
     | 'datetimerange'
     | 'IconPicker'
     | 'icon-picker'
+    | 'ColorPicker'
+    | 'color-picker'
 
 export type FormComponent = Component | BuiltInFormComponent
 

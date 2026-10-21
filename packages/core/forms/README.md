@@ -38,6 +38,14 @@ is ignored by that component so callers cannot bypass the visibility state;
 use `toggleAriaLabel` to provide a localized accessible label. The same mapping
 is used for top-level fields and nested `children` fields.
 
+Built-in `ColorPicker` / `color-picker` fields select one HEX string. The
+top-level shape is `{ theme: [{ value: '#c2410c' }] }`, with `''` as the empty
+default. Nested fields store the string directly. `componentProps` forwards
+`presets`, `showAlpha`, `clearable`, `readonly` and other picker options.
+Optional/required rules validate HEX format and explicit Zod rules remain
+unchanged. Picker changes clear committed validation errors; reset and disabled
+state use the normal form controller contract.
+
 Built-in `DatePicker`/`date` and `DateTimePicker`/`datetime` fields map to
 `DatePickerField`. When no `defaultValue` is provided, their empty value is
 `undefined`, matching the date picker model contract; explicit defaults are

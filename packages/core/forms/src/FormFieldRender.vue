@@ -9,7 +9,7 @@ import {
     FieldSet,
     FieldLegend,
 } from '@airovo/uikit-shadcnui'
-import { ApiMultiSelect, Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, IconPicker, TagInput } from '@airovo/components'
+import { ApiMultiSelect, Button, ColorPicker, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, IconPicker, TagInput } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray, type FieldBindingObject } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -79,6 +79,8 @@ const componentMap: Record<string, any> = {
     DateTimeRangePicker,
     IconPicker,
     'icon-picker': IconPicker,
+    ColorPicker,
+    'color-picker': ColorPicker,
 }
 const TEXT_INPUT_COMPONENTS = new Set([
     'input', 'Input',

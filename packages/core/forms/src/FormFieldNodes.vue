@@ -8,7 +8,7 @@ import {
     FieldLegend,
     FieldSet,
 } from '@airovo/uikit-shadcnui'
-import { ApiMultiSelect, Button, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, TagInput } from '@airovo/components'
+import { ApiMultiSelect, Button, ColorPicker, Input, Textarea, DatePickerField, DateRangePicker, DateTimeRangePicker, MultiSelect, PasswordInput, SelectBox, TagInput } from '@airovo/components'
 import { Field as VeeField, FieldArray as VeeFieldArray, type FieldBindingObject } from 'vee-validate'
 import { watchEffect } from 'vue'
 
@@ -45,6 +45,8 @@ const componentMap: Record<string, any> = {
     Select: SelectBox,
     TagInput,
     'tag-input': TagInput,
+    ColorPicker,
+    'color-picker': ColorPicker,
     MultiSelect,
     'multi-select': MultiSelect,
     ApiMultiSelect,
