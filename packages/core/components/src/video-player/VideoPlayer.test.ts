@@ -538,7 +538,9 @@ describe("VideoPlayer media lifecycle", () => {
     runtime.loadArtplayer.mockRejectedValueOnce(new Error("chunk load failed"));
     const wrapper = render();
     await flushPromises();
-    expect(wrapper.get('[role="alert"]').text()).toContain("播放器加载失败");
+    expect(wrapper.get('[role="alert"]').text()).toContain(
+      "播放器资源加载失败",
+    );
     await wrapper.get("button").trigger("click");
     await flushPromises();
     Object.defineProperty(players[0]!.video, "error", { value: { code: 4 } });
@@ -546,6 +548,44 @@ describe("VideoPlayer media lifecycle", () => {
     await nextTick();
     expect(wrapper.get('[role="alert"]').text()).toContain("不支持该视频格式");
   });
+
+  it.each([
+    { stage: "player-load", message: "播放器资源加载失败" },
+    { stage: "player-init", message: "播放器初始化失败" },
+    { stage: "player-setup", message: "播放器控件初始化失败" },
+  ])(
+    "identifies $stage and preserves diagnostics without rendering source tokens",
+    async ({ stage, message }) => {
+      const cause = new Error(
+        "Failure at https://media.example/private?token=secret",
+      );
+      if (stage === "player-load") {
+        runtime.loadArtplayer.mockRejectedValueOnce(cause);
+      } else {
+        runtime.loadArtplayer.mockResolvedValueOnce(
+          class extends FakeArt {
+            constructor(option: FakeOptions) {
+              if (stage === "player-init") throw cause;
+              super(option);
+              this.controls.add.mockImplementation(() => {
+                throw cause;
+              });
+            }
+          },
+        );
+      }
+      const wrapper = render();
+      await flushPromises();
+      expect(wrapper.get('[role="alert"]').text()).toContain(message);
+      const error = wrapper.emitted("error")?.[0]?.[0];
+      expect(error).toMatchObject({ code: "load", stage });
+      expect((error as { cause: unknown }).cause).toBe(cause);
+      expect(wrapper.text()).not.toContain("token=secret");
+      await wrapper.get("button").trigger("click");
+      await flushPromises();
+      expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+    },
+  );
 
   it("treats screenshot CORS rejection as a non-fatal warning, preserving playback", async () => {
     const wrapper = render();

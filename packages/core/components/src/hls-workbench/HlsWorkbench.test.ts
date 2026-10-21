@@ -7,7 +7,7 @@ const seek = vi.fn();
 const PlayerStub = defineComponent({
   name: "VideoPlayer",
   props: ["src", "active", "type"],
-  emits: ["loadedmetadata", "timeupdate", "retry"],
+  emits: ["loadedmetadata", "timeupdate", "retry", "error"],
   setup(_props, { expose }) {
     expose({ seek });
     return () => h("div", { "data-player": true });
@@ -86,6 +86,18 @@ afterEach(() => {
 });
 
 describe("HlsWorkbench", () => {
+  it("forwards the player's complete failure separately from playlist parse errors", async () => {
+    const wrapper = render();
+    const error = {
+      code: "load",
+      stage: "player-init",
+      message: "播放器初始化失败，请重新加载。",
+      cause: new Error("constructor failed"),
+    };
+    wrapper.getComponent(PlayerStub).vm.$emit("error", error);
+    expect(wrapper.emitted("player-error")).toEqual([[error]]);
+    expect(wrapper.emitted("error")).toBeUndefined();
+  });
   it("lets a host renew expired playback URLs when the player is retried", async () => {
     const wrapper = render();
     await flushPromises();
