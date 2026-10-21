@@ -8,6 +8,12 @@ import {
   Plus,
   Scissors,
 } from "@lucide/vue";
+import { useOverlayOwner } from "@airovo/shared/overlay";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@airovo/uikit-shadcnui/components/ui/popover";
 import { Button } from "../controls";
 import { SelectBox } from "../select";
 import { VideoPlayer } from "../video-player";
@@ -66,6 +72,13 @@ const emit = defineEmits<{
 
 const player = ref<VideoPlayerApi>();
 const variantControlId = `${useId()}-hls-variant`;
+const fragmentAnchor = ref<HTMLElement>();
+const owner = useOverlayOwner();
+const fragmentPopupStyle = computed(() =>
+  owner?.popupZIndex.value === undefined
+    ? undefined
+    : { zIndex: owner.popupZIndex.value },
+);
 const parsed = shallowRef<HlsMediaManifest>();
 const resolvedSource = shallowRef<HlsManifestSource>();
 const variants = shallowRef<HlsVariant[]>([]);
@@ -80,6 +93,7 @@ const page = ref(1);
 // it closed by default leaves the player and selection controls readable when
 // a playlist contains hundreds of segments.
 const fragmentListOpen = ref(false);
+let fragmentCloseTimer: ReturnType<typeof setTimeout> | undefined;
 const copied = ref(false);
 const copyError = ref("");
 const pageSize = 50;
@@ -200,6 +214,7 @@ function useMedia(source: HlsManifestSource, media: HlsMediaManifest) {
 }
 async function loadSource() {
   cancelLoad();
+  updateFragmentList(false);
   const revision = loadRevision;
   endDrag();
   clearCopy();
@@ -291,6 +306,7 @@ watch(
     if (!props.active || (props.disabled && dragging?.target !== "seek"))
       endDrag();
     if (!props.active) {
+      updateFragmentList(false);
       cancelLoad();
       mediaReady.value = false;
       pendingSeek = currentTime.value;
@@ -298,6 +314,13 @@ watch(
       void loadSource();
     }
   },
+);
+watch(
+  () => owner?.active.value,
+  (active) => {
+    if (active === false) updateFragmentList(false);
+  },
+  { flush: "sync" },
 );
 
 function seek(seconds: number) {
@@ -435,11 +458,35 @@ function locateCurrent() {
   if (fragment.value)
     page.value = Math.floor(fragment.value.index / pageSize) + 1;
 }
+function clearFragmentClose() {
+  if (fragmentCloseTimer) clearTimeout(fragmentCloseTimer);
+  fragmentCloseTimer = undefined;
+}
+function updateFragmentList(open: boolean) {
+  clearFragmentClose();
+  fragmentListOpen.value =
+    open && props.active && !!parsed.value && owner?.active.value !== false;
+}
 function openFragmentList() {
-  fragmentListOpen.value = true;
+  updateFragmentList(true);
 }
 function closeFragmentList() {
-  fragmentListOpen.value = false;
+  // Allow the pointer to cross the small gap into the body-portalled panel.
+  clearFragmentClose();
+  fragmentCloseTimer = setTimeout(() => updateFragmentList(false), 150);
+}
+function fragmentFocusOut(event: FocusEvent) {
+  const next = event.relatedTarget;
+  const contentId = fragmentAnchor.value
+    ?.querySelector('[data-slot="hls-fragments-trigger"]')
+    ?.getAttribute("aria-controls");
+  if (
+    next instanceof Node &&
+    (fragmentAnchor.value?.contains(next) ||
+      (contentId && document.getElementById(contentId)?.contains(next)))
+  )
+    return;
+  closeFragmentList();
 }
 async function copyFragment() {
   if (!fragment.value) return;
@@ -471,6 +518,7 @@ onBeforeUnmount(() => {
   cancelLoad();
   endDrag();
   clearCopy();
+  clearFragmentClose();
   pendingSeek = undefined;
 });
 </script>
@@ -729,6 +777,143 @@ onBeforeUnmount(() => {
                       >使用选区</slot
                     ></Button
                   >
+                  <div
+                    ref="fragmentAnchor"
+                    class="hls-fragment-popover"
+                    @mouseenter="openFragmentList"
+                    @mouseleave="closeFragmentList"
+                    @focusin="openFragmentList"
+                    @focusout="fragmentFocusOut"
+                  >
+                    <Popover
+                      :open="fragmentListOpen"
+                      @update:open="updateFragmentList"
+                    >
+                      <PopoverTrigger as-child>
+                        <Button
+                          data-slot="hls-fragments-trigger"
+                          variant="outline"
+                          size="sm"
+                          :disabled="!active"
+                          :aria-expanded="fragmentListOpen"
+                          @mouseenter="openFragmentList"
+                          @focus="openFragmentList"
+                        >
+                          <LocateFixed class="size-3.5" />
+                          分片列表
+                          <span class="font-normal text-muted-foreground"
+                            >{{ parsed.fragments.length }} 个</span
+                          >
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="end"
+                        side="bottom"
+                        :side-offset="6"
+                        :collision-padding="16"
+                        :style="fragmentPopupStyle"
+                        class="hls-fragment-popover-panel flex max-h-[var(--reka-popover-content-available-height)] w-[min(48rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg p-0"
+                        aria-label="选择要定位的分片"
+                        @mouseenter="openFragmentList"
+                        @mouseleave="closeFragmentList"
+                        @focusin="openFragmentList"
+                        @focusout="fragmentFocusOut"
+                        @open-auto-focus.prevent
+                        @close-auto-focus.prevent
+                      >
+                        <div
+                          class="flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3"
+                        >
+                          <span class="text-sm font-medium"
+                            >选择要定位的分片</span
+                          >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            :disabled="!active"
+                            @click="locateCurrent"
+                          >
+                            <LocateFixed class="size-3.5" />定位当前
+                          </Button>
+                        </div>
+                        <ol
+                          data-slot="hls-fragments"
+                          class="max-h-64 min-h-0 overflow-y-auto p-1"
+                        >
+                          <li
+                            v-for="part in visibleFragments"
+                            :key="part.index"
+                          >
+                            <button
+                              type="button"
+                              class="flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="
+                                fragment?.index === part.index
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'text-foreground'
+                              "
+                              :aria-current="
+                                fragment?.index === part.index
+                                  ? 'true'
+                                  : undefined
+                              "
+                              :disabled="!active"
+                              @click="seek(part.startSeconds)"
+                            >
+                              <span class="w-10 shrink-0 tabular-nums"
+                                >#{{ part.index + 1 }}</span
+                              >
+                              <span class="w-44 shrink-0 tabular-nums"
+                                >{{ formatTime(part.startSeconds) }} —
+                                {{ formatTime(part.endSeconds) }}</span
+                              >
+                              <span
+                                class="min-w-0 flex-1 truncate"
+                                :title="part.uri"
+                                >{{ part.uri }}</span
+                              >
+                              <span
+                                v-if="part.discontinuity"
+                                class="shrink-0 text-muted-foreground"
+                                >断点</span
+                              >
+                            </button>
+                          </li>
+                        </ol>
+                        <div
+                          class="flex shrink-0 items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground"
+                        >
+                          <span
+                            >{{ (page - 1) * pageSize + 1 }}–{{
+                              Math.min(page * pageSize, parsed.fragments.length)
+                            }}
+                            / {{ parsed.fragments.length }}</span
+                          >
+                          <div class="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              aria-label="上一页分片"
+                              :disabled="page <= 1"
+                              @click="page--"
+                              ><ChevronLeft class="size-4"
+                            /></Button>
+                            <span class="tabular-nums"
+                              >{{ page }} / {{ pageCount }}</span
+                            >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              aria-label="下一页分片"
+                              :disabled="page >= pageCount"
+                              @click="page++"
+                              ><ChevronRight class="size-4"
+                            /></Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </div>
               <slot
@@ -786,115 +971,6 @@ onBeforeUnmount(() => {
           </aside>
         </div>
       </div>
-
-      <div
-        class="hls-fragment-popover mt-4 flex justify-end"
-        @mouseenter="openFragmentList"
-        @mouseleave="closeFragmentList"
-      >
-        <div class="relative">
-          <Button
-            data-slot="hls-fragments-trigger"
-            variant="outline"
-            size="sm"
-            :disabled="!active"
-            :aria-expanded="fragmentListOpen"
-            aria-haspopup="listbox"
-            @mouseenter="openFragmentList"
-            @focus="openFragmentList"
-            @blur="closeFragmentList"
-          >
-            <LocateFixed class="size-3.5" />
-            分片列表
-            <span class="font-normal text-muted-foreground"
-              >{{ parsed.fragments.length }} 个</span
-            >
-          </Button>
-          <div
-            v-show="fragmentListOpen"
-            class="hls-fragment-popover-panel absolute right-0 top-full z-40 mt-1 w-[min(48rem,calc(100vw-2rem))] overflow-hidden rounded-lg border bg-card shadow-lg"
-            @mouseenter="openFragmentList"
-            @mouseleave="closeFragmentList"
-          >
-            <div
-              class="flex items-center justify-between gap-2 border-b px-4 py-3"
-            >
-              <span class="text-sm font-medium">选择要定位的分片</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                :disabled="!active"
-                @click="locateCurrent"
-              >
-                <LocateFixed class="size-3.5" />定位当前
-              </Button>
-            </div>
-            <ol data-slot="hls-fragments" class="max-h-64 overflow-y-auto p-1">
-              <li v-for="part in visibleFragments" :key="part.index">
-                <button
-                  type="button"
-                  class="flex w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-xs transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  :class="
-                    fragment?.index === part.index
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-foreground'
-                  "
-                  :aria-current="
-                    fragment?.index === part.index ? 'true' : undefined
-                  "
-                  :disabled="!active"
-                  @click="seek(part.startSeconds)"
-                >
-                  <span class="w-10 shrink-0 tabular-nums"
-                    >#{{ part.index + 1 }}</span
-                  >
-                  <span class="w-44 shrink-0 tabular-nums"
-                    >{{ formatTime(part.startSeconds) }} —
-                    {{ formatTime(part.endSeconds) }}</span
-                  >
-                  <span class="min-w-0 flex-1 truncate" :title="part.uri">{{
-                    part.uri
-                  }}</span>
-                  <span
-                    v-if="part.discontinuity"
-                    class="shrink-0 text-muted-foreground"
-                    >断点</span
-                  >
-                </button>
-              </li>
-            </ol>
-            <div
-              class="flex items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground"
-            >
-              <span
-                >{{ (page - 1) * pageSize + 1 }}–{{
-                  Math.min(page * pageSize, parsed.fragments.length)
-                }}
-                / {{ parsed.fragments.length }}</span
-              >
-              <div class="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label="上一页分片"
-                  :disabled="page <= 1"
-                  @click="page--"
-                  ><ChevronLeft class="size-4"
-                /></Button>
-                <span class="tabular-nums">{{ page }} / {{ pageCount }}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label="下一页分片"
-                  :disabled="page >= pageCount"
-                  @click="page++"
-                  ><ChevronRight class="size-4"
-                /></Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </template>
   </section>
 </template>
@@ -938,13 +1014,6 @@ onBeforeUnmount(() => {
   height: 4px;
   border-radius: 9999px;
   background: var(--muted);
-}
-.hls-fragment-popover {
-  position: relative;
-  z-index: 30;
-}
-.hls-fragment-popover-panel {
-  min-width: min(30rem, calc(100vw - 2rem));
 }
 /* Keep both handles reachable even when one segment is only a few pixels wide. */
 [data-slot="hls-range-start"] {
