@@ -20,6 +20,7 @@ import FormRequiredMark from './FormRequiredMark.vue'
 import { useFieldId } from './form-dom'
 import { isMultiSelectFieldComponent, resolveFieldDefault } from './form-defaults'
 import { updateFormFieldValue } from './form-field-update'
+import { isFormSectionStart } from './form-sections'
 
 const fieldId = useFieldId()
 
@@ -291,7 +292,7 @@ watchEffect(() => {
     <FieldGroup :class="props.api.props.fieldGroupClass">
         <template v-for="(item, idx) in props.schema" :key="item.fieldName + ':' + idx">
             <div
-                v-if="item.section && item.section !== props.schema[idx - 1]?.section"
+                v-if="isFormSectionStart(props.schema, idx, isRendered)"
                 class="col-span-full border-b border-border/70 pb-2 pt-1"
             >
                 <p class="text-sm font-semibold tracking-tight">{{ item.section }}</p>

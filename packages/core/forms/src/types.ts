@@ -48,7 +48,7 @@ export interface FormFieldSchema {
     component: FormComponent
     /** Custom pickers can validate a committed model update like built-in selectors. */
     validateOnModelUpdate?: boolean
-    /** Optional section heading rendered before the first field in a section. */
+    /** Optional heading before the first visible field of a contiguous section. */
     section?: string
     /** Additional classes applied to the field wrapper for responsive layouts. */
     fieldClass?: string
