@@ -76,8 +76,7 @@ registerAppRouter({
 ## 运行和验证
 
 ```bash
-pnpm --filter mock-api dev       # 127.0.0.1:4174
-pnpm --filter <name> dev        # 应用端口由 Vite 配置决定
+pnpm dev <name> --mock         # 同时启动应用和 127.0.0.1:4174 的 Mock API
 pnpm --filter <name> exec vue-tsc --noEmit
 pnpm --filter @airovo/app test
 ```

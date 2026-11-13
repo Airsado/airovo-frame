@@ -8,7 +8,9 @@
     "preinstall": "node scripts/check-pnpm-version.mjs",
     "create:app": "pnpm --filter @airovo/create-app build && node internal/create-app/dist/index.js",
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "node scripts/dev.mjs",
+    "dev:all": "node scripts/dev.mjs --all",
+    "dev:demo": "node scripts/dev.mjs playwright --mock",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "verify:sidebar": "node scripts/verify-sidebar-matrix.mjs",
@@ -23,6 +25,7 @@
     "eslint": "^8.57.0",
     "playwright": "1.64.0",
     "prettier": "^3.2.5",
+    "prompts": "^2.4.2",
     "turbo": "^2.9.14"
   },
   "packageManager": "pnpm@9.15.4",
