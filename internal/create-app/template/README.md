@@ -42,6 +42,8 @@ The template's API modules and auth handlers remain application-owned. Replace
 framework packages should not be edited for business endpoint changes.
 
 ```bash
-pnpm --filter mock-api dev
-pnpm --filter __APP_NAME__ dev
+pnpm dev __APP_NAME__ --mock
 ```
+
+Run `pnpm dev` to select an app interactively. When connecting a real backend,
+disable `VITE_NITRO_MOCK` and start with `pnpm dev __APP_NAME__` instead.

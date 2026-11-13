@@ -121,9 +121,8 @@ async function main() {
     console.log(`  cd ${workspaceRoot}`)
     console.log(`  pnpm install`)
     console.log(`  Adjust .env, .env.development, or .env.production for API/title/port if needed`)
-    console.log(`  pnpm --filter mock-api dev            # Nitro API at http://127.0.0.1:4174`)
-    console.log(`  # In another terminal:`)
-    console.log(`  pnpm --filter ${name} dev`)
+    console.log(`  pnpm dev ${name} --mock               # App + Nitro API at http://127.0.0.1:4174`)
+    console.log(`  # Or run pnpm dev to select an app interactively.`)
 }
 
 main().catch((err) => {

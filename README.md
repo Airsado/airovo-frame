@@ -41,20 +41,37 @@ pnpm --version
 ```bash
 pnpm install
 
-# 终端一：启动 Nitro mock API
-pnpm --filter mock-api dev
-
-# 终端二：启动演示应用
-pnpm --filter playwright dev
+# 启动演示应用及其 Nitro mock API
+pnpm dev:demo
 ```
 
 打开 <http://localhost:5174/dashboard/overview>，使用演示账号 `admin / 123456` 登录。mock API 默认地址为 <http://127.0.0.1:4174>。
 
-也可以使用 Turbo 启动工作区任务：
+根目录的启动命令会自动发现 `apps/*` 中包含 `dev` 脚本的应用，新建应用无需修改启动脚本：
 
 ```bash
+# 方向键选择应用，回车确认；随后选择是否同时启动 Mock API
 pnpm dev
+
+# 直接启动指定应用（支持 package.json 的 name 或应用目录名）
+pnpm dev my-app
+pnpm dev --app @scope/my-app
+
+# 使用默认 Mock API 的应用可在同一个终端同时启动
+pnpm dev my-app --mock
+
+# 列出应用，或显式启动所有应用
+pnpm dev --list
+pnpm dev:all
+
+# 只查看将运行的 Turbo 任务，不启动服务
+pnpm dev my-app --dry-run
 ```
+
+选定应用后仍由 Turbo 执行依赖预构建，但不会顺带启动其它应用或脚手架的监听任务。
+交互中按 `Ctrl+C` 可取消；没有交互终端时必须明确指定应用或使用 `dev:all`。
+接入真实后端时不加 `--mock`；演示应用和新生成模板默认使用 Mock API。
+需要透传 Vite 参数时，继续使用 `pnpm --filter <package-name> dev --port 5180`。
 
 当只需要验证框架包时，可以运行：
 
@@ -74,8 +91,7 @@ pnpm --filter @airovo/app test
 ```bash
 pnpm create:app my-app
 pnpm install
-pnpm --filter mock-api dev
-pnpm --filter my-app dev
+pnpm dev my-app --mock
 ```
 
 生成的应用会包含：

@@ -7,8 +7,11 @@ The public overview is in README.md; this file records implementation boundaries
 
 - pnpm 9.15.4 and Node 20.19.x (or >= 22.12.0) are required by Vite 8. Run `pnpm install` after editing a
   package manifest or the workspace catalog.
-- `pnpm dev` starts the Nitro mock API and demo app. The mock API listens on
-  127.0.0.1:4174; the demo normally uses port 5174.
+- `pnpm dev` selects an app from `apps/*` interactively and asks whether to include
+  the Nitro mock API. `pnpm dev <app>` starts only that app; add `--mock` when needed.
+  `pnpm dev:demo` starts the demo with mock API (127.0.0.1:4174; demo port 5174).
+  `pnpm dev:all` starts all apps, excluding internal tool watchers. These commands
+  retain Turbo's dependency builds. `pnpm dev --list` lists runnable apps.
 - `pnpm --filter playwright exec vue-tsc --noEmit` typechecks the demo and the
   source-consumed framework packages.
 - `pnpm --filter @airovo/<package> test` runs a package's Vitest suite.
