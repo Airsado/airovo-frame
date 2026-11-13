@@ -9,4 +9,9 @@ export interface RegisterValues {
     email: string
     password: string
     confirmPassword: string
+    /** Optional one-time token returned by the email verification flow. */
+    verificationToken?: string
+    /** Optional account recovery question configured at registration time. */
+    securityQuestion?: string
+    securityAnswer?: string
 }
